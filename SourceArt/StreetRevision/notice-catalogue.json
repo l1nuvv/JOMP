@@ -1,0 +1,184 @@
+{
+  "notices": [
+    {
+      "name": "01_LostCat",
+      "opaque": false,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "02_Cinema",
+      "opaque": true,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "03_QuietYard",
+      "opaque": false,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "04_ShoeRepair",
+      "opaque": false,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "05_Garage",
+      "opaque": false,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "name": "06_Neighbours",
+      "opaque": false,
+      "width": 768,
+      "height": 640
+    },
+    {
+      "name": "07_OldWarning",
+      "opaque": false,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "08_Electrician",
+      "opaque": false,
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "09_Plants",
+      "opaque": false,
+      "width": 768,
+      "height": 640
+    },
+    {
+      "name": "10_OldCinema",
+      "opaque": false,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "name": "11_BicycleWorkshop",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "12_BookExchange",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "13_TeaInTheYard",
+      "opaque": true,
+      "width": 512,
+      "height": 427
+    },
+    {
+      "name": "14_FoundKeys",
+      "opaque": true,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "15_WaterNotice",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "16_ChessClub",
+      "opaque": true,
+      "width": 512,
+      "height": 597
+    },
+    {
+      "name": "17_SeedExchange",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "18_Alterations",
+      "opaque": false,
+      "width": 512,
+      "height": 819
+    },
+    {
+      "name": "19_RadioRepair",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "20_BreadWindow",
+      "opaque": true,
+      "width": 512,
+      "height": 597
+    },
+    {
+      "name": "21_DogWalker",
+      "opaque": false,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "22_PhotoWalk",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "23_YardTheatre",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "24_FleaMarket",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "25_PianoLessons",
+      "opaque": false,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "26_Stargazing",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "27_CleanUp",
+      "opaque": true,
+      "width": 512,
+      "height": 683
+    },
+    {
+      "name": "28_LostMitten",
+      "opaque": true,
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "29_ParcelNote",
+      "opaque": true,
+      "width": 512,
+      "height": 341
+    },
+    {
+      "name": "30_OldSummerFair",
+      "opaque": false,
+      "width": 512,
+      "height": 683
+    }
+  ]
+}

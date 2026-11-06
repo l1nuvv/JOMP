@@ -1,0 +1,48 @@
+# Unity-generated data and local editor state
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emory[Cc]aptures/
+/[Rr]ecordings/
+/[Bb]uild/
+/[Bb]uilds/
+/.vs/
+/.vscode/
+/.idea/
+/.plastic/
+/.codex-remote-attachments/
+
+# Generated IDE and debugging files
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity and platform-generated files
+sysinfo.txt
+crashlytics-build.properties
+~UnityDirMonSyncFile~*
+*.apk
+*.aab
+*.unitypackage
+*.blend[0-9]
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Python caches from source-art helper scripts
+__pycache__/
+*.py[cod]

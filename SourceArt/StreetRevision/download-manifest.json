@@ -1,0 +1,58 @@
+[
+  {
+    "asset": "tool_cart",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/fbx/1k/tool_cart/tool_cart_1k.fbx",
+    "file": "tool_cart_1k.fbx",
+    "md5": "56c12b8cd26a5bbfa82839e73f4a2209",
+    "bytes": 850700
+  },
+  {
+    "asset": "tool_cart",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tool_cart/tool_cart_diff_1k.jpg",
+    "file": "tool_cart_diff_1k.jpg",
+    "md5": "ef4fa51d6dec090496d15e25ad913422",
+    "bytes": 711555
+  },
+  {
+    "asset": "tool_cart",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tool_cart/tool_cart_nor_gl_1k.jpg",
+    "file": "tool_cart_nor_gl_1k.jpg",
+    "md5": "fa4ff0ac0b68c52b3a51ed09ec77ce98",
+    "bytes": 817628
+  },
+  {
+    "asset": "painted_wooden_bench",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/fbx/1k/painted_wooden_bench/painted_wooden_bench_1k.fbx",
+    "file": "painted_wooden_bench_1k.fbx",
+    "md5": "75f72eddc9b9769732a41c8f55f91f9a",
+    "bytes": 44844
+  },
+  {
+    "asset": "painted_wooden_bench",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_diff_1k.jpg",
+    "file": "painted_wooden_bench_diff_1k.jpg",
+    "md5": "60c7d0f34f52b1003345d318e35f468d",
+    "bytes": 545216
+  },
+  {
+    "asset": "painted_wooden_bench",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_nor_gl_1k.jpg",
+    "file": "painted_wooden_bench_nor_gl_1k.jpg",
+    "md5": "08b74bebcff262c14beae35a4f7b3405",
+    "bytes": 830104
+  },
+  {
+    "asset": "painted_plaster_wall",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/painted_plaster_wall/painted_plaster_wall_diff_1k.jpg",
+    "file": "painted_plaster_wall_diff_1k.jpg",
+    "md5": "15ba8c1f63a5ab412b1eabe31728540a",
+    "bytes": 686726
+  },
+  {
+    "asset": "painted_plaster_wall",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/painted_plaster_wall/painted_plaster_wall_nor_gl_1k.jpg",
+    "file": "painted_plaster_wall_nor_gl_1k.jpg",
+    "md5": "43fff290583dbdfc9bfa088a2750e840",
+    "bytes": 900461
+  }
+]

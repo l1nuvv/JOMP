@@ -1,0 +1,3 @@
+12 skill folders / 34 files adapted from Hustle & Scale on 2026-10-28. Original references retained; per-project context added. Context overrides generic greybox advice, excessive effects and refresh assumptions. Core documentation was rewritten for this project, not copied from city gameplay.
+
+Validation: project document links checked. Skill name/description frontmatter and local Markdown references checked through Unity MCP. The bundled quick_validate.py could not run because PyYAML is absent in both available Python runtimes; attempted local dependency resolution failed. Do not claim that validator passed. No global Python installation was modified.

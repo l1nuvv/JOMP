@@ -1,0 +1,22 @@
+00:01.485  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Dots Stroke'
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:37:16)
+00:01.485  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Material'
+00:01.829  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Dots Stroke'
+00:01.829  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Material'
+00:01.875  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Dots Stroke'
+00:01.875  reports          | WARNING Path 'Y:\SteamLibrary\steamapps\common\Blender\5.2\datafiles\assets\brushes\essentials_brushes-gp_draw.blend' cannot be made relative for Material 'Material'
+Info: Saved copy as "Card.blend"
+
+FBX export starting... 'E:\\Code\\Unity\\Just One More Peel\\Assets\\JustOneMorePeel\\Art\\Tools\\Card.fbx'
+export finished in 0.0110 sec.
+Info: Saved copy as "Scraper.blend"
+
+FBX export starting... 'E:\\Code\\Unity\\Just One More Peel\\Assets\\JustOneMorePeel\\Art\\Tools\\Scraper.fbx'
+export finished in 0.0165 sec.
+Info: Saved copy as "Steamer.blend"
+
+FBX export starting... 'E:\\Code\\Unity\\Just One More Peel\\Assets\\JustOneMorePeel\\Art\\Tools\\Steamer.fbx'
+export finished in 0.0147 sec.
+TOOLS_EXPORTED: Card.fbx, Scraper.fbx, Steamer.fbx; metres, separated material slots
+
+Blender quit

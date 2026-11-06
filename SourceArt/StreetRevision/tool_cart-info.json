@@ -1,0 +1,57 @@
+{
+  "type": 2,
+  "name": "Tool Cart",
+  "categories": [
+    "collection: project_lighthouse",
+    "industrial",
+    "furniture",
+    "table"
+  ],
+  "category": "Furniture/Storage Furniture/Carts & Trolleys",
+  "tags": [
+    "rusted",
+    "metal",
+    "cart",
+    "drawer",
+    "rolling",
+    "workshop",
+    "casters",
+    "garage",
+    "workbench"
+  ],
+  "description": "Free 8K model of a worn green metal tool cart with raised-lip top, lower shelf, two side drawers, riveted frame, chipped paint, rust, and casters.",
+  "authors": {
+    "Savva Zakharov": "All"
+  },
+  "donated": true,
+  "category_id": "42ae5c98-8e4b-5162-a481-57a1eff29af3",
+  "max_resolution": [
+    8192,
+    8192
+  ],
+  "polycount": 29394,
+  "files_hash": "05721491e72ee7cf51d9e1acca348145e5a0565c",
+  "texel_density": 3107.756399811999,
+  "dimensions": [
+    1273.4254002571106,
+    753.6306381225586,
+    964.644730091095
+  ],
+  "date_published": 1783036800,
+  "staging": null,
+  "collections": [
+    "project_lighthouse"
+  ],
+  "attributes": {
+    "material": [
+      "steel",
+      "rubber"
+    ],
+    "condition": [
+      "rusted"
+    ]
+  },
+  "img_version": "7a864cfc",
+  "download_count": 2642,
+  "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/tool_cart.png?width=256&height=256&format=webp&v=7a864cfc"
+}

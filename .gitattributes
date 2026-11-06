@@ -1,0 +1,43 @@
+# Normalize text files while letting Git detect binary assets.
+* text=auto
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+
+# Unity YAML and common project configuration use LF in the repository and working tree.
+*.meta text eol=lf
+*.unity text=auto eol=lf
+*.prefab text=auto eol=lf
+*.mat text=auto eol=lf
+*.asset text=auto eol=lf
+*.anim text=auto eol=lf
+*.controller text=auto eol=lf
+*.overrideController text=auto eol=lf
+*.playable text=auto eol=lf
+*.cs text eol=lf
+*.shader text eol=lf
+*.hlsl text eol=lf
+*.compute text eol=lf
+*.json text eol=lf
+*.asmdef text eol=lf
+*.asmref text eol=lf
+*.inputactions text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+
+# Binary assets should never be line-ending converted or text-merged.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tif binary
+*.tiff binary
+*.exr binary
+*.psd binary
+*.fbx binary
+*.glb binary
+*.blend binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.ttf binary
+*.otf binary

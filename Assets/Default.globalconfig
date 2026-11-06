@@ -1,0 +1,12 @@
+# Unity loads this configuration for predefined assemblies and asmdefs.
+is_global = true
+
+# Unity's built-in analyzers: APIs that can behave incorrectly in the Editor.
+dotnet_diagnostic.UAC0005.severity = warning
+dotnet_diagnostic.UAC0007.severity = warning
+dotnet_diagnostic.UAC0021.severity = warning
+dotnet_diagnostic.UAC0023.severity = warning
+
+# Unity serialization: unsupported dictionary keys and missing SerializeField.
+dotnet_diagnostic.UAC1013.severity = warning
+dotnet_diagnostic.UAC1015.severity = warning

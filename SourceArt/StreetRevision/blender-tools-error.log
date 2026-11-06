@@ -1,0 +1,2 @@
+E:\Code\Unity\Just One More Peel\SourceArt\StreetRevision\build_tools.py:12: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.diffuse_color=color;m.use_nodes=True
