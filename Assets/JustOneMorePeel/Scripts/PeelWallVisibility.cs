@@ -58,7 +58,8 @@ namespace JustOneMorePeel
                 if(patch.stack.IsRenderVisible!=visible)
                 {
                     patch.stack.IsRenderVisible=visible;
-                    foreach(var renderer in patch.renderers)renderer.forceRenderingOff=!visible;
+                    foreach(var renderer in patch.renderers)
+                        if(!patch.stack.IsDoorBatched(renderer))renderer.forceRenderingOff=!visible;
                 }
             }
         }
@@ -67,7 +68,8 @@ namespace JustOneMorePeel
             foreach(var patch in patches)
             {
                 if(patch.stack)patch.stack.IsRenderVisible=true;
-                foreach(var r in patch.renderers)if(r)r.forceRenderingOff=false;
+                foreach(var r in patch.renderers)
+                    if(r && (!patch.stack || !patch.stack.IsDoorBatched(r)))r.forceRenderingOff=false;
             }
         }
     }

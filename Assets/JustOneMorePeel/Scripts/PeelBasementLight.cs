@@ -35,11 +35,11 @@ namespace JustOneMorePeel
                 }
             }
             SetLight(false);
-            if(game.Settings)game.Settings.Changed+=RefreshDarkSurfaces;
+            if(game.Settings)game.Settings.Changed+=RefreshMaterials;
         }
         void OnDestroy()
         {
-            if(game && game.Settings)game.Settings.Changed-=RefreshDarkSurfaces;
+            if(game && game.Settings)game.Settings.Changed-=RefreshMaterials;
             foreach(var material in dimMaterials.Values)if(material)Destroy(material);
         }
         void Update()
@@ -79,38 +79,39 @@ namespace JustOneMorePeel
         void SetLight(bool on)
         {
             IsOn=on;basementLamp.enabled=on;
-            if(route)route.ReviewLightingChanged(on);
+            if(route)route.BasementLightingChanged(on);
             for(int i=0;i<surfaces.Count;i++)
             {
                 if(!surfaces[i])continue;
                 if(on){surfaces[i].sharedMaterials=originalMaterials[i];continue;}
-                var materials=originalMaterials[i];
-                var dim=new Material[materials.Length];
-                for(int n=0;n<dim.Length;n++)dim[n]=DimMaterial(materials[n]);
-                surfaces[i].sharedMaterials=dim;
+                ApplyDarkMaterials(i);
             }
         }
-        void RefreshDarkSurfaces()
+        void ApplyDarkMaterials(int i)
         {
-            if(IsOn)return;
+            var materials=originalMaterials[i];
+            var dim=new Material[materials.Length];
+            for(int n=0;n<dim.Length;n++)dim[n]=DimMaterial(materials[n]);
+            surfaces[i].sharedMaterials=dim;
+        }
+        void RefreshMaterials()
+        {
+            // PeelGame refreshes localized materials before this subscriber runs.
             for(int i=0;i<surfaces.Count;i++)
             {
                 if(!surfaces[i])continue;
                 CaptureChangedMaterials(i);
+                if(!IsOn)ApplyDarkMaterials(i);
             }
-            SetLight(false);
         }
-        public void RefreshAfterPosterAdvance(PeelPosterStack stack)
+        public void RefreshPosterMaterials(PeelPosterStack stack)
         {
-            if(IsOn || !stack || !stack.transform.IsChildOf(basementRoot))return;
+            if(!stack || !stack.transform.IsChildOf(basementRoot))return;
             for(int i=0;i<surfaces.Count;i++)
             {
                 if(!surfaces[i] || !surfaces[i].transform.IsChildOf(stack.transform))continue;
                 CaptureChangedMaterials(i);
-                var materials=originalMaterials[i];
-                var dim=new Material[materials.Length];
-                for(int n=0;n<dim.Length;n++)dim[n]=DimMaterial(materials[n]);
-                surfaces[i].sharedMaterials=dim;
+                if(!IsOn)ApplyDarkMaterials(i);
             }
         }
         void CaptureChangedMaterials(int i)

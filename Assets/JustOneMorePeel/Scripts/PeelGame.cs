@@ -62,12 +62,22 @@ namespace JustOneMorePeel
         AudioSource audioSource, musicSource, basementMusicSource;
         float basementMusicMix;
         PeelWallVisibility wallVisibility;
+        MillionPosterField posterField;
         PeelAreaExperiment areaExperiment;
         PeelRoutePrototype routePrototype;
         PeelBasementLight basementLight;
         bool worldSession, saveBlocked, saveWriteFailed, saveSucceeded, restarting;
+        bool recoveryPending, resetFailed;
+        enum SaveEntry { New, Continue, Backup, Unreadable, Incompatible }
+        SaveEntry saveEntry;
+        string inspectedSavePath;
+        PeelScreen restartReturn;
+        Vector3 gripPoint;
+        Vector3 spawnPosition;
+        Quaternion spawnRotation;
         float nextWorldSave, recoveryNoticeUntil, completionNoticeUntil;
         bool completionSeen;
+        bool applicationFocused=true;
 #if UNITY_EDITOR
         public static string WorldSavePathOverride;
 #endif
@@ -97,6 +107,7 @@ namespace JustOneMorePeel
             title=text=small=center=button=null;
             if(!view)view=Camera.main;
             if(!view || !player){Debug.LogError("PeelGame: missing player or camera",this);enabled=false;return;}
+            spawnPosition=player.transform.position;spawnRotation=player.transform.rotation;
             Application.runInBackground=true;
             controller=player.GetComponentInChildren<FirstPersonController>();
             inputs=player.GetComponentInChildren<StarterAssetsInputs>();
@@ -127,13 +138,21 @@ namespace JustOneMorePeel
             foreach(var stack in FindObjectsByType<PeelPosterStack>())
             {stacks.Add(stack);stack.Initialize(this);TotalPosters+=stack.PosterCount;}
             wallVisibility=gameObject.AddComponent<PeelWallVisibility>();wallVisibility.Initialize(view,stacks);
+            posterField=GetComponent<MillionPosterField>();
+            if(posterField)
+            {
+                posterField.Initialize(this);
+                TotalPosters+=MillionPosterField.PosterCount;
+            }
             areaExperiment=GetComponent<PeelAreaExperiment>();
             routePrototype=GetComponent<PeelRoutePrototype>();
+            if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
             total=TotalPosters*4;removed=0;ClearedPosters=0;
             Settings.Changed+=ApplySettings;ApplySettings();
             new GameObject("First person tool").AddComponent<PeelToolView>().Initialize(this,starterViewPrefab,scraperViewPrefab,steamerViewPrefab);
-            CurrentScreen=PeelScreen.Intro;AwaitingRelease=true;noticeUntil=Time.time+5;RefreshCursor();
+            CurrentScreen=posterField?PeelScreen.Playing:PeelScreen.Intro;
+            AwaitingRelease=true;noticeUntil=Time.time+5;RefreshCursor();
         }
         void ApplySettings()
         {
@@ -150,6 +169,17 @@ namespace JustOneMorePeel
         {
             UpdatePeelSound(Time.unscaledDeltaTime);
             UpdateAreaMusic(Time.unscaledDeltaTime);
+            if(!applicationFocused)return;
+            if(routePrototype && CurrentScreen==PeelScreen.Playing && player.transform.position.y < -10f)
+            {
+                Release();
+                var capsule=player.GetComponentInChildren<CharacterController>();
+                if(capsule)capsule.enabled=false;
+                player.transform.SetPositionAndRotation(spawnPosition,spawnRotation);
+                if(capsule)capsule.enabled=true;
+                if(controller)controller.RestoreLookPitch(0);
+                Physics.SyncTransforms();
+            }
             if(routePrototype && routePrototype.Completed && !completionSeen)
             {completionSeen=true;completionNoticeUntil=Time.unscaledTime+6f;}
             if(CurrentScreen==PeelScreen.Playing && (!routePrototype || !routePrototype.Completed))ElapsedPlayTime+=Time.unscaledDeltaTime;
@@ -186,7 +216,11 @@ namespace JustOneMorePeel
             }
             if(CurrentScreen!=PeelScreen.Playing)return;
             var mouse=Mouse.current;
-            if(mouse!=null)StepPeeling(mouse.leftButton.isPressed,mouse.delta.ReadValue(),Time.deltaTime);
+            if(mouse!=null)
+            {
+                if(mouse.leftButton.wasPressedThisFrame && Cursor.lockState!=CursorLockMode.Locked){Release();return;}
+                StepPeeling(mouse.leftButton.isPressed,mouse.delta.ReadValue(),Time.deltaTime);
+            }
         }
         void UpdateAreaMusic(float dt)
         {
@@ -206,7 +240,8 @@ namespace JustOneMorePeel
             if(CurrentScreen!=PeelScreen.Intro)return;
             if(routePrototype && !routePrototype.ReviewMode)
             {
-                worldSession=true;LoadWorld();nextWorldSave=Time.unscaledTime+5f;
+                if(!LoadWorld())return;
+                worldSession=true;nextWorldSave=Time.unscaledTime+5f;
             }
             SetScreen(PeelScreen.Playing);
         }
@@ -218,24 +253,25 @@ namespace JustOneMorePeel
         public void Back()
         {
             if(CurrentScreen==PeelScreen.Settings){Settings.Save();SetScreen(settingsReturn);}
-            else if(CurrentScreen==PeelScreen.ConfirmRestart)SetScreen(PeelScreen.Paused);
+            else if(CurrentScreen==PeelScreen.ConfirmRestart)SetScreen(restartReturn);
             else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop)SetScreen(PeelScreen.Playing);
         }
         public void RequestRestart()
         {
-            if(CurrentScreen==PeelScreen.Paused)SetScreen(PeelScreen.ConfirmRestart);
+            if(CurrentScreen!=PeelScreen.Paused && CurrentScreen!=PeelScreen.Intro)return;
+            restartReturn=CurrentScreen;resetFailed=false;SetScreen(PeelScreen.ConfirmRestart);
         }
         public void RestartShift()
         {
+            if(CurrentScreen!=PeelScreen.ConfirmRestart)return;
             Settings.Save();
             if(routePrototype && !routePrototype.ReviewMode)
             {
                 try
                 {
-                    if(File.Exists(WorldSavePath+".bak"))File.Delete(WorldSavePath+".bak");
-                    if(File.Exists(WorldSavePath))File.Delete(WorldSavePath);
+                    PeelWorldSave.Reset(WorldSavePath);
                 }
-                catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not reset world save: "+e.Message,this);return;}
+                catch(System.Exception e){resetFailed=true;menuSelection=0;focusMenu=true;Debug.LogError("Could not reset world save: "+e.Message,this);return;}
             }
             restarting=true;worldSession=false;
             var scene=SceneManager.GetActiveScene();
@@ -256,14 +292,20 @@ namespace JustOneMorePeel
         }
         bool SaveIndex(out Dictionary<string,PeelPosterStack> index)
         {
-            if(PeelPersistenceIds.TryIndex(stacks,out index,out var error))return true;
+            if(PeelPersistenceIds.TryIndex(stacks,out index,out var error))
+            {
+                int posters=0;
+                foreach(var stack in index.Values)posters+=stack.PosterCount;
+                if(index.Count>0 && TotalPosters>0 && posters==TotalPosters)return true;
+                error="Poster stack cache is incomplete; restart the play session before saving.";
+            }
             Debug.LogError("World save disabled: "+error,this);saveBlocked=true;return false;
         }
         internal void SaveWorld()
         {
             if(!worldSession || saveBlocked || restarting || !routePrototype || routePrototype.ReviewMode || !SaveIndex(out var index))return;
             saveSucceeded=false;
-            var data=new PeelWorldSave {version=1,scene=SceneManager.GetActiveScene().path,money=money,toolLevel=toolLevel,activeTool=activeTool,
+            var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=PeelWorldSave.RouteScene,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=ElapsedPlayTime,position=player.transform.position,
                 rotation=player.transform.rotation,firstDoorOpen=routePrototype.CourtyardDoorOpen,lightOn=basementLight && basementLight.IsOn,
                 stacks=new PeelStackSave[index.Count]};
@@ -284,9 +326,14 @@ namespace JustOneMorePeel
                 }
                 data.stacks[n++]=item;
             }
-            if(!PeelWorldSave.Validate(data,SceneManager.GetActiveScene().path,index,out var error))
+            if(!PeelWorldSave.Validate(data,PeelWorldSave.RouteScene,index,out var error))
             {Debug.LogError("World save rejected: "+error,this);saveBlocked=true;return;}
-            try { PeelWorldSave.Write(WorldSavePath,data);saveWriteFailed=false;saveSucceeded=true; }
+            try
+            {
+                // Do not rotate a damaged primary over the only readable backup.
+                if(recoveryPending){PeelWorldSave.Recover(WorldSavePath);recoveryPending=false;}
+                PeelWorldSave.Write(WorldSavePath,data);saveWriteFailed=false;saveSucceeded=true;
+            }
             catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not write world save: "+e.Message,this);}
         }
         string PauseSaveStatus()
@@ -295,48 +342,99 @@ namespace JustOneMorePeel
             if(routePrototype && routePrototype.ReviewMode)return ru ? "Осмотр не сохраняется" : "Route review is not saved";
             if(!worldSession)return "";
             if(saveBlocked || saveWriteFailed)return ru ? "Не удалось сохранить прогресс" : "Progress could not be saved";
-            return saveSucceeded ? (ru ? "Прогресс сохранён" : "Progress saved") : "";
+            return saveSucceeded ? (ru ? "Прогресс сохранён" : "Progress saved") : (ru ? "Ожидается первая запись" : "Waiting for first save");
         }
-        void LoadWorld()
+        SaveEntry InspectWorld(out PeelWorldSave data, out Dictionary<string,PeelPosterStack> index)
         {
-            if((!File.Exists(WorldSavePath) && !File.Exists(WorldSavePath+".bak")) || !SaveIndex(out var index))return;
+            data=null;index=null;
+            if(!File.Exists(WorldSavePath) && !File.Exists(WorldSavePath+".bak"))return SaveEntry.New;
+            if(!SaveIndex(out index))return SaveEntry.Unreadable;
+            try { data=ReadValidatedWorld(WorldSavePath,index);return SaveEntry.Continue; }
+            catch(System.NotSupportedException) { return SaveEntry.Incompatible; }
+            catch(System.Exception)
+            {
+                try { data=ReadValidatedWorld(WorldSavePath+".bak",index);return SaveEntry.Backup; }
+                catch(System.NotSupportedException) { return SaveEntry.Incompatible; }
+                catch(System.Exception) { return SaveEntry.Unreadable; }
+            }
+        }
+        bool LoadWorld()
+        {
+            inspectedSavePath=WorldSavePath;
+            saveEntry=InspectWorld(out var data,out var index);
+            if(saveEntry==SaveEntry.New)return true;
+            if(saveEntry==SaveEntry.Unreadable || saveEntry==SaveEntry.Incompatible){RequestRestart();return false;}
             try
             {
-                PeelWorldSave data;
-                try { data=ReadValidatedWorld(WorldSavePath,index); }
-                catch(System.NotSupportedException) { throw; }
-                catch(System.Exception)
+                if(saveEntry==SaveEntry.Backup)
                 {
-                    data=ReadValidatedWorld(WorldSavePath+".bak",index);
-                    PeelWorldSave.Recover(WorldSavePath);
+                    recoveryPending=true;
+                    try { PeelWorldSave.Recover(WorldSavePath);recoveryPending=false; }
+                    catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not restore backup to disk: "+e.Message,this);}
                     recoveryNoticeUntil=Time.unscaledTime+10f;
                 }
                 int savedRemoved=0,savedCleared=0;
                 foreach(var item in data.stacks)
                 {
                     var stack=index[item.id];stack.RestoreProgress(item.cleared,item.strips);
-                    if(basementLight)basementLight.RefreshAfterPosterAdvance(stack);
+                    if(basementLight)basementLight.RefreshPosterMaterials(stack);
                     savedCleared+=item.cleared;savedRemoved+=item.cleared*4;
                     foreach(float p in item.strips)if(p>=1)savedRemoved++;
                 }
                 money=data.money;toolLevel=data.toolLevel;activeTool=data.activeTool;steamUnlocked=data.steamUnlocked;steamExpanded=data.steamExpanded;
                 removed=savedRemoved;ClearedPosters=savedCleared;ElapsedPlayTime=data.elapsed;
-                player.transform.SetPositionAndRotation(data.position,data.rotation);
-                if(data.hasLookPitch && controller)controller.RestoreLookPitch(data.lookPitch);
                 routePrototype.RestoreProgress(data.firstDoorOpen);
                 if(basementLight)basementLight.RestoreProgress(data.lightOn);
                 Physics.SyncTransforms();
+                RestorePlayer(data);
+                return true;
             }
             catch(System.Exception e)
             {
                 saveBlocked=true;Debug.LogError("World save could not be loaded; the file was preserved: "+e.Message,this);
+                saveEntry=SaveEntry.Unreadable;return false;
             }
+        }
+        void RestorePlayer(PeelWorldSave data)
+        {
+            Vector3 position=data.position;
+            Quaternion rotation=Quaternion.Euler(0,data.rotation.eulerAngles.y,0);
+            float pitch=data.lookPitch;
+            bool restorePitch=data.hasLookPitch;
+            var capsule=player.GetComponentInChildren<CharacterController>();
+            if(capsule)
+            {
+                Vector3 center=capsule.transform.position-player.transform.position+capsule.transform.TransformVector(capsule.center)+data.position;
+                float radius=capsule.radius*.9f;
+                Vector3 axis=Vector3.up*Mathf.Max(0,capsule.height*.5f-capsule.radius);
+                bool blocked=false,supported=false;
+                foreach(var obstacle in Physics.OverlapCapsule(center-axis,center+axis,radius,~0,QueryTriggerInteraction.Ignore))
+                    if(!obstacle.transform.IsChildOf(player.transform)){blocked=true;break;}
+                foreach(var hit in Physics.RaycastAll(center,Vector3.down,5f,~0,QueryTriggerInteraction.Ignore))
+                    if(!hit.transform.IsChildOf(player.transform)){supported=true;break;}
+                if(blocked || !supported)
+                {
+                    Debug.LogWarning("Saved position is blocked or unsupported; using the scene spawn.",this);
+                    position=spawnPosition;rotation=spawnRotation;pitch=0;restorePitch=true;
+                }
+            }
+            player.transform.SetPositionAndRotation(position,rotation);
+            if(restorePitch && controller)controller.RestoreLookPitch(pitch);
+            Physics.SyncTransforms();
         }
         PeelWorldSave ReadValidatedWorld(string path,Dictionary<string,PeelPosterStack> index)
         {
             var data=PeelWorldSave.Read(path);
-            if(data!=null && data.version!=0 && data.version!=1)throw new System.NotSupportedException("Unsupported save version: "+data.version);
-            if(!PeelWorldSave.Validate(data,SceneManager.GetActiveScene().path,index,out var error))
+            if(data!=null && data.version==1 && data.scene==PeelWorldSave.LegacyRouteScene)
+            {
+                routePrototype.MigrateCourtyardSave(data);
+                data.version=2;data.scene=PeelWorldSave.RouteScene;
+            }
+            if(data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
+                routePrototype.MigrateInteriorSave(data);
+            if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=PeelWorldSave.RouteScene)))
+                throw new System.NotSupportedException("Unsupported save version or route.");
+            if(!PeelWorldSave.Validate(data,PeelWorldSave.RouteScene,index,out var error))
                 throw new System.IO.InvalidDataException(error);
             if(!routePrototype.CanRestoreProgress(data))throw new System.IO.InvalidDataException("Open door with uncleared wall");
             return data;
@@ -344,9 +442,10 @@ namespace JustOneMorePeel
         void NavigateMenu(Keyboard keyboard)
         {
             int count=CurrentScreen==PeelScreen.Intro?(routePrototype?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings || CurrentScreen==PeelScreen.Shop?4:3;
-            if(keyboard.tabKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame)
+            bool reverseTab=keyboard.tabKey.wasPressedThisFrame && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+            if((keyboard.tabKey.wasPressedThisFrame && !reverseTab) || keyboard.downArrowKey.wasPressedThisFrame)
             {menuSelection=(menuSelection+1)%count;focusMenu=true;}
-            if(keyboard.upArrowKey.wasPressedThisFrame){menuSelection=(menuSelection+count-1)%count;focusMenu=true;}
+            if(reverseTab || keyboard.upArrowKey.wasPressedThisFrame){menuSelection=(menuSelection+count-1)%count;focusMenu=true;}
             if(CurrentScreen==PeelScreen.Settings)
             {
                 int direction=keyboard.rightArrowKey.wasPressedThisFrame?1:keyboard.leftArrowKey.wasPressedThisFrame?-1:0;
@@ -358,7 +457,12 @@ namespace JustOneMorePeel
                 }
             }
             if(!keyboard.enterKey.wasPressedThisFrame && !keyboard.numpadEnterKey.wasPressedThisFrame)return;
-            if(CurrentScreen==PeelScreen.Intro){if(menuSelection==0)BeginShift();else if(menuSelection==1)OpenSettings();else if(routePrototype){routePrototype.OpenForReview();BeginShift();}}
+            if(CurrentScreen==PeelScreen.Intro)
+            {
+                if(menuSelection==0)BeginShift();
+                else if(menuSelection==1)OpenSettings();
+                else if(menuSelection==2 && routePrototype){routePrototype.OpenForReview();BeginShift();}
+            }
             else if(CurrentScreen==PeelScreen.Paused){if(menuSelection==0)Back();else if(menuSelection==1)OpenSettings();else RequestRestart();}
             else if(CurrentScreen==PeelScreen.ConfirmRestart){if(menuSelection==0)Back();else RestartShift();}
             else if(CurrentScreen==PeelScreen.Settings)
@@ -374,7 +478,12 @@ namespace JustOneMorePeel
         public void StepPeeling(bool pressed,Vector2 delta,float seconds)
         {
             target=null;
-            if(Physics.Raycast(view.transform.position,view.transform.forward,out var hit,reach))target=hit.collider.GetComponent<PeelStrip>();
+            if(Physics.Raycast(view.transform.position,view.transform.forward,out var hit,reach))
+            {
+                target=hit.collider.GetComponent<PeelStrip>();
+                if(pressed && !AwaitingRelease && posterField && workingStrips.Count==0)
+                    target=posterField.ResolveTarget(hit,target,view.transform.position,view.transform.forward);
+            }
             previewStacks.Clear();
             if(workingStrips.Count>0)previewStacks.AddRange(workingStacks);
             else if(target && target.IsExposed)
@@ -385,9 +494,15 @@ namespace JustOneMorePeel
             if(Outline)Outline.SetTargets(previewStacks);
             if(!pressed){Release();AwaitingRelease=false;return;}
             if(AwaitingRelease)return;
-            if(workingStrips.Count>0 && Vector3.Distance(view.transform.position,workingStrips[0].transform.position)>reach+1){Release();AwaitingRelease=false;return;}
+            if(workingStrips.Count>0 && !GripReachable())
+            {
+                Release();AwaitingRelease=false;
+                if(Outline)Outline.SetTarget(null);
+                return;
+            }
             if(workingStrips.Count==0 && target && target.IsExposed)
             {
+                gripPoint=hit.point;
                 if(toolLevel==0)workingStrips.Add(target);
                 else
                 {
@@ -410,7 +525,10 @@ namespace JustOneMorePeel
                 lookFrozen=true;RefreshCursor();
             }
             if(workingStrips.Count==0)return;
-            float amount=PeelAmount(delta,seconds,toolLevel,activeTool==1 && steamUnlocked);
+            bool usingSteam=activeTool==1 && steamUnlocked;
+            float amount=PeelAmount(delta,seconds,toolLevel,usingSteam);
+            if(toolLevel>0 && !usingSteam && workingStacks.Count==1 && workingStacks[0].PrecisionWork)
+                amount*=Mathf.Lerp(1f,3f,Mathf.Clamp01(Mathf.Abs(delta.x)/(Mathf.Max(seconds,.001f)*1200f)));
 #if UNITY_EDITOR
             if(testFastPeeling)amount*=10f;
 #endif
@@ -433,6 +551,14 @@ namespace JustOneMorePeel
                 // The next frame raycasts again, so a held button can continue only on a reachable visible sheet.
                 lookFrozen=false;RefreshCursor();
             }
+        }
+        bool GripReachable()
+        {
+            Vector3 offset=gripPoint-view.transform.position;
+            float distance=offset.magnitude;
+            if(distance>reach)return false;
+            if(posterField || !Physics.Raycast(view.transform.position,offset,out var obstruction,distance-.01f))return true;
+            return obstruction.collider.TryGetComponent<PeelStrip>(out var strip) && workingStrips.Contains(strip);
         }
         void AddPoster(PeelPosterStack stack)
         {
@@ -463,11 +589,16 @@ namespace JustOneMorePeel
         }
         bool VisiblePoster(PeelPosterStack stack)
         {
-            Vector3 aim=stack.transform.position+Vector3.back*.001f;
-            Vector3 direction=aim-view.transform.position;
-            return direction.magnitude<=reach && Vector3.Dot(view.transform.forward,direction.normalized)>.65f
-                && Physics.Raycast(view.transform.position,direction.normalized,out var hit,direction.magnitude+.08f)
-                && hit.collider.TryGetComponent<PeelStrip>(out var strip) && strip.Stack==stack && strip.IsExposed;
+            foreach(var strip in stack.CurrentStrips)
+            {
+                if(!strip.IsExposed)continue;
+                Vector3 direction=strip.transform.position-view.transform.position;
+                if(direction.magnitude<=reach && Vector3.Dot(view.transform.forward,direction.normalized)>.65f
+                    && Physics.Raycast(view.transform.position,direction.normalized,out var hit,Mathf.Min(reach,direction.magnitude+.08f))
+                    && hit.collider.TryGetComponent<PeelStrip>(out var exposed) && exposed.Stack==stack && exposed.IsExposed)
+                    return true;
+            }
+            return false;
         }
         public static float PeelAmount(Vector2 delta,float seconds,int level,bool steam)
         {
@@ -525,19 +656,23 @@ namespace JustOneMorePeel
         }
         public void Pay(PeelStrip strip)
         {
+            int previousMoney=money;
             removed++;money+=2;
             if(payoutFrame!=Time.frameCount)payoutAmount=0;
             payoutAmount+=2;payoutFrame=Time.frameCount;payoutUntil=Time.unscaledTime+1.25f;
             if(removed==total)Notify(PeelText.Finished);
+            else if(toolLevel<3 && previousMoney<UpgradeCost && money>=UpgradeCost)Notify(toolLevel==0?PeelText.ScraperAvailable:PeelText.SharpenAvailable);
+            else if(toolLevel>0 && !steamUnlocked && previousMoney<SteamCost && money>=SteamCost)Notify(PeelText.SteamAvailable);
+            else if(steamUnlocked && !steamExpanded && previousMoney<SteamExpansionCost && money>=SteamExpansionCost)Notify(PeelText.WiderSteamAvailable);
             else if(removed%40==0)Notify(PeelText.Milestone);
         }
         public void PosterCleared(PeelPosterStack stack) { ClearedPosters++;PosterWasCleared?.Invoke(stack); }
         public void PosterMaterialsChanged(PeelPosterStack stack)
-        { if(basementLight)basementLight.RefreshAfterPosterAdvance(stack); }
+        { if(basementLight)basementLight.RefreshPosterMaterials(stack); }
         void Notify(PeelText key) { notice=key;noticeUntil=Time.time+4; }
         void RefreshCursor()
         {
-            bool playing=CurrentScreen==PeelScreen.Playing;
+            bool playing=applicationFocused && CurrentScreen==PeelScreen.Playing;
             if(inputs)
             {
                 inputs.cursorLocked=playing;inputs.cursorInputForLook=playing && !lookFrozen;
@@ -553,7 +688,15 @@ namespace JustOneMorePeel
         void OnApplicationFocus(bool focused)
         {
             if(!Settings)return;
-            if(!focused){Release();if(worldSession)SaveWorld();if(Outline)Outline.SetTarget(null);}else RefreshCursor();
+            applicationFocused=focused;
+            if(!focused)
+            {
+                Release();
+                if(inputs){inputs.move=Vector2.zero;inputs.jump=false;inputs.sprint=false;}
+                if(worldSession)SaveWorld();
+                if(Outline)Outline.SetTarget(null);
+            }
+            else RefreshCursor();
         }
         void OnApplicationPause(bool paused) { if(paused && worldSession){Release();SaveWorld();} }
         void OnApplicationQuit() { if(worldSession){Release();SaveWorld();} }
@@ -630,10 +773,34 @@ namespace JustOneMorePeel
                 Panel(new Rect(38,h-326,625,288));
                 GUI.Label(new Rect(60,h-310,580,45),"Just One More Peel",title);
                 string intro=routePrototype ? (Settings.Language==PeelLanguage.Russian ? "Выйди из подъезда и исследуй стену объявлений.\nДержи ЛКМ, чтобы снимать бумагу.\nНа тележке можно купить инструменты." : "Leave your building and investigate the wall of notices.\nHold LMB to keep peeling paper.\nFind tools at the cart.") : T(PeelText.Intro);
-                GUI.Label(new Rect(60,h-252,580,112),intro,text);
-                string startLabel=routePrototype ? (File.Exists(WorldSavePath) || File.Exists(WorldSavePath+".bak") ? (Settings.Language==PeelLanguage.Russian ? "Продолжить · Enter" : "Continue · Enter") : (Settings.Language==PeelLanguage.Russian ? "Начать · Enter" : "Start · Enter")) : T(PeelText.Start);
+                GUI.Label(new Rect(60,h-252,580,100),intro,text);
+                bool ru=Settings.Language==PeelLanguage.Russian;
+                string startLabel=T(PeelText.Start);
                 if(routePrototype)
                 {
+                    if(inspectedSavePath!=WorldSavePath)
+                    {
+                        inspectedSavePath=WorldSavePath;
+                        saveEntry=InspectWorld(out _,out _);
+                    }
+                    string status="";
+                    switch(saveEntry)
+                    {
+                        case SaveEntry.Continue: startLabel=ru?"Продолжить":"Continue";break;
+                        case SaveEntry.Backup:
+                            startLabel=ru?"Из резерва":"Load backup";
+                            status=ru?"Основной файл недоступен. Можно загрузить резерв.":"The main save is unavailable. A backup is ready.";
+                            break;
+                        case SaveEntry.Unreadable:
+                        case SaveEntry.Incompatible:
+                            startLabel=ru?"Начать заново…":"Start over…";
+                            status=saveEntry==SaveEntry.Incompatible
+                                ? (ru?"Версия сохранения не поддерживается.":"This save version is unsupported.")
+                                : (ru?"Сохранение не читается.":"The save could not be read.");
+                            status+=ru?" Файлы сохранены.":" The files are preserved.";
+                            break;
+                    }
+                    GUI.Label(new Rect(60,h-140,580,30),status,small);
                     if(MenuButton(new Rect(60,h-102,180,42),startLabel,0))BeginShift();
                     if(MenuButton(new Rect(250,h-102,180,42),T(PeelText.Settings),1))OpenSettings();
                     if(MenuButton(new Rect(440,h-102,195,42),Settings.Language==PeelLanguage.Russian?"Осмотр маршрута":"Review route",2)){routePrototype.OpenForReview();BeginShift();}
@@ -646,7 +813,9 @@ namespace JustOneMorePeel
                 FocusMenu();return;
             }
             string tool=activeTool==1?T(PeelText.Steamer):toolLevel>0?T(PeelText.Scraper):T(PeelText.Card);
-            if(saveBlocked || saveWriteFailed)GUI.Label(new Rect(w/2-320,85,640,50),Settings.Language==PeelLanguage.Russian ? "Не удалось сохранить прогресс. Проверь файл сохранения." : "Could not save progress. Check the save file.",center);
+            if(saveBlocked || saveWriteFailed)GUI.Label(new Rect(w/2-320,85,640,50),Settings.Language==PeelLanguage.Russian
+                ? "Прогресс не записан. Проверь доступ к папке сохранений."
+                : "Progress was not saved. Check access to the save folder.",center);
             else if(CurrentScreen==PeelScreen.Playing && Time.unscaledTime<recoveryNoticeUntil)
             {
                 Panel(new Rect(w/2-360,85,720,60));
@@ -655,7 +824,18 @@ namespace JustOneMorePeel
             Panel(new Rect(0,h-49,w,49));
             int remaining=routePrototype ? routePrototype.RemainingHere : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
             string counter=routePrototype && routePrototype.ReviewMode ? (Settings.Language==PeelLanguage.Russian?"Осмотр маршрута":"Route review") : T(PeelText.RemainingPosters)+": "+remaining;
-            GUI.Label(new Rect(30,h-44,w-60,28),"$"+money+"    "+counter+"    "+tool+"    "+T(PeelText.SwitchTools),small);
+            if(routePrototype && routePrototype.UsesLocalCourtyardGate && routePrototype.CurrentArea==0)
+                counter=(Settings.Language==PeelLanguage.Russian?"На двери осталось: ":"Door notices left: ")+remaining;
+            bool showScraperOffer=toolLevel==0 && !(routePrototype && routePrototype.ReviewMode);
+            string purchaseProgress=showScraperOffer && money<UpgradeCost
+                ? "    "+(Settings.Language==PeelLanguage.Russian?"Шпатель":"Scraper")+": $"+money+" / $"+UpgradeCost : "";
+            GUI.Label(new Rect(30,h-44,w-60,28),"$"+money+"    "+counter+"    "+tool+purchaseProgress+(steamUnlocked?"    "+T(PeelText.SwitchTools):""),small);
+            if(CurrentScreen==PeelScreen.Playing && showScraperOffer && money>=UpgradeCost)
+            {
+                var offerRect=new Rect(w-410,h-46,400,40);
+                var old=GUI.color;GUI.color=new Color(.31f,.25f,.10f,1f);GUI.DrawTexture(offerRect,Texture2D.whiteTexture);GUI.color=old;
+                GUI.Label(offerRect,Settings.Language==PeelLanguage.Russian?"Шпатель доступен на тележке":"Scraper available at the cart",center);
+            }
             if(CurrentScreen==PeelScreen.Playing)
             {
                 if(Time.unscaledTime<payoutUntil)
@@ -673,19 +853,21 @@ namespace JustOneMorePeel
                 if(areaExperiment || routePrototype)
                 {
                     Panel(new Rect(w/2-440,8,880,35));
-                    string objective=basementLight && basementLight.IsDark ? (Settings.Language==PeelLanguage.Russian?"Темно — найди выключатель":"It's dark — find the light switch") : routePrototype ? routePrototype.Objective : areaExperiment.Objective;
+                    string objective=basementLight && basementLight.IsDark ? (Settings.Language==PeelLanguage.Russian?"Выключатель слева у входа в подвал":"The switch is on the left by the basement entrance") : routePrototype ? routePrototype.Objective : areaExperiment.Objective;
                     GUI.Label(new Rect(w/2-430,8,860,35),objective,center);
                 }
                 GUI.Label(new Rect(w/2-10,h/2-14,20,28),IsPeeling?"·":"+",center);
-                string hint=AwaitingRelease?T(PeelText.ReleaseGrip):IsPeeling?
-                    T(activeTool==1?(steamExpanded?PeelText.SteamExpandedHint:PeelText.SteamHint):toolLevel>0?PeelText.ScraperHint:PeelText.CardHint):
+                string hint=AwaitingRelease?T(PeelText.ReleaseGrip):IsPeeling?"":
                     target && target.IsExposed?T(activeTool==1 && steamUnlocked?(steamExpanded?PeelText.HoldExpandedSteam:PeelText.HoldSteam):toolLevel>0?PeelText.DragScraper:PeelText.HoldCard):"";
-                if(hint.Length==0 && toolLevel==0 && !(routePrototype && routePrototype.ReviewMode))
+                if(!AwaitingRelease && !IsPeeling && target && target.IsExposed && target.Stack && target.Stack.PrecisionWork && toolLevel>0)
+                    hint+=Settings.Language==PeelLanguage.Russian ? " · Точный проход шпателем быстрее" : " · A scraper drag is faster here";
+                if(hint.Length>0 && !AwaitingRelease && target && routePrototype && routePrototype.UsesLocalCourtyardGate
+                    && routePrototype.CurrentArea==0)
                 {
                     bool ru=Settings.Language==PeelLanguage.Russian;
-                    hint=money>=UpgradeCost
-                        ? (ru?"Шпатель доступен — купи его на тележке за $":"Scraper available — buy it at the cart for $")+UpgradeCost
-                        : (ru?"Шпатель на тележке: $":"Scraper at the cart: $")+money+" / $"+UpgradeCost;
+                    string scope=routePrototype.IsCourtyardGoal(target.Stack)
+                        ? (ru?"Для прохода":"Required to open the door") : (ru?"Необязательно":"Optional wall notice");
+                    hint=scope+" · "+hint;
                 }
                 if(hint.Length>0)Panel(new Rect(w/2-475,h-104,950,44));
                 GUI.Label(new Rect(w/2-470,h-104,940,44),hint,center);
@@ -729,9 +911,11 @@ namespace JustOneMorePeel
                 Panel(new Rect(x,y,500,320));
                 GUI.Label(new Rect(x+25,y+18,450,45),ru ? "Начать заново?" : "Start over?",title);
                 string explanation=review
-                    ? (ru ? "Текущий осмотр начнётся заново. Сохранённое прохождение останется." : "The current review will restart. Your saved game will remain.")
+                    ? (ru ? "Осмотр завершится, и откроется главное меню. Сохранённая смена останется." : "The review will end and return to the main menu. Your saved shift will remain.")
                     : (ru ? "Прогресс, деньги и инструменты будут сброшены." : "Progress, money and tools will be reset.");
                 GUI.Label(new Rect(x+25,y+75,450,75),explanation,text);
+                if(resetFailed)GUI.Label(new Rect(x+25,y+130,450,26),
+                    ru?"Не удалось сбросить сейв. Можно отменить.":"Could not reset the save. You can cancel.",small);
                 if(MenuButton(new Rect(x+25,y+160,450,44),ru ? "Отмена" : "Cancel",0))Back();
                 if(MenuButton(new Rect(x+25,y+222,450,44),ru ? "Начать заново" : "Start over",1))RestartShift();
                 FocusMenu();
@@ -749,7 +933,14 @@ namespace JustOneMorePeel
             }
             float noticeY=(areaExperiment || routePrototype) && CurrentScreen==PeelScreen.Playing ? 48 : 30;
             if(ClearedPosters==TotalPosters)GUI.Label(new Rect(w/2-360,noticeY,720,50),T(PeelText.Finished),center);
-            else if(Time.time<noticeUntil && (!routePrototype || notice!=PeelText.Welcome))GUI.Label(new Rect(w/2-450,noticeY,900,50),T(notice),center);
+            else if(Time.time<noticeUntil && (!routePrototype || notice!=PeelText.Welcome))
+            {
+                bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
+                bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;
+                int cost=upgradeNotice?UpgradeCost:notice==PeelText.SteamAvailable?SteamCost:SteamExpansionCost;
+                Panel(new Rect(w/2-450,noticeY,900,50));
+                GUI.Label(new Rect(w/2-450,noticeY,900,50),upgradeNotice || steamNotice?string.Format(T(notice),cost):T(notice),center);
+            }
         }
         void DrawSettings(float w,float h)
         {

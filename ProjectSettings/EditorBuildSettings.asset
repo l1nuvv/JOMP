@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/JustOneMorePeel/Scenes/FirstShift.unity
-    guid: 94bf043a03039a14d842977b0e64794a
+    path: Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity
+    guid: c0c6a811696a9604c8b89ccc5020d434
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

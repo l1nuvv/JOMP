@@ -22,6 +22,7 @@ namespace JustOneMorePeel
         static readonly Vector3[] wholeVertices=new Vector3[(rows+1)*2];
         static readonly Vector2[] wholeUv=new Vector2[(rows+1)*2];
         MeshRenderer paperRenderer;
+        internal MeshRenderer PaperRenderer => paperRenderer;
         BoxCollider paperCollider;
         const int rows=24;
         bool pulling;
@@ -78,9 +79,11 @@ namespace JustOneMorePeel
         public void Pull(float amount)
         {
             if(!IsExposed || amount<=0) return;
+            bool wasFlat=progress==0;
             progress=Mathf.Clamp01(progress+amount);
             Deform();
             if(progress>=1) Detach();
+            if(wasFlat && Stack)Stack.RefreshFlatFront();
         }
         internal void RestoreProgress(float value, bool removed)
         {

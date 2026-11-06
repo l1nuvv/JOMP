@@ -16,6 +16,8 @@ namespace JustOneMorePeel
         [SerializeField, Min(.1f)] private float firstLayerScale=1f;
         [SerializeField, Min(.1f)] private float deeperLayerScale=1f;
         [SerializeField] private float firstLayerOffset;
+        [SerializeField] private bool scatteredLayers;
+        [SerializeField] private bool precisionWork;
         [SerializeField] private PeelStrip[] front;
         [SerializeField] private PeelStrip[] back;
         [SerializeField, HideInInspector] private string persistentId;
@@ -27,6 +29,12 @@ namespace JustOneMorePeel
         MeshRenderer deeperRenderer;
         MeshCollider deeperCollider;
         Mesh collisionMesh;
+        MeshRenderer flatFront, flatBack;
+        internal DoorPaperBatch DoorBatch { get; set; }
+        readonly List<Vector3> flatVertices=new List<Vector3>(16);
+        readonly List<Vector3> flatNormals=new List<Vector3>(16);
+        readonly List<Vector2> flatUV=new List<Vector2>(16);
+        readonly List<int> flatIndices=new List<int>(24);
         int[] deepDesigns, materialOrder;
         int deepCount, materialCount;
         int[] materialGroups;
@@ -53,12 +61,12 @@ namespace JustOneMorePeel
         const float LayerSpacing=.00001f;
         float LayerDepth(int layer)
         {
-            // Depth belongs to the logical sheet, not the reusable display buffer.
             if(layer<=0)return -.001f;
             if(layer==1)return -.0008f;
             return -.0006f+(layer-2)*LayerSpacing;
         }
         public int PosterCount => posterCount;
+        public bool PrecisionWork => precisionWork;
         public string PersistentId => persistentId;
         public int ClearedPosters { get; private set; }
         public int RemainingPosters => posterCount-ClearedPosters;
@@ -74,6 +82,7 @@ namespace JustOneMorePeel
                 front[i].RestoreProgress(progress[i],removed);
                 if(removed)removedMask|=1<<i;
             }
+            RefreshFlatFront();
         }
         public bool IsCurrent(PeelStrip strip) { return RemainingPosters>0 && front[strip.BufferIndex]==strip; }
 
@@ -100,11 +109,89 @@ namespace JustOneMorePeel
             return (start+((layer-2)%Mathf.Min(10,count))*sequenceStride)%count;
         }
         static int Gcd(int a,int b) { while(b!=0){int next=a%b;a=b;b=next;}return a; }
+        Vector2 LayerOffset(int layer)
+        {
+            if(!scatteredLayers || layer==0)return Vector2.zero;
+            int seed=(sequenceOffset+1)*97+layer*73;
+            return new Vector2(((seed*17)%101/100f-.5f)*width*.22f,
+                ((seed*29)%103/102f-.5f)*width*.22f);
+        }
+        float LayerSize(int layer)
+        {
+            if(!scatteredLayers || layer==0)return 1f;
+            return .85f+((sequenceOffset*13+layer*23)%31)/100f;
+        }
         void ShowBuffers()
         {
             Setup(front,ClearedPosters,LayerDepth(ClearedPosters),true);
             Setup(back,ClearedPosters+1,LayerDepth(ClearedPosters+1),false);
+            RefreshFlatFront();
+            UpdateFlatPaper(back,ref flatBack);
             UpdateDeeperLayers();
+        }
+        internal void RefreshFlatFront()
+        {
+            UpdateFlatPaper(front,ref flatFront);
+            if(DoorBatch)DoorBatch.MarkDirty(this);
+        }
+        internal IEnumerable<MeshRenderer> RestingRenderers()
+        {
+            if(flatFront)yield return flatFront;
+            if(flatBack)yield return flatBack;
+            if(deeperRenderer)yield return deeperRenderer;
+        }
+        internal bool IsDoorBatched(Renderer renderer) => DoorBatch && DoorBatch.isActiveAndEnabled
+            && (renderer==flatFront || renderer==flatBack || renderer==deeperRenderer);
+
+        void UpdateFlatPaper(PeelStrip[] strips,ref MeshRenderer batch)
+        {
+            var source=strips[0].PaperRenderer;
+            if(!batch)
+            {
+                var go=new GameObject("Resting poster");
+                go.layer=source.gameObject.layer;
+                go.transform.SetParent(transform,false);
+                var filter=go.AddComponent<MeshFilter>();
+                filter.sharedMesh=new Mesh {name="Resting poster strips"};
+                batch=go.AddComponent<MeshRenderer>();
+                batch.shadowCastingMode=source.shadowCastingMode;
+                batch.receiveShadows=source.receiveShadows;
+                batch.renderingLayerMask=source.renderingLayerMask;
+                batch.lightProbeUsage=source.lightProbeUsage;
+                batch.reflectionProbeUsage=source.reflectionProbeUsage;
+                batch.forceRenderingOff=!IsRenderVisible;
+            }
+
+            flatVertices.Clear();flatNormals.Clear();flatUV.Clear();flatIndices.Clear();
+            foreach(var strip in strips)
+            {
+                var renderer=strip.PaperRenderer;
+                bool flat=!strip.IsRemoved && strip.progress==0;
+                renderer.enabled=!strip.IsRemoved && !flat;
+                if(!flat)continue;
+
+                var toStack=transform.worldToLocalMatrix*strip.transform.localToWorldMatrix;
+                float x=strip.width*.5f,y=strip.height*.5f;
+                int vertex=flatVertices.Count;
+                flatVertices.Add(toStack.MultiplyPoint3x4(new Vector3(-x,y,0)));
+                flatVertices.Add(toStack.MultiplyPoint3x4(new Vector3(x,y,0)));
+                flatVertices.Add(toStack.MultiplyPoint3x4(new Vector3(-x,-y,0)));
+                flatVertices.Add(toStack.MultiplyPoint3x4(new Vector3(x,-y,0)));
+                var normal=toStack.inverse.transpose.MultiplyVector(Vector3.back).normalized;
+                for(int i=0;i<4;i++)flatNormals.Add(normal);
+                flatUV.Add(new Vector2(strip.uvLeft,1));flatUV.Add(new Vector2(strip.uvRight,1));
+                flatUV.Add(new Vector2(strip.uvLeft,0));flatUV.Add(new Vector2(strip.uvRight,0));
+                flatIndices.Add(vertex);flatIndices.Add(vertex+1);flatIndices.Add(vertex+2);
+                flatIndices.Add(vertex+1);flatIndices.Add(vertex+3);flatIndices.Add(vertex+2);
+            }
+            batch.enabled=flatIndices.Count>0;
+            if(!batch.enabled)return;
+
+            batch.sharedMaterial=source.sharedMaterial;
+            var mesh=batch.GetComponent<MeshFilter>().sharedMesh;
+            mesh.Clear();
+            mesh.SetVertices(flatVertices);mesh.SetNormals(flatNormals);mesh.SetUVs(0,flatUV);
+            mesh.SetTriangles(flatIndices,0);
         }
         void Setup(PeelStrip[] buffer,int layer,float z,bool exposed)
         {
@@ -113,13 +200,14 @@ namespace JustOneMorePeel
             float aspect=visible ? game.Settings.PaperAspect(Design(layer)) : 1;
             float paperWidth=width/Mathf.Max(1,aspect),height=paperWidth*aspect;
             float layerScale=layer==0?firstLayerScale:deeperLayerScale;
-            paperWidth*=layerScale;height*=layerScale;
+            paperWidth*=layerScale*LayerSize(layer);height*=layerScale*LayerSize(layer);
             float offset=layer==0?firstLayerOffset:0f;
+            var layerOffset=LayerOffset(layer);
             for(int i=0;i<4;i++)
             {
                 var strip=buffer[i];strip.Stack=this;strip.BufferIndex=i;
                 strip.covering=exposed?null:front[i];
-                strip.ResetForPoster(game,paperWidth/4,height,new Vector3(offset+(i-1.5f)*paperWidth/4,0,z),material,visible);
+                strip.ResetForPoster(game,paperWidth/4,height,new Vector3(offset+layerOffset.x+(i-1.5f)*paperWidth/4,layerOffset.y,z),material,visible);
             }
         }
         // All lower sheets are present from the beginning, even where their outlines
@@ -169,11 +257,12 @@ namespace JustOneMorePeel
                 if(materialGroups[design]<0)
                 {materialGroups[design]=materialCount;materialOrder[materialCount++]=design;}
                 float aspect=game.Settings.PaperAspect(design),w=width/Mathf.Max(1,aspect),h=w*aspect;
-                w*=deeperLayerScale;h*=deeperLayerScale;
+                w*=deeperLayerScale*LayerSize(layer);h*=deeperLayerScale*LayerSize(layer);
                 deepDesigns[layer-ClearedPosters-2]=design;deepHeights[layer-ClearedPosters-2]=h;deepWidths[layer-ClearedPosters-2]=w;
                 float z=LayerDepth(layer);int v=baseVertices.Count;
-                baseVertices.Add(new Vector3(-w*.5f,h*.5f,z));baseVertices.Add(new Vector3(w*.5f,h*.5f,z));
-                baseVertices.Add(new Vector3(-w*.5f,-h*.5f,z));baseVertices.Add(new Vector3(w*.5f,-h*.5f,z));
+                var offset=LayerOffset(layer);
+                baseVertices.Add(new Vector3(offset.x-w*.5f,offset.y+h*.5f,z));baseVertices.Add(new Vector3(offset.x+w*.5f,offset.y+h*.5f,z));
+                baseVertices.Add(new Vector3(offset.x-w*.5f,offset.y-h*.5f,z));baseVertices.Add(new Vector3(offset.x+w*.5f,offset.y-h*.5f,z));
                 baseUV.Add(new Vector2(0,1));baseUV.Add(new Vector2(1,1));baseUV.Add(new Vector2(0,0));baseUV.Add(new Vector2(1,0));
                 collisionTriangles.Add(v);collisionTriangles.Add(v+1);collisionTriangles.Add(v+2);
                 collisionTriangles.Add(v+1);collisionTriangles.Add(v+3);collisionTriangles.Add(v+2);
@@ -190,6 +279,11 @@ namespace JustOneMorePeel
             deeperMesh.Clear();deeperMesh.bounds=collisionMesh.bounds;
             visibilityReady=false;hadPartialGeometry=false;UpdateVisibility();
         }
+        internal void ConfigureSinglePoster(int design,float size,PeelStrip[] surface,PeelStrip[] reserve)
+        {
+            posterCount=1;firstDesign=design;maximumPaperSize=size;
+            front=surface;back=reserve;
+        }
         void LateUpdate() { if(IsRenderVisible)UpdateVisibility(); }
         void UpdateVisibility()
         {
@@ -199,6 +293,25 @@ namespace JustOneMorePeel
             // nested List caches are not serialized. Rebuild the complete set.
             if(deepDesigns==null || deepWidths==null || visibleTriangles==null || baseVertices==null || baseUV==null)
             { UpdateDeeperLayers();return; }
+            if(scatteredLayers)
+            {
+                if(visibilityReady)return;
+                visibilityReady=true;
+                foreach(var list in visibleTriangles)list.Clear();
+                for(int i=0;i<deepCount;i++)
+                {
+                    var list=visibleTriangles[materialGroups[deepDesigns[i]]];int v=i*4;
+                    list.Add(v);list.Add(v+1);list.Add(v+2);list.Add(v+1);list.Add(v+3);list.Add(v+2);
+                }
+                deeperMesh.Clear();deeperMesh.subMeshCount=materialCount;
+                deeperMesh.SetVertices(baseVertices);deeperMesh.SetUVs(0,baseUV);
+                renderNormals.Clear();
+                for(int i=0;i<baseVertices.Count;i++)renderNormals.Add(Vector3.back);
+                deeperMesh.SetNormals(renderNormals);
+                for(int i=0;i<materialCount;i++)deeperMesh.SetTriangles(visibleTriangles[i],i,false);
+                deeperMesh.RecalculateBounds();
+                return;
+            }
             Vector3 camera=transform.InverseTransformPoint(game.view.transform.position);
             if(visibilityReady && camera==lastCameraPosition)return;
             bool changed=!visibilityReady || hadPartialGeometry;lastCameraPosition=camera;visibilityReady=true;
@@ -269,7 +382,13 @@ namespace JustOneMorePeel
             for(int i=0;i<4;i++)renderNormals.Add(Vector3.back);
             triangles.Add(v);triangles.Add(v+1);triangles.Add(v+2);triangles.Add(v+1);triangles.Add(v+3);triangles.Add(v+2);
         }
-        void OnDestroy() { if(deeperMesh)Destroy(deeperMesh);if(collisionMesh)Destroy(collisionMesh); }
+        void OnDestroy()
+        {
+            if(deeperMesh)Destroy(deeperMesh);
+            if(collisionMesh)Destroy(collisionMesh);
+            if(flatFront)Destroy(flatFront.GetComponent<MeshFilter>().sharedMesh);
+            if(flatBack)Destroy(flatBack.GetComponent<MeshFilter>().sharedMesh);
+        }
         public void RecordRemoval(int index) { removedMask|=1<<index; }
         public void AdvanceIfComplete()
         {
@@ -283,6 +402,9 @@ namespace JustOneMorePeel
         {
             if(!game)return;
             Refresh(front,ClearedPosters);Refresh(back,ClearedPosters+1);UpdateDeeperLayers();
+            if(flatFront)flatFront.sharedMaterial=front[0].PaperRenderer.sharedMaterial;
+            if(flatBack)flatBack.sharedMaterial=back[0].PaperRenderer.sharedMaterial;
+            if(DoorBatch)DoorBatch.MarkDirty(this);
         }
         void Refresh(PeelStrip[] buffer,int layer)
         {

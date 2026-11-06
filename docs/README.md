@@ -3,6 +3,10 @@
 
 [ROADMAP](ROADMAP.md) — текущая работа и ближайший шаг; [GDD](GDD.md) — действующие правила; [ARCHITECTURE](ARCHITECTURE.md) — фактический код; [ART_DIRECTION](ART_DIRECTION.md) и [ASSET_SOURCES](ASSET_SOURCES.md) — текущий арт и источники; [DEVELOPMENT](DEVELOPMENT.md) и [PLAYTEST](PLAYTEST.md) — проверки; [PERFORMANCE](PERFORMANCE.md) — измерения.
 
+[Разбор десяти советов из Heist Crew](HEIST_CREW_WORKFLOW_REVIEW.md) — решения для проекта и ссылки на рабочие правила и задачи.
+
+[Разбор SHRED A BILLION](SHRED_A_BILLION_RESEARCH.md) — инструменты статического анализа Unity-сборок, устройство кучи и сравнение производительности.
+
 Важное ограничение нового исследования: повторный автоматический прогон дал 42 PASS / 13 FAIL; подробности и условия — в PLAYTEST и разделе 2 master plan. Исторические 65 PASS не заменяют этот результат.
 
 Adapted from the workflow and reusable project skills of Hustle & Scale on 2026-10-28. No city gameplay, FIRST DEAL rules, historical approvals or old release criteria were adopted.

@@ -13,7 +13,7 @@ namespace JustOneMorePeel
         Posters, CardHint, ScraperHint, SteamHint, RemainingPosters, PlayTime,
         BuySteamExpansion, SteamExpandedOwned, SteamExpanded, SteamExpandedHint, HoldSteam, HoldExpandedSteam,
         ShopScraperEffect, ShopSharpenEffect, ShopWiderSteamEffect, ShopRequiresSteam, ShopCashShortfall,
-        ShopSharpenMaxTime, ScraperSharpened
+        ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -54,7 +54,7 @@ namespace JustOneMorePeel
             {"E — tools on the cart","E — инструменты на тележке"},
             {"Shift complete. The wall is clear.","Смена завершена. Стена очищена."},
             {"Welcome to your first shift","Добро пожаловать на первую смену"},
-            {"Scraper ready: whole posters and sideways acceleration unlocked","Шпатель готов: доступны целые плакаты и ускорение в стороны"},
+            {"Scraper purchased and equipped · hold LMB and move sideways","Шпатель куплен и активен · держи ЛКМ и двигай в стороны"},
             {"Steamer purchased","Отпариватель куплен"},{"Good work. Upgrades are at the cart.","Чистая работа. Улучшения — на тележке."},
             {"OUR SUMMER\nWAS HERE","ЗДЕСЬ БЫЛО\nНАШЕ ЛЕТО"},{"Buy a scraper first","Сначала купи шпатель"},
             {"posters","плакатов"},{"The card peels slowly. A scraper unlocks whole posters.","Карта снимает медленно. Шпатель откроет целые плакаты."},
@@ -73,7 +73,11 @@ namespace JustOneMorePeel
             {"Buy a steamer first.","Сначала купи отпариватель."},
             {"Need ${0} more.","Не хватает ${0}."},
             {"Scraper: {0:0.0} s per poster at base speed.","Шпатель: {0:0.0} с на лист при базовой скорости."},
-            {"Scraper sharpened · scraper and steam peel faster","Шпатель заточен · шпатель и пар снимают быстрее"}
+            {"Scraper sharpened · scraper and steam peel faster","Шпатель заточен · шпатель и пар снимают быстрее"},
+            {"Scraper available at the cart · ${0}","Шпатель доступен на тележке · ${0}"},
+            {"Scraper sharpening available at the cart · ${0}","Заточка шпателя доступна на тележке · ${0}"},
+            {"Steamer available at the cart · ${0}","Отпариватель доступен на тележке · ${0}"},
+            {"Wider steam available at the cart · ${0}","Широкий пар доступен на тележке · ${0}"}
         };
 
         void Awake() { Load(); }
@@ -101,6 +105,9 @@ namespace JustOneMorePeel
         public void ApplyWorldText() { if(wallWriting)wallWriting.text=Text(PeelText.Secret); }
         public void Save()
         {
+#if UNITY_EDITOR
+            if(!string.IsNullOrEmpty(PeelGame.WorldSavePathOverride))return;
+#endif
             PlayerPrefs.SetInt(LanguageKey,(int)Language);
             PlayerPrefs.SetFloat(VolumeKey,SoundVolume);PlayerPrefs.SetFloat(SensitivityKey,LookSensitivity);
             PlayerPrefs.Save();

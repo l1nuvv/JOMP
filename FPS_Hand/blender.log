@@ -1,0 +1,22 @@
+E:\Code\Unity\Just One More Peel\FPS_Hand\Blender\build_hand.py:17: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat=bpy.data.materials.new(name_to_mat[name]); mat.diffuse_color=(*color,1); mat.use_nodes=True
+00:04.781  render           | Saved: 'E:\Code\Unity\Just One More Peel\FPS_Hand\Previews\Relaxed.png'
+00:06.891  render           | Saved: 'E:\Code\Unity\Just One More Peel\FPS_Hand\Previews\Open.png'
+00:08.859  render           | Saved: 'E:\Code\Unity\Just One More Peel\FPS_Hand\Previews\Closed.png'
+00:10.828  render           | Saved: 'E:\Code\Unity\Just One More Peel\FPS_Hand\Previews\Holding.png'
+E:\Code\Unity\Just One More Peel\FPS_Hand\Blender\build_hand.py:146: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  overlay.use_nodes=True
+00:12.859  render           | Saved: 'E:\Code\Unity\Just One More Peel\FPS_Hand\Previews\Skeleton.png'
+
+FBX export starting... 'E:\\Code\\Unity\\Just One More Peel\\FPS_Hand\\Export\\FPS_Hand.fbx'
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+export finished in 0.6548 sec.
+Info: Saved as "FPS_Hand_Source.blend"
+MESH_CHECK Hand_Glove 9536 nonmanifold 0 unweighted 0 uv 1
+MESH_CHECK Shirt_Cuff 4224 nonmanifold 0 unweighted 0 uv 1
+MESH_CHECK Suit_Sleeve 5760 nonmanifold 0 unweighted 0 uv 1
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:37:16)
+
+Blender quit

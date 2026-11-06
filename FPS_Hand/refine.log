@@ -1,0 +1,12 @@
+00:00.844  blend            | Read blend: "E:\Code\Unity\Just One More Peel\FPS_Hand\Blender\FPS_Hand_Source.blend"
+Info: Saved as "FPS_Hand_Refined.blend"
+
+FBX export starting... 'E:\\Code\\Unity\\Just One More Peel\\FPS_Hand\\Export\\FPS_Hand_Refined.fbx'
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+(bpy.data.armatures['Right Hand Skeleton'], 'POSE')
+export finished in 0.5216 sec.
+REFINED_HAND_VERTICES 4770
+Blender 5.2.3 LTS (hash e13b728c6880 built 2026-10-22 01:37:16)
+
+Blender quit
