@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using StarterAssets;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -18,12 +19,14 @@ namespace JustOneMorePeel
         [SerializeField] private GameObject starterViewPrefab;
         [SerializeField] private GameObject scraperViewPrefab;
         [SerializeField] private GameObject steamerViewPrefab;
+        [SerializeField] private bool archiveIssueSlice;
         public int money, removed, total, toolLevel;
         public bool steamUnlocked;
         public bool steamExpanded;
         public float reach=3.4f;
         public const int SteamCost=PeelProgressionController.SteamCost;
         public const int SteamExpansionCost=PeelProgressionController.SteamExpansionCost;
+        const string ArchiveIssueSaveFile="main-archive-issue-v1.json";
         public PeelSettings Settings { get; private set; }
         public PeelScrapPool Scraps { get; private set; }
         public PeelPosterOutline Outline { get; private set; }
@@ -42,6 +45,7 @@ namespace JustOneMorePeel
         public float Progress => total==0?0:(float)removed/total;
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
+        internal bool ArchiveIssueSlice => archiveIssueSlice;
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
         readonly PeelAudioController audio=new PeelAudioController();
@@ -61,6 +65,8 @@ namespace JustOneMorePeel
         PeelLanguage appliedLanguage;
         bool worldSession, restarting, resetFailed, completionSeen;
         float nextWorldSave, completionNoticeUntil;
+        bool HasSavedShift => archiveIssueSlice || routePrototype;
+        bool CanSaveShift => HasSavedShift && (!routePrototype || !routePrototype.ReviewMode);
         int furthestAnnouncedArea;
         Vector3 spawnPosition;
         Quaternion spawnRotation;
@@ -77,8 +83,9 @@ namespace JustOneMorePeel
             {
 #if UNITY_EDITOR
                 if(!string.IsNullOrEmpty(WorldSavePathOverride))return WorldSavePathOverride;
+                if(archiveIssueSlice)return Path.Combine(Application.dataPath,"..","Library",ArchiveIssueSaveFile);
 #endif
-                return PeelWorldSave.DefaultPath;
+                return archiveIssueSlice ? Path.Combine(Application.persistentDataPath,ArchiveIssueSaveFile) : PeelWorldSave.DefaultPath;
             }
         }
 
@@ -88,6 +95,7 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.SteamUnlocked => steamUnlocked;
         bool IPeelGameUIState.SteamExpanded => steamExpanded;
         bool IPeelGameUIState.WorldSession => worldSession;
+        bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
         float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
@@ -123,7 +131,8 @@ namespace JustOneMorePeel
             if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
             total=TotalPosters*4;removed=0;ClearedPosters=0;
-            save=new PeelSaveCoordinator(this,()=>WorldSavePath,stacks,TotalPosters,routePrototype,basementLight);
+            string saveScene=archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene : PeelWorldSave.RouteScene;
+            save=new PeelSaveCoordinator(this,()=>WorldSavePath,saveScene,stacks,TotalPosters,routePrototype,basementLight);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
             ui=new PeelGameUI(this,interaction,save,routePrototype,areaExperiment,basementLight);
@@ -150,7 +159,7 @@ namespace JustOneMorePeel
         void Update()
         {
             audio.UpdatePeelSound(Time.unscaledDeltaTime);
-            audio.UpdateAreaAmbience(Time.unscaledDeltaTime,routePrototype ? routePrototype.CurrentArea : 0,
+            audio.UpdateAreaAmbience(Time.unscaledDeltaTime,archiveIssueSlice ? 2 : routePrototype ? routePrototype.CurrentArea : 0,
                 routePrototype && CurrentScreen==PeelScreen.Playing && routePrototype.CourtyardKnockActive);
             if(!screenController.ApplicationFocused)return;
             if(routePrototype && CurrentScreen==PeelScreen.Playing && player.transform.position.y < -10f)
@@ -222,8 +231,17 @@ namespace JustOneMorePeel
                     var workbench=WorkbenchInReach();
                     if(workbench){shopWorkbench=workbench;SetScreen(PeelScreen.Shop);return;}
                 }
-                if(keyboard.digit1Key.wasPressedThisFrame){Release();activeTool=0;}
-                if(keyboard.digit2Key.wasPressedThisFrame && steamUnlocked){Release();activeTool=1;}
+                if(keyboard.digit1Key.wasPressedThisFrame)
+                {
+                    Release();activeTool=0;
+                    if(archiveIssueSlice)toolLevel=0;
+                }
+                if(keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
+                {
+                    Release();
+                    if(archiveIssueSlice){activeTool=0;toolLevel=1;}
+                    else activeTool=1;
+                }
             }
             if(CurrentScreen!=PeelScreen.Playing)return;
             var mouse=Mouse.current;
@@ -243,10 +261,10 @@ namespace JustOneMorePeel
         public void BeginShift()
         {
             if(CurrentScreen!=PeelScreen.Intro)return;
-            if(routePrototype && !routePrototype.ReviewMode)
+            if(CanSaveShift)
             {
                 if(!LoadWorld())return;
-                furthestAnnouncedArea=routePrototype.CurrentArea;
+                if(routePrototype)furthestAnnouncedArea=routePrototype.CurrentArea;
                 worldSession=true;nextWorldSave=Time.unscaledTime+5f;
             }
             SetScreen(PeelScreen.Playing);
@@ -271,7 +289,7 @@ namespace JustOneMorePeel
         {
             if(CurrentScreen!=PeelScreen.ConfirmRestart)return;
             Settings.Save();
-            if(routePrototype && !routePrototype.ReviewMode)
+            if(CanSaveShift)
             {
                 try { save.Reset(); }
                 catch(System.Exception e){resetFailed=true;ui.FocusFirst();Debug.LogError("Could not reset world save: "+e.Message,this);return;}
@@ -280,8 +298,8 @@ namespace JustOneMorePeel
         }
         public void ReturnToMainMenu()
         {
-            if (CurrentScreen != PeelScreen.Paused || !routePrototype) return;
-            if (worldSession && !routePrototype.ReviewMode)
+            if (CurrentScreen != PeelScreen.Paused || !HasSavedShift) return;
+            if (worldSession && CanSaveShift)
             {
                 if (!save.Succeeded || save.WriteFailed) SaveWorld();
                 if (!save.Succeeded || save.Failed) return;
@@ -374,6 +392,7 @@ namespace JustOneMorePeel
         public void Pay(PeelStrip strip) => progression.Pay(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded);
         void NotifyProgression(PeelText notice)
         {
+            if(archiveIssueSlice && notice==PeelText.ScraperAvailable)return;
             ui.Notify(notice);
             if(CurrentScreen!=PeelScreen.Shop || !PeelProgressionController.IsPurchaseNotice(notice))return;
 
@@ -402,7 +421,7 @@ namespace JustOneMorePeel
             }
             if(player)
                 audio.UpdateFootsteps(player.transform.position,CurrentScreen==PeelScreen.Playing && screenController.ApplicationFocused &&
-                    controller && controller.enabled,controller && controller.Grounded,routePrototype && routePrototype.CurrentArea>0);
+                    controller && controller.enabled,controller && controller.Grounded,archiveIssueSlice || (routePrototype && routePrototype.CurrentArea>0));
         }
         void OnGUI() => ui?.Draw();
         void OnApplicationFocus(bool focused)

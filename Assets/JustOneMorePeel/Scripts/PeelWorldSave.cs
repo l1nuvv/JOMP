@@ -16,6 +16,7 @@ namespace JustOneMorePeel
     {
         public const int CurrentVersion = 3;
         public const string RouteScene = "three-area";
+        public const string ArchiveIssueScene = "main-archive-issue";
         public const string LegacyRouteScene = "Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity";
         public int version;
         public string scene;
@@ -37,6 +38,7 @@ namespace JustOneMorePeel
             if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null || save.stacks.Length!=index.Count ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>1 ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
+                (scene==ArchiveIssueScene && (save.toolLevel>1 || save.steamUnlocked)) ||
                 (save.activeTool==1 && !save.steamUnlocked) || !Finite(save.elapsed) || save.elapsed<0 ||
                 !Finite(save.position.x) || !Finite(save.position.y) || !Finite(save.position.z) ||
                 !Finite(save.rotation.x) || !Finite(save.rotation.y) || !Finite(save.rotation.z) || !Finite(save.rotation.w) ||

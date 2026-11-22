@@ -114,6 +114,7 @@ namespace JustOneMorePeel
         {
 #if UNITY_EDITOR
             if(!string.IsNullOrEmpty(PeelGame.WorldSavePathOverride))return;
+            if(TryGetComponent<PeelGame>(out var game) && game.ArchiveIssueSlice)return;
 #endif
             PlayerPrefs.SetInt(LanguageKey,(int)Language);
             PlayerPrefs.SetFloat(VolumeKey,SoundVolume);PlayerPrefs.SetFloat(SensitivityKey,LookSensitivity);

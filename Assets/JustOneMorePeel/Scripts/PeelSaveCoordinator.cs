@@ -12,6 +12,7 @@ namespace JustOneMorePeel
     {
         readonly UnityEngine.Object context;
         readonly Func<string> path;
+        readonly string sceneId;
         readonly List<PeelPosterStack> stacks;
         readonly PeelRoutePrototype routePrototype;
         readonly PeelBasementLight basementLight;
@@ -28,10 +29,10 @@ namespace JustOneMorePeel
         internal PeelWorldSave InspectedSave { get; private set; }
         internal bool InspectedShiftFinished { get; private set; }
 
-        internal PeelSaveCoordinator(UnityEngine.Object context, Func<string> path, List<PeelPosterStack> stacks,
+        internal PeelSaveCoordinator(UnityEngine.Object context, Func<string> path, string sceneId, List<PeelPosterStack> stacks,
             int totalPosters, PeelRoutePrototype route, PeelBasementLight light)
         {
-            this.context=context;this.path=path;this.stacks=stacks;TotalPosters=totalPosters;
+            this.context=context;this.path=path;this.sceneId=sceneId;this.stacks=stacks;TotalPosters=totalPosters;
             routePrototype=route;basementLight=light;
         }
 
@@ -42,7 +43,7 @@ namespace JustOneMorePeel
                 inspectedSavePath=WorldSavePath;
                 saveEntry=InspectWorld(out var data,out _);
                 InspectedSave=data;
-                InspectedShiftFinished=data!=null && routePrototype.IsSavedArchiveCleared(data);
+                InspectedShiftFinished=data!=null && routePrototype && routePrototype.IsSavedArchiveCleared(data);
             }
             return saveEntry;
         }
@@ -63,11 +64,11 @@ namespace JustOneMorePeel
         internal bool Write(int money,int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,float elapsed,
             GameObject player,FirstPersonController controller,bool checkpointPurchase)
         {
-            if(!routePrototype || routePrototype.ReviewMode || !SaveIndex(out var index))return false;
+            if((routePrototype && routePrototype.ReviewMode) || !SaveIndex(out var index))return false;
             saveSucceeded=false;
-            var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=PeelWorldSave.RouteScene,money=money,toolLevel=toolLevel,activeTool=activeTool,
+            var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
-                rotation=player.transform.rotation,firstDoorOpen=routePrototype.CourtyardDoorOpen,lightOn=basementLight && basementLight.SwitchIsOn,
+                rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,lightOn=basementLight && basementLight.SwitchIsOn,
                 stacks=new PeelStackSave[index.Count]};
             if(controller && controller.CinemachineCameraTarget)
             {
@@ -86,7 +87,7 @@ namespace JustOneMorePeel
                 }
                 data.stacks[n++]=item;
             }
-            if(!PeelWorldSave.Validate(data,PeelWorldSave.RouteScene,index,out var error))
+            if(!PeelWorldSave.Validate(data,sceneId,index,out var error))
             {Debug.LogError("World save rejected: "+error,context);saveBlocked=true;return false;}
             try
             {
@@ -129,7 +130,7 @@ namespace JustOneMorePeel
             inspectedSavePath=WorldSavePath;
             saveEntry=InspectWorld(out var data,out var index);
             InspectedSave=data;
-            InspectedShiftFinished=data!=null && routePrototype.IsSavedArchiveCleared(data);
+            InspectedShiftFinished=data!=null && routePrototype && routePrototype.IsSavedArchiveCleared(data);
             if(saveEntry==SaveEntry.New)return true;
             if(saveEntry==SaveEntry.Unreadable || saveEntry==SaveEntry.Incompatible){requestRestart();return false;}
             try
@@ -150,7 +151,7 @@ namespace JustOneMorePeel
                     foreach(float p in item.strips)if(p>=1)savedRemoved++;
                 }
                 applyProgress(data,savedRemoved,savedCleared);
-                routePrototype.RestoreProgress(data.firstDoorOpen);
+                if(routePrototype)routePrototype.RestoreProgress(data.firstDoorOpen);
                 if(basementLight)basementLight.RestoreProgress(data.lightOn);
                 Physics.SyncTransforms();
                 restorePlayer(data);
@@ -165,18 +166,18 @@ namespace JustOneMorePeel
         PeelWorldSave ReadValidatedWorld(string path,Dictionary<string,PeelPosterStack> index)
         {
             var data=PeelWorldSave.Read(path);
-            if(data!=null && data.version==1 && data.scene==PeelWorldSave.LegacyRouteScene)
+            if(routePrototype && data!=null && data.version==1 && data.scene==PeelWorldSave.LegacyRouteScene)
             {
                 routePrototype.MigrateCourtyardSave(data);
                 data.version=2;data.scene=PeelWorldSave.RouteScene;
             }
-            if(data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
+            if(routePrototype && data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
                 routePrototype.MigrateInteriorSave(data);
-            if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=PeelWorldSave.RouteScene)))
+            if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=sceneId)))
                 throw new System.NotSupportedException("Unsupported save version or route.");
-            if(!PeelWorldSave.Validate(data,PeelWorldSave.RouteScene,index,out var error))
+            if(!PeelWorldSave.Validate(data,sceneId,index,out var error))
                 throw new System.IO.InvalidDataException(error);
-            if(!routePrototype.CanRestoreProgress(data))throw new System.IO.InvalidDataException("Open door with uncleared wall");
+            if(routePrototype && !routePrototype.CanRestoreProgress(data))throw new System.IO.InvalidDataException("Open door with uncleared wall");
             return data;
         }
     }
