@@ -1,5 +1,7 @@
 # Asset sourcing and reuse
 
+**M7-LV-001, потёк под муфтой.** Из скачанного набора `Leaking009_1K-JPG` взяты фрагменты карт Color и Opacity. Они объединены в `Art/Integrated/Basement pipe seepage.png` и развёрнуты по направлению стока. В MainRoute материал URP Lit нанесён на участок стены 0,54 × 1,75 м. Лицензия CC0 допускает изменение и коммерческое использование без обязательной атрибуции. [Leaking 009 на ambientCG](https://ambientcg.com/view?id=Leaking009)
+
 **MAIN-008, служебный путь.** В `MainCourtyardBlockout` поставлены существующий шкаф `BasementStorageCandidate` из Kenney Furniture Kit, выключатель и створка из `ThreeAreaPrototype`, корпус светильника из `MainArchiveBlockout` и пробный отпечаток `31_RoundsLog`. Объём трубы и креплений временный. Доступ к планшету и проход у шкафа проверены со штатной капсулой. [Кадры и проверка](development/JOMP_NEXT_TASKS.md#main-008)
 
 **MAIN-007, дворовой блокинг.** В `MainCourtyardBlockout` переиспользованы оконные пролёты, створка, ручка и водосток из `ThreeAreaPrototype`, тележка Poly Haven и существующие отпечатки `Art/Integrated`. Для пролёта взяты два экземпляра `Stairs_200x100x200_Prefab` из уже импортированного Starter Assets от Unity Technologies, с коллайдерами префаба и существующим материалом подвала. Масштаб, опора, перекрытия бумаги и оба направления движения проверены в Unity. [Кадры и проверка](development/JOMP_NEXT_TASKS.md#main-007)
