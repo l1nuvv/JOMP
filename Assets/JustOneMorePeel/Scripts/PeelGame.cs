@@ -353,7 +353,7 @@ namespace JustOneMorePeel
             if(CanSaveShift)
             {
                 try { ActiveSave.Reset(); }
-                catch(System.Exception e){resetFailed=true;ui.FocusFirst();Debug.LogError("Could not reset world save: "+e.Message,this);return;}
+                catch(System.Exception e){resetFailed=true;ui.ResetMenu();Debug.LogError("Could not reset world save: "+e.Message,this);return;}
             }
             ReloadToIntro();
         }
@@ -382,10 +382,13 @@ namespace JustOneMorePeel
         }
         void SetScreen(PeelScreen screen)
         {
+            int selection=0;
+            if(CurrentScreen==PeelScreen.Settings && screen==settingsReturn)selection=1;
+            if(CurrentScreen==PeelScreen.ConfirmRestart && screen==PeelScreen.Paused)selection=2;
             Release();
             if(worldSession && CurrentScreen==PeelScreen.Playing && screen!=PeelScreen.Playing)SaveWorld();
             if(screen!=PeelScreen.Shop)shopWorkbench=null;
-            screenController.CurrentScreen=screen;if(Outline && screen!=PeelScreen.Playing)Outline.SetTarget(null);ui.FocusFirst();screenController.RefreshCursor();
+            screenController.CurrentScreen=screen;if(Outline && screen!=PeelScreen.Playing)Outline.SetTarget(null);ui.ResetMenu(selection);screenController.RefreshCursor();
         }
         internal void SaveWorld()
         {

@@ -106,9 +106,9 @@ namespace JustOneMorePeel
             routePrototype=route;areaExperiment=area;basementLight=light;
         }
 
-        internal void FocusFirst()
+        internal void ResetMenu(int selection=0)
         {
-            menuSelection=0;focusMenu=true;
+            menuSelection=selection;focusMenu=true;
             shopPurchase=null;capacityPurchased=false;purchaseSaveFailed=false;
         }
         internal void ShowWelcome() { noticeUntil=Time.time+5; }
@@ -162,7 +162,7 @@ namespace JustOneMorePeel
                 int direction=keyboard.rightArrowKey.wasPressedThisFrame?1:keyboard.leftArrowKey.wasPressedThisFrame?-1:0;
                 if(direction!=0)
                 {
-                    if(menuSelection==0)Settings.SetLanguage(direction>0?PeelLanguage.Russian:PeelLanguage.English);
+                    if(menuSelection==0)ChangeLanguage(direction>0?PeelLanguage.Russian:PeelLanguage.English);
                     if(menuSelection==1)Settings.SetSoundVolume(Settings.SoundVolume+direction*.1f);
                     if(menuSelection==2)Settings.SetLookSensitivity(Settings.LookSensitivity+direction*.1f);
                 }
@@ -180,7 +180,7 @@ namespace JustOneMorePeel
             else if(CurrentScreen==PeelScreen.ReadingArchiveNote)session.Back();
             else if(CurrentScreen==PeelScreen.ConfirmRestart){if(menuSelection==0)session.Back();else session.RestartShift();}
             else if(CurrentScreen==PeelScreen.Settings)
-            {if(menuSelection==0)Settings.SetLanguage(Settings.Language==PeelLanguage.English?PeelLanguage.Russian:PeelLanguage.English);else if(menuSelection==3)session.Back();}
+            {if(menuSelection==0)ChangeLanguage(Settings.Language==PeelLanguage.English?PeelLanguage.Russian:PeelLanguage.English);else if(menuSelection==3)session.Back();}
             else if(CurrentScreen==PeelScreen.Shop)
             {
                 if(menuSelection==0)session.TryUpgrade();
@@ -378,35 +378,7 @@ namespace JustOneMorePeel
                 if(MenuButton(new Rect(58,closeY,474,40),T(PeelText.Close),ShopOptionCount-1))session.Back();
                 FocusMenu();
             }
-            if(CurrentScreen==PeelScreen.Paused)
-            {
-                bool reviewing=routePrototype && routePrototype.ReviewMode;
-                bool showChapters=routePrototype && !reviewing;
-                float extra=showChapters ? 54f : 0f;
-                const float width=480,padding=25,contentWidth=width-2*padding;
-                float x=w/2-width/2,y=h/2-(300f+extra)*.5f;
-                float left=x+padding;
-                Panel(new Rect(x,y,width,300f+extra));GUI.Label(new Rect(left,y+15,contentWidth,45),T(PeelText.Pause),title);
-                GUI.Label(new Rect(x+width-200,y+29,175,28),T(PeelText.PlayTime)+" "+FormatPlayTime(),small);
-                GUI.Label(new Rect(left,y+55,contentWidth,24),PauseSaveStatus(),small);
-                if(showChapters)
-                {
-                    bool ru=Settings.Language==PeelLanguage.Russian;
-                    GUI.Label(new Rect(left,y+80,contentWidth,20),ru ? "Обязательных листов осталось" : "Required notices left",small);
-                    string chapters=$"{(ru ? "Двор" : "Courtyard")} {routePrototype.RemainingInArea(0)} · {T(PeelText.EnterBasement)} {routePrototype.RemainingInArea(1)} · {T(PeelText.EnterArchive)} {routePrototype.RemainingInArea(2)}";
-                    GUI.Label(new Rect(left,y+101,contentWidth,26),chapters,text);
-                }
-                y+=extra;
-                if(MenuButton(new Rect(left,y+82,contentWidth,44),T(PeelText.Resume),0))session.Back();
-                if(MenuButton(new Rect(left,y+145,contentWidth,44),T(PeelText.Settings),1))session.OpenSettings();
-                string restartLabel=reviewing
-                    ? (Settings.Language==PeelLanguage.Russian?"Завершить осмотр":"End route review")
-                    : T(PeelText.Restart);
-                if(MenuButton(new Rect(left,y+192,contentWidth,40),restartLabel,2))session.RequestRestart();
-                if(hasSavedShift && MenuButton(new Rect(left,y+241,contentWidth,40),
-                    Settings.Language==PeelLanguage.Russian?"В главное меню":"Main menu",3))session.ReturnToMainMenu();
-                FocusMenu();
-            }
+            if(CurrentScreen==PeelScreen.Paused){DrawPause(w,h);FocusMenu();return;}
             if(CurrentScreen==PeelScreen.ConfirmRestart)
             {
                 bool ru=Settings.Language==PeelLanguage.Russian;
@@ -428,13 +400,46 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(x+25,y+75,450,55),explanation,text);
                 if(resetFailed)GUI.Label(new Rect(x+25,y+130,450,26),
                     ru?"Не удалось сбросить сейв. Можно отменить.":"Could not reset the save. You can cancel.",small);
-                if(MenuButton(new Rect(x+25,y+160,450,44),ru ? "Отмена" : "Cancel",0))session.Back();
+                if(MenuButton(new Rect(x+25,y+160,450,44),ru ? "Отмена" : "Cancel",0,primary:true))session.Back();
                 string confirm=review ? (ru?"Завершить осмотр":"End review")
                     : fromIntro ? (ru?"Сбросить сохранение":"Reset save")
                     : (ru?"Начать заново":"Start over");
                 if(MenuButton(new Rect(x+25,y+222,450,44),confirm,1))session.RestartShift();
                 FocusMenu();
             }
+        }
+
+        void DrawPause(float w,float h)
+        {
+            bool ru=Settings.Language==PeelLanguage.Russian;
+            bool reviewing=routePrototype && routePrototype.ReviewMode;
+            bool showChapters=routePrototype && !reviewing;
+            string saveStatus=PauseSaveStatus();
+            const float width=540f, padding=25f, innerWidth=width-2*padding, row=42f, step=52f;
+            float height=237f+(hasSavedShift ? step : 0f)+(showChapters ? 50f : 0f)+(saveStatus.Length>0 ? 25f : 0f);
+            float x=(w-width)*.5f, y=(h-height)*.5f, left=x+padding;
+            Panel(new Rect(x,y,width,height));
+            GUI.Label(new Rect(left,y+17,300,43),T(PeelText.Pause),title);
+            GUI.Label(new Rect(x+width-190,y+23,165,30),T(PeelText.PlayTime)+" "+FormatPlayTime(),shopMutedBalance);
+            float next=y+69f;
+            if(saveStatus.Length>0)
+            {
+                GUI.Label(new Rect(left,next,innerWidth,22),saveStatus,hudLabel);
+                next+=25f;
+            }
+            if(showChapters)
+            {
+                GUI.Label(new Rect(left,next,innerWidth,20),ru ? "Обязательных листов осталось" : "Required notices left",hudLabel);
+                string chapters=$"{(ru ? "Двор" : "Courtyard")} {routePrototype.RemainingInArea(0)} · {T(PeelText.EnterBasement)} {routePrototype.RemainingInArea(1)} · {T(PeelText.EnterArchive)} {routePrototype.RemainingInArea(2)}";
+                GUI.Label(new Rect(left,next+20f,innerWidth,23),chapters,hudPrimary);
+                next+=50f;
+            }
+            if(MenuButton(new Rect(left,next,innerWidth,row),T(PeelText.Resume),0,primary:true))session.Back();
+            if(MenuButton(new Rect(left,next+step,innerWidth,row),T(PeelText.Settings),1))session.OpenSettings();
+            string restart=reviewing ? (ru ? "Завершить осмотр" : "End route review") : T(PeelText.Restart);
+            if(MenuButton(new Rect(left,next+2*step,innerWidth,row),restart,2))session.RequestRestart();
+            if(hasSavedShift && MenuButton(new Rect(left,next+3*step,innerWidth,row),
+                ru ? "В главное меню" : "Main menu",3))session.ReturnToMainMenu();
         }
 
         void DrawIntro(float h,bool ru,string action,string state,string details)
@@ -701,39 +706,66 @@ namespace JustOneMorePeel
 
         void DrawSettings(float w,float h)
         {
-            float x=w/2-285,y=h/2-230;Panel(new Rect(x,y,570,460));
-            GUI.Label(new Rect(x+25,y+16,520,45),T(PeelText.Settings),title);
-            GUI.Label(new Rect(x+25,y+83,180,32),T(PeelText.Language),text);
-            if(MenuButton(new Rect(x+205,y+78,155,40),Settings.Language==PeelLanguage.English?"• English":"English",0))Settings.SetLanguage(PeelLanguage.English);
-            if(GUI.Button(new Rect(x+373,y+78,170,40),Settings.Language==PeelLanguage.Russian?"• Русский":"Русский",button))
-            {menuSelection=0;Settings.SetLanguage(PeelLanguage.Russian);}
-            GUI.Label(new Rect(x+25,y+144,510,32),T(PeelText.Sound)+"   "+Mathf.RoundToInt(Settings.SoundVolume*100)+"%",text);
-            float volume=SettingsSlider(new Rect(x+28,y+187,510,20),Settings.SoundVolume,0,1,1);
-            if(!Mathf.Approximately(volume,Settings.SoundVolume))Settings.SetSoundVolume(volume);
-            GUI.Label(new Rect(x+25,y+224,510,32),T(PeelText.Sensitivity)+"   "+Settings.LookSensitivity.ToString("0.00")+"×",text);
-            float sensitivity=SettingsSlider(new Rect(x+28,y+267,510,20),Settings.LookSensitivity,.25f,2,2);
-            if(!Mathf.Approximately(sensitivity,Settings.LookSensitivity))Settings.SetLookSensitivity(sensitivity);
             string controls=T(PeelText.SettingsHelp);
             if(paperCollection)controls=T(PeelText.PaperCollectionControls);
             else if(archiveIssueSlice)
                 controls=Settings.Language==PeelLanguage.Russian
                     ? "WASD — движение · Мышь — обзор · ЛКМ — снять лист\n1 — карта · 2 — шпатель · 3 — пар · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"
                     : "WASD — move · Mouse — look · LMB — peel\n1 — Card · 2 — Scraper · 3 — Steam · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select";
-            GUI.Label(new Rect(x+25,y+300,520,83),controls,small);
-            if(MenuButton(new Rect(x+25,y+391,520,42),T(PeelText.Back),3))session.Back();
+            const float width=620f, innerWidth=570f, row=56f;
+            float helpHeight=hudLabel.CalcHeight(new GUIContent(controls),innerWidth);
+            float height=351f+helpHeight;
+            float x=(w-width)*.5f,y=(h-height)*.5f, left=x+25f;
+            Panel(new Rect(x,y,width,height));
+            GUI.Label(new Rect(left,y+17,innerWidth,43),T(PeelText.Settings),title);
+            var languageRow=new Rect(left,y+69,innerWidth,row);
+            SettingsRow(languageRow,0);
+            GUI.Label(new Rect(left+14,y+87,200,23),T(PeelText.Language),hudPrimary);
+            LanguageButton(new Rect(left+234,y+79,150,36),"English",PeelLanguage.English);
+            LanguageButton(new Rect(left+396,y+79,160,36),"Русский",PeelLanguage.Russian);
+
+            float volume=SettingsSlider(new Rect(left,y+135,innerWidth,row),T(PeelText.Sound),
+                Mathf.RoundToInt(Settings.SoundVolume*100)+"%",Settings.SoundVolume,0,1,1);
+            if(!Mathf.Approximately(volume,Settings.SoundVolume))Settings.SetSoundVolume(volume);
+            float sensitivity=SettingsSlider(new Rect(left,y+201,innerWidth,row),T(PeelText.Sensitivity),
+                Settings.LookSensitivity.ToString("0.00")+"×",Settings.LookSensitivity,.25f,2,2);
+            if(!Mathf.Approximately(sensitivity,Settings.LookSensitivity))Settings.SetLookSensitivity(sensitivity);
+
+            GUI.Label(new Rect(left,y+271,innerWidth,helpHeight),controls,hudLabel);
+            if(MenuButton(new Rect(left,y+helpHeight+285,innerWidth,42),T(PeelText.Back),3,primary:true))session.Back();
         }
-        float SettingsSlider(Rect rect,float value,float min,float max,int index)
+
+        void ChangeLanguage(PeelLanguage language)
         {
-            if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))menuSelection=index;
-            if(menuSelection==index)
-            {
-                var old=GUI.color;
-                GUI.color=new Color(.97f,.78f,.42f);
-                GUI.DrawTexture(new Rect(rect.x-8,rect.y-39,3,51),Texture2D.whiteTexture);
-                GUI.color=old;
-            }
+            menuSelection=0;
+            focusMenu=true;
+            Settings.SetLanguage(language);
+        }
+
+        void LanguageButton(Rect rect,string label,PeelLanguage language)
+        {
+            bool selected=Settings.Language==language;
+            if(selected)GUI.SetNextControlName("peel-menu-0");
+            bool hovered=rect.Contains(Event.current.mousePosition);
+            Fill(rect,selected ? Amber : hovered ? new Color(.21f,.28f,.23f) : Ink,6f);
+            if(GUI.Button(rect,label,selected ? primaryButton : button))ChangeLanguage(language);
+        }
+
+        void SettingsRow(Rect rect,int index)
+        {
+            if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
+            {menuSelection=index;focusMenu=true;}
+            if(menuSelection==index)Fill(rect,Amber,8f);
+            Fill(new Rect(rect.x+1,rect.y+1,rect.width-2,rect.height-2),new Color(.13f,.17f,.15f),7f);
+        }
+
+        float SettingsSlider(Rect rect,string label,string reading,float value,float min,float max,int index)
+        {
+            SettingsRow(rect,index);
+            GUI.Label(new Rect(rect.x+14,rect.y+8,rect.width-110,22),label,hudPrimary);
+            GUI.Label(new Rect(rect.xMax-90,rect.y+4,76,26),reading,shopMutedBalance);
             GUI.SetNextControlName("peel-menu-"+index);
-            return GUI.HorizontalSlider(rect,value,min,max);
+            return GUI.HorizontalSlider(new Rect(rect.x+14,rect.y+35,rect.width-28,20),value,min,max);
         }
     }
 }
