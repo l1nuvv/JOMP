@@ -166,12 +166,12 @@ namespace JustOneMorePeel
         PeelWorldSave ReadValidatedWorld(string path,Dictionary<string,PeelPosterStack> index)
         {
             var data=PeelWorldSave.Read(path);
-            if(routePrototype && data!=null && data.version==1 && data.scene==PeelWorldSave.LegacyRouteScene)
+            if(sceneId==PeelWorldSave.RouteScene && routePrototype && data!=null && data.version==1 && data.scene==PeelWorldSave.LegacyRouteScene)
             {
                 routePrototype.MigrateCourtyardSave(data);
                 data.version=2;data.scene=PeelWorldSave.RouteScene;
             }
-            if(routePrototype && data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
+            if(sceneId==PeelWorldSave.RouteScene && routePrototype && data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
                 routePrototype.MigrateInteriorSave(data);
             if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=sceneId)))
                 throw new System.NotSupportedException("Unsupported save version or route.");

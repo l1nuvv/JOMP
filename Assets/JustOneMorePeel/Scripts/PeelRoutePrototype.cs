@@ -17,6 +17,9 @@ namespace JustOneMorePeel
         [SerializeField] GameObject finalReveal;
         [SerializeField] Light archiveRevealLamp;
         [SerializeField] Material passageLettering;
+        [SerializeField] bool mainRoute;
+        [SerializeField] float basementEntryZ=3.35f;
+        [SerializeField] float archiveEntryZ=14f;
         PeelPosterStack[] localCourtyard, optionalCourtyard;
         TextMesh passageNote, archiveSign;
         Material passagePaper;
@@ -36,7 +39,8 @@ namespace JustOneMorePeel
         internal System.Collections.Generic.IReadOnlyList<PeelPosterStack> DoorPosters => doorPosters;
         PeelPosterStack[] CourtyardGoal => localCourtyard;
         int Area => AreaAt(game.player.transform.position.z);
-        internal static int AreaAt(float z) => z<3.35f ? 0 : z<14f ? 1 : 2;
+        internal int AreaAt(float z) => z<basementEntryZ ? 0 : z<archiveEntryZ ? 1 : 2;
+        internal bool IsMainRoute => mainRoute;
         public int CurrentArea => Area;
         internal bool CourtyardKnockActive => knockCue && knockCue.CourtyardKnockActive;
         static int Left(PeelPosterStack[] stacks)
@@ -287,13 +291,17 @@ namespace JustOneMorePeel
             basementDoorClosedPosition=basementDoor.transform.localPosition;
             knockCue=gameObject.AddComponent<PeelKnockCue>();
             knockCue.Initialize(game,this,courtyardDoor,basementDoor);
-            archiveClue=finalReveal.AddComponent<PeelArchiveClue>();
+            if(!finalReveal.TryGetComponent(out archiveClue))
+                archiveClue=finalReveal.AddComponent<PeelArchiveClue>();
             archiveClue.Initialize(game.Settings,archiveRevealLamp);
             CreatePassageNote();
-            var basementProps=Resources.Load<GameObject>("BasementStorageCandidate");
-            var archiveProps=Resources.Load<GameObject>("ArchiveStorageCandidates");
-            if(basementProps)Instantiate(basementProps,basementDoor.transform.parent,false).name="Basement service storage";
-            if(archiveProps)Instantiate(archiveProps,basementDoor.transform.parent,false).name="Archive storage";
+            if(!mainRoute)
+            {
+                var basementProps=Resources.Load<GameObject>("BasementStorageCandidate");
+                var archiveProps=Resources.Load<GameObject>("ArchiveStorageCandidates");
+                if(basementProps)Instantiate(basementProps,basementDoor.transform.parent,false).name="Basement service storage";
+                if(archiveProps)Instantiate(archiveProps,basementDoor.transform.parent,false).name="Archive storage";
+            }
 
             game.PosterWasCleared+=OnPosterCleared;
             if(game.Settings)game.Settings.Changed+=RefreshRouteLanguage;

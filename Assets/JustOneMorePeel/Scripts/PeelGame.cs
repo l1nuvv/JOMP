@@ -29,6 +29,7 @@ namespace JustOneMorePeel
         public const int SteamCost=PeelProgressionController.SteamCost;
         public const int SteamExpansionCost=PeelProgressionController.SteamExpansionCost;
         const string ArchiveIssueSaveFile="main-archive-issue-v1.json";
+        const string MainRouteSaveFile="main-route-save-v1.json";
         public PeelSettings Settings { get; private set; }
         public PeelScrapPool Scraps { get; private set; }
         public PeelPosterOutline Outline { get; private set; }
@@ -88,6 +89,8 @@ namespace JustOneMorePeel
                 if(!string.IsNullOrEmpty(WorldSavePathOverride))return WorldSavePathOverride;
                 if(archiveIssueSlice)return Path.Combine(Application.dataPath,"..","Library",ArchiveIssueSaveFile);
 #endif
+                if(routePrototype && routePrototype.IsMainRoute)
+                    return Path.Combine(Application.persistentDataPath,MainRouteSaveFile);
                 return archiveIssueSlice ? Path.Combine(Application.persistentDataPath,ArchiveIssueSaveFile) : PeelWorldSave.DefaultPath;
             }
         }
@@ -135,7 +138,8 @@ namespace JustOneMorePeel
             if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
             total=TotalPosters*4;removed=0;ClearedPosters=0;
-            string saveScene=archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene : PeelWorldSave.RouteScene;
+            string saveScene=archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
+                routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
             save=new PeelSaveCoordinator(this,()=>WorldSavePath,saveScene,stacks,TotalPosters,routePrototype,basementLight);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));

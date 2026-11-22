@@ -18,14 +18,13 @@ namespace JustOneMorePeel
 
         void Start()
         {
-            if (placedNoteSettings)
-                Initialize(placedNoteSettings, null, GetComponent<Renderer>());
+            if (placedNoteSettings && !material)
+                Initialize(placedNoteSettings, null);
         }
 
-        public void Initialize(PeelSettings owner, Light lamp) => Initialize(owner, lamp, null);
-
-        void Initialize(PeelSettings owner, Light lamp, Renderer placedPage)
+        public void Initialize(PeelSettings owner, Light lamp)
         {
+            var placedPage=placedNoteSettings ? GetComponent<Renderer>() : null;
             settings=owner;
             russian=Resources.Load<Texture2D>("ArchiveClue_ru");
             english=Resources.Load<Texture2D>("ArchiveClue_en");
@@ -67,6 +66,11 @@ namespace JustOneMorePeel
         void FocusLamp()
         {
             if(!revealLamp || !page)return;
+            if(placedNoteSettings)
+            {
+                revealLamp.enabled=true;
+                return;
+            }
 
             revealLamp.type=LightType.Spot;
             revealLamp.spotAngle=48f;
@@ -77,6 +81,11 @@ namespace JustOneMorePeel
         void OnDisable()
         {
             if(!revealLamp)return;
+            if(placedNoteSettings)
+            {
+                revealLamp.enabled=false;
+                return;
+            }
 
             revealLamp.type=originalLampType;
             revealLamp.spotAngle=originalSpotAngle;

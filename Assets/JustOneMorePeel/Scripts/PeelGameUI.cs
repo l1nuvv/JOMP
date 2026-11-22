@@ -240,7 +240,7 @@ namespace JustOneMorePeel
                                 string location=ru ? "Выдача" : "Issue counter";
                                 if(routePrototype)
                                 {
-                                    int chapter=PeelRoutePrototype.AreaAt(saved.position.z);
+                                    int chapter=routePrototype.AreaAt(saved.position.z);
                                     location=chapter==0 ? (ru ? "Двор" : "Courtyard") : T(chapter==1 ? PeelText.EnterBasement : PeelText.EnterArchive);
                                 }
                                 string progress=save.InspectedShiftFinished ? (ru ? "Смена завершена · " : "Shift complete · ") : "";

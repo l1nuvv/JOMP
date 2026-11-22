@@ -17,6 +17,7 @@ namespace JustOneMorePeel
         public const int CurrentVersion = 3;
         public const string RouteScene = "three-area";
         public const string ArchiveIssueScene = "main-archive-issue";
+        public const string MainRouteScene = "main-route";
         public const string LegacyRouteScene = "Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity";
         public int version;
         public string scene;
