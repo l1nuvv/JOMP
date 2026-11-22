@@ -28,7 +28,7 @@ For Codex plugin skill selection and model guidance, see [Development](docs/DEVE
 
 ## Plan status maintenance
 
-- Start the user-facing final update with the plan item ID and an explicit status. For a closed item, state the next item and whether it can start. For an open item, state what remains, who needs to act, and which next item can already proceed.
+- Start the user-facing final update with the plan item ID and an explicit status. For a closed item, state the next item and whether it can start. Whenever naming the next actionable item in the final update, include its planned model and explicit reasoning effort from the roadmap. For an open item, state what remains, who needs to act, and which next item can already proceed.
 - When a plan item is completed or explicitly closed by the owner, update its status in `docs/MASTER_DEVELOPMENT_PLAN.md` and the current summary in `docs/ROADMAP.md` in the same task. Record owner-closed items as such and do not restart them without a new issue or an explicit request.
 - Mark partially completed work as in progress, distinguish implementation, verification and owner acceptance, and preserve relevant failures and remaining checks. Do not mark an entire milestone complete because one subtask is done. Keep the next actionable item current.
 
