@@ -26,6 +26,13 @@ for vertex in glove.data.vertices:
     vertex.co.z += dorsal * (.00075 * knuckle + .0006 * palm)
 
 glove.data.update()
+# Carry the sleeve out of the FPS frame when the wrist reaches across the sheet.
+# Retain the cuff opening, skin weights and all existing finger animations.
+for vertex in bpy.data.objects["Suit_Sleeve"].data.vertices:
+    extension = max(0.0, (-vertex.co.y - .105) / .125)
+    vertex.co.y -= .37 * extension
+    vertex.co.x *= 1 + .13 * extension
+    vertex.co.z *= 1 + .20 * extension
 bpy.context.preferences.filepaths.save_version = 0
 source = root / "Blender/FPS_Hand_Refined.blend"
 bpy.ops.wm.save_as_mainfile(filepath=str(source))

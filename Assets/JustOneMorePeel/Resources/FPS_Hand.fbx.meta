@@ -12,8 +12,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: M_Glove_Black
-    second: {fileID: 2100000, guid: 00e3fd6c797069242bb94a95dbf88b8b, type: 2}
+      name: M_Hand_Skin
+    second: {fileID: 2100000, guid: b080c07e69a6be340902138e182b1ffc, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
