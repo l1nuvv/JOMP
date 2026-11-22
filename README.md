@@ -1,20 +1,29 @@
 # Just One More Peel
 
-3D first-person incremental game about removing layers of street notices.
+Just One More Peel — одиночная 3D-инкрементальная игра от первого лица о снятии многослойных объявлений. Игрок начинает с пластиковой карты, зарабатывает на шпатель и отпариватель и постепенно открывает, что скрыто под бумагой. Снятие листов меняет сам маршрут: во дворе открывается дверь, подвал ведёт дальше, а объявления помогают понять историю места.
 
-## Open the project
+Проект разрабатывается одним человеком. Цель — компактная Windows-игра для itch.io на 1–2 часа человеческого прохождения. В репозитории есть играбельный прототип маршрута «двор → подвал → архив» с покупками, сохранением смены и переключением между русским и английским. Длительность релизной игры и состояние приёмки отслеживаются в [плане выпуска](docs/MASTER_DEVELOPMENT_PLAN.md) и [дорожной карте](docs/ROADMAP.md).
 
-- Open this folder as a project in Unity Hub using Unity **6000.6.0f1**.
-- Unity restores the packages listed in `Packages/manifest.json` and generates the local Library and IDE project files.
-- Project scenes and assets are in `Assets/`; original and intermediate art is in `SourceArt/`.
+## Запуск в редакторе
 
-## Project documentation
+1. Откройте корень репозитория в Unity Hub с редактором **Unity 6000.6.0f1**. Дождитесь восстановления пакетов и первого импорта.
+2. Откройте [ThreeAreaPrototype.unity](Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity), нажмите Play и начните новую смену в главном меню.
+3. Наведитесь на доступную бумагу и удерживайте левую кнопку мыши. За снятые фрагменты начисляются деньги. Подойдите к тележке, наведитесь на неё и нажмите **E**, чтобы открыть магазин.
 
-- [Current status and next task](docs/ROADMAP.md)
-- [Development workflow and verification](docs/DEVELOPMENT.md)
-- [Game design](docs/GDD.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Asset sources and licence notes](docs/ASSET_SOURCES.md)
-- [Documentation index](docs/README.md)
+| Действие | Управление |
+| --- | --- |
+| Движение и обзор | WASD и мышь |
+| Прыжок и бег | Space и Shift |
+| Снимать бумагу | Удерживать ЛКМ |
+| Взаимодействовать | E |
+| Выбрать карту или шпатель, затем отпариватель | 1 и 2 соответственно. После покупки пара можно переключать инструменты колёсиком |
+| Пауза или возврат из меню | Esc |
 
-Repository-specific working instructions are in [AGENTS.md](AGENTS.md). Third-party assets have their own terms; consult the asset-source notes before redistribution.
+## Документация
+
+- [Содержание документации](docs/README.md) — все разделы и сценарии работы с проектом.
+- [Правила игры](docs/GDD.md) и [архитектура](docs/ARCHITECTURE.md) — игровой цикл и его реализация.
+- [Разработка](docs/DEVELOPMENT.md) и [плейтест](docs/PLAYTEST.md) — окружение, порядок проверок и журнал результатов.
+- [Дорожная карта](docs/ROADMAP.md) — текущий статус и ближайшая работа.
+
+Правила работы с репозиторием описаны в [AGENTS.md](AGENTS.md). Условия использования сторонних материалов указаны в [реестре источников](docs/ASSET_SOURCES.md).

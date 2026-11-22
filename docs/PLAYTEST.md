@@ -180,7 +180,8 @@ Latest programmatic checks: `Logs/poster-audit/final-runtime.txt` 21870 PASS / 0
 
 These direct calls and synthetic effects do not replace physical input, a complete Steam tool performance recording, long-session testing or owner acceptance. The older input-harness failure below remains a failed historical run. The scene was already dirty on entry and was preserved without saving/reloading its disk version.
 
-## Current controls
+## Controls recorded on 2026-10-28
+For the current controls see the [project README](../README.md#запуск-в-редакторе) and [GDD](GDD.md#implemented-progression). The controls and regression checklist below belong to the October build.
 Intro: Start / Enter; Settings / Настройки. Settings are also available from Esc pause.
 WASD/mouse, Space jump, Shift sprint. Hold LMB on paper to peel; release before every new grip. 1 selects the card/scraper, 2 selects owned steam. E opens/closes tools when looking at the cart within 2.5m; Esc pauses or goes back.
 Card: one strip, no downward bonus. Scraper: whole front sheet, downward motion speeds it up. Steam: up to three visible nearby posters, no drag required.

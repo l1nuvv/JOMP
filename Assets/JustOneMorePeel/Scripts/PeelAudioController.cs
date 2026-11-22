@@ -22,7 +22,7 @@ namespace JustOneMorePeel
         float courtyardGain=1f;
         const float CourtyardKnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
         AudioClip rip, steamHiss, detachClip;
-        AudioSource detachSource;
+        AudioSource detachSource, sheetDetachSource;
         float soundEnvelope;
         bool soundFadingOut;
         const float SoundFadeIn=.04f, SoundFadeOut=.12f;
@@ -43,6 +43,8 @@ namespace JustOneMorePeel
             detachClip=Resources.Load<AudioClip>("PaperDetach");
             detachSource=gameObject.AddComponent<AudioSource>();
             detachSource.playOnAwake=false;
+            sheetDetachSource=gameObject.AddComponent<AudioSource>();
+            sheetDetachSource.playOnAwake=false;
             var paperFilter=gameObject.AddComponent<AudioLowPassFilter>();paperFilter.cutoffFrequency=7000f;
             var ambience=new GameObject("Chapter ambience");
             ambience.transform.SetParent(transform,false);
@@ -171,14 +173,16 @@ namespace JustOneMorePeel
             audioSource.Play();
         }
 
-        internal void PlayDetach(int detached)
+        internal void PlayDetach(int detached, bool completedSheet)
         {
             if(detached>0 && detachClip && Settings.SoundVolume>0f)
             {
                 // One accent for this pull, even if several strips pay together.
-                detachSource.pitch=audioSource.pitch;
-                float strength=Mathf.Lerp(.2f,.42f,Mathf.Clamp01((detached-1)/7f));
-                detachSource.PlayOneShot(detachClip,Settings.SoundVolume*strength);
+                var source=completedSheet ? sheetDetachSource : detachSource;
+                source.pitch=audioSource.pitch*(completedSheet ? .78f : 1f);
+                float minimumGain=completedSheet ? .34f : .2f;
+                float strength=Mathf.Lerp(minimumGain,.42f,Mathf.Clamp01((detached-1)/7f));
+                source.PlayOneShot(detachClip,Settings.SoundVolume*strength);
             }
         }
 

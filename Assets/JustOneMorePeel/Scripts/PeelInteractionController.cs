@@ -124,10 +124,16 @@ namespace JustOneMorePeel
 #endif
             int removedBefore=removed;
             bool finished=true;
+            bool completedSheet=false;
             foreach(var strip in workingStrips)
-            {if(!strip.IsRemoved)strip.Pull(amount);if(!strip.IsRemoved)finished=false;}
+            {
+                if(strip.IsRemoved)continue;
+                strip.Pull(amount);
+                if(!strip.IsRemoved)finished=false;
+                else if(strip.Stack && strip.Stack.NeedsAdvance)completedSheet=true;
+            }
             int detached=removed-removedBefore;
-            audio.PlayDetach(detached);
+            audio.PlayDetach(detached,completedSheet);
             if(detached>0)paperDetached(detached);
             if(finished)
             {
