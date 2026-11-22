@@ -1,0 +1,58 @@
+Just One More Peel
+Авторы материалов / Asset credits
+
+Лицензии стороннего ПО / Third-party software notices: THIRD_PARTY_NOTICES.txt
+
+Фотографии на объявлениях / Notice photographs
+
+Box Full of Buttons For Sewing — Dejan Krsmanovic. Cropped for notice 18.
+https://commons.wikimedia.org/wiki/File:Box_Full_of_Buttons_For_Sewing_(42958527870).jpg
+Creative Commons Attribution 2.0 Generic
+https://creativecommons.org/licenses/by/2.0/
+
+Earthrise — William Anders / NASA, Apollo 8. Cropped for a film-club notice.
+https://science.nasa.gov/resource/image-earthrise/
+
+Orange cat portrait — Faust002
+Light bulb and keys on table — Aphiwat Chuangchoem
+Concert crowd — Hannah Rodrigo
+Unlabelled audio cassette — Ubcule
+These four photographs are supplied under CC0 1.0.
+
+Музыка и звук / Music and sound
+
+Forget Me Not — Music by Kistol
+https://opengameart.org/content/forget-me-not
+Creepy Ambient Loop — epb9000
+https://opengameart.org/content/creepy-ambient-loop
+Paper rustling — Spaghetto87, Freesound sound 731484
+https://freesound.org/people/Spaghetto87/sounds/731484/
+These recordings are supplied under CC0 1.0.
+
+Окружение / Environment
+
+Furniture Kit — Kenney
+https://kenney.nl/assets/furniture-kit
+Tool Cart — Savva Zakharov, Poly Haven
+https://polyhaven.com/a/tool_cart
+Painted Plaster Wall — Amal Kumar, Poly Haven
+https://polyhaven.com/a/painted_plaster_wall
+These environment assets are supplied under CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Рука от первого лица / First-person hand
+
+Right-hand geometry, rig weights and cropped skin texture adapted from MakeHuman system assets — MakeHuman Team, CC0 1.0
+https://www.makehumancommunity.org/about/license.html
+https://download.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html
+
+Шрифт на объявлениях / Notice lettering
+
+Caveat — The Caveat Project Authors, SIL Open Font License 1.1
+https://github.com/google/fonts/tree/main/ofl/caveat
+
+Контроллер движения / Character controller
+
+Starter Assets — Unity Technologies, Unity Companion License
+https://assetstore.unity.com/packages/3d/characters/first-person-third-person-character-controllers-196526
+https://unity.com/legal/licenses/unity-companion-license
