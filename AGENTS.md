@@ -1,5 +1,7 @@
 # Just One More Peel — repository instructions
 
+While the owner is away, starting with MAIN-006 (22 November 2026), Codex runs the available checks and decides when plan items are ready to close. A missing owner playtest or sign-off does not block progress. Record the decision as Codex's, identify any checks that could not be performed, and keep actual implementation or verification gaps open. Resume owner review when requested.
+
 When the owner asks to complete a stage in one pass, or two to three at most, carry the implementation and verification through within that limit. Keep working across subtasks without waiting for repeated instructions to continue. Separate owner acceptance from work the agent can finish independently.
 
 Prioritize developing the game. On routine «далее» requests, pick an actionable implementation item that changes the player experience or adds game content. After a change, use the smallest relevant compile check and one focused smoke check when needed. Avoid repeating verification already recorded for unchanged behavior. Run broader sweeps, benchmarks, or builds only when explicitly requested, required for the current deliverable, or warranted by a concrete regression.
