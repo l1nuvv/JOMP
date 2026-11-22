@@ -48,6 +48,7 @@ namespace JustOneMorePeel
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
+        internal bool SteamAvailable => archiveIssueSlice || steamUnlocked;
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
         readonly PeelAudioController audio=new PeelAudioController();
@@ -94,7 +95,7 @@ namespace JustOneMorePeel
         int IPeelGameUIState.Money => money;
         int IPeelGameUIState.ToolLevel => toolLevel;
         int IPeelGameUIState.ActiveTool => activeTool;
-        bool IPeelGameUIState.SteamUnlocked => steamUnlocked;
+        bool IPeelGameUIState.SteamUnlocked => SteamAvailable;
         bool IPeelGameUIState.SteamExpanded => steamExpanded;
         bool IPeelGameUIState.WorldSession => worldSession;
         bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
@@ -247,12 +248,16 @@ namespace JustOneMorePeel
                     if(archiveIssueSlice){activeTool=0;toolLevel=1;}
                     else activeTool=1;
                 }
+                if(archiveIssueSlice && keyboard.digit3Key.wasPressedThisFrame)
+                {
+                    Release();activeTool=1;toolLevel=1;
+                }
             }
             if(CurrentScreen!=PeelScreen.Playing)return;
             var mouse=Mouse.current;
             if(mouse!=null)
             {
-                if(steamUnlocked && Cursor.lockState==CursorLockMode.Locked && Mathf.Abs(mouse.scroll.ReadValue().y)>.01f &&
+                if(!archiveIssueSlice && steamUnlocked && Cursor.lockState==CursorLockMode.Locked && Mathf.Abs(mouse.scroll.ReadValue().y)>.01f &&
                     (keyboard==null || (!keyboard.digit1Key.wasPressedThisFrame && !keyboard.digit2Key.wasPressedThisFrame)))
                 {
                     Release();
@@ -382,7 +387,7 @@ namespace JustOneMorePeel
             ? hit.collider.GetComponentInParent<PeelWorkbench>() : null;
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
-            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,steamUnlocked,steamExpanded,ref removed);
+            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,ref removed);
         public bool NeedsStripScrap(PeelStrip strip) => interaction.NeedsStripScrap(strip);
         public static float PeelAmount(Vector2 delta,float seconds,int level,bool steam) =>
             PeelInteractionController.PeelAmount(delta,seconds,level,steam);

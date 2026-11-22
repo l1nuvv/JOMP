@@ -219,8 +219,8 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(60,h-310,580,45),"Just One More Peel",title);
                 bool ru=Settings.Language==PeelLanguage.Russian;
                 string intro=archiveIssueSlice
-                    ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист. 1 — карта, 2 — шпатель."
-                          : "Building records. File 17 is about the knocking.\nPeel the top sheet on the left board to find its shelf.\nWASD to move, LMB to peel. 1 — Card, 2 — Scraper.")
+                    ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист.\n1 — карта, 2 — шпатель, 3 — пар."
+                          : "Building records. File 17 is about the knocking.\nPeel the top sheet on the left board to find its shelf.\nWASD to move, LMB to peel.\n1 — Card, 2 — Scraper, 3 — Steam.")
                     : routePrototype ? (ru
                     ? "Подойди к заклеенной двери (WASD).\nНаведи взгляд на лист и удерживай ЛКМ, чтобы снять его.\nПосмотри на тележку вблизи и нажми E для покупки."
                     : "Walk up to the paper-covered door (WASD).\nAim at a notice and hold LMB to peel it.\nTo buy a tool, look at the cart up close and press E.") : T(PeelText.Intro);
@@ -456,15 +456,19 @@ namespace JustOneMorePeel
                 }
 
                 bool hasSecondary=archiveIssueSlice || steamUnlocked;
-                bool secondarySelected=archiveIssueSlice ? toolLevel>0 : activeTool==1;
+                bool secondarySelected=archiveIssueSlice ? toolLevel>0 && activeTool==0 : activeTool==1;
                 string primary=T(toolLevel>0 && !archiveIssueSlice ? PeelText.Scraper : PeelText.Card);
                 string secondary=T(archiveIssueSlice ? PeelText.Scraper : PeelText.Steamer);
                 float primaryWidth=hudObjective.CalcSize(new GUIContent(primary)).x+(hasSecondary ? 65f : 34f);
                 float secondaryWidth=hasSecondary ? hudObjective.CalcSize(new GUIContent(secondary)).x+65f : 0f;
-                float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f);
+                string steam=T(PeelText.Steamer);
+                float steamWidth=archiveIssueSlice ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
+                float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f)
+                    -(archiveIssueSlice ? steamWidth+6f : 0f);
                 DrawToolSlot(new Rect(toolX,h-72,primaryWidth,50),primary,
-                    hasSecondary ? "1" : "",!secondarySelected);
+                    hasSecondary ? "1" : "",archiveIssueSlice ? toolLevel==0 : !secondarySelected);
                 if(hasSecondary)DrawToolSlot(new Rect(toolX+primaryWidth+6f,h-72,secondaryWidth,50),secondary,"2",secondarySelected);
+                if(archiveIssueSlice)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
             }
             DrawReticle(w,h);
             if(IsPeeling)return;
@@ -575,8 +579,8 @@ namespace JustOneMorePeel
             string controls=T(PeelText.SettingsHelp);
             if(archiveIssueSlice)
                 controls=Settings.Language==PeelLanguage.Russian
-                    ? "WASD — движение · Мышь — обзор · ЛКМ — снять лист\n1 — карта · 2 — шпатель · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"
-                    : "WASD — move · Mouse — look · LMB — peel\n1 — Card · 2 — Scraper · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select";
+                    ? "WASD — движение · Мышь — обзор · ЛКМ — снять лист\n1 — карта · 2 — шпатель · 3 — пар · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"
+                    : "WASD — move · Mouse — look · LMB — peel\n1 — Card · 2 — Scraper · 3 — Steam · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select";
             GUI.Label(new Rect(x+25,y+300,520,83),controls,small);
             if(MenuButton(new Rect(x+25,y+391,520,42),T(PeelText.Back),3))session.Back();
         }

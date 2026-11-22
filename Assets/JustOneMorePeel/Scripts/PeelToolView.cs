@@ -258,7 +258,7 @@ namespace JustOneMorePeel
         {
             UpdateToolPose();
             if(!wallSteam || !game)return;
-            if(!game.IsPeeling || game.activeTool!=1 || !game.steamUnlocked)
+            if(!game.IsPeeling || game.activeTool!=1 || !game.SteamAvailable)
             {
                 wallSteamBudget=0f;
                 return;
@@ -290,7 +290,7 @@ namespace JustOneMorePeel
         }
         void OnPaperDetached(int count)
         {
-            bool useSteam=game.activeTool==1 && game.steamUnlocked;
+            bool useSteam=game.activeTool==1 && game.SteamAvailable;
             detachStrength=useSteam ? .32f : game.toolLevel==0 ? .65f : 1f;
             detachStrength*=Mathf.Lerp(1f,1.2f,Mathf.Clamp01((count-1)/7f));
             detachTime=Time.time;
@@ -302,7 +302,7 @@ namespace JustOneMorePeel
             bool working=game.IsPeeling;
             tool.gameObject.SetActive(Cursor.lockState==CursorLockMode.Locked);
             if(!tool.gameObject.activeSelf)detachTime=float.NegativeInfinity;
-            bool useSteam=game.toolLevel>0 && game.activeTool==1 && game.steamUnlocked;
+            bool useSteam=game.toolLevel>0 && game.activeTool==1 && game.SteamAvailable;
             bool useCard=game.toolLevel==0;
             if(steamer.activeSelf!=useSteam)steamer.SetActive(useSteam);
             if(scraper.activeSelf!=(!useSteam && !useCard))scraper.SetActive(!useSteam && !useCard);

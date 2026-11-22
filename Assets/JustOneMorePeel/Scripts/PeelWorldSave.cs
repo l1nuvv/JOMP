@@ -35,11 +35,15 @@ namespace JustOneMorePeel
             Dictionary<string,PeelPosterStack> index, out string error)
         {
             error="Invalid or incompatible save";
-            if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null || save.stacks.Length!=index.Count ||
+            bool archive=scene==ArchiveIssueScene;
+            bool legacyIssue=archive && save?.stacks?.Length==2;
+            if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
+                (save.stacks.Length!=index.Count && !legacyIssue) ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>1 ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
-                (scene==ArchiveIssueScene && (save.toolLevel>1 || save.steamUnlocked)) ||
-                (save.activeTool==1 && !save.steamUnlocked) || !Finite(save.elapsed) || save.elapsed<0 ||
+                (archive && (save.toolLevel>1 || save.steamUnlocked)) ||
+                (save.activeTool==1 && (archive ? save.toolLevel!=1 : !save.steamUnlocked)) ||
+                !Finite(save.elapsed) || save.elapsed<0 ||
                 !Finite(save.position.x) || !Finite(save.position.y) || !Finite(save.position.z) ||
                 !Finite(save.rotation.x) || !Finite(save.rotation.y) || !Finite(save.rotation.z) || !Finite(save.rotation.w) ||
                 (save.hasLookPitch && (!Finite(save.lookPitch) || save.lookPitch < -180f || save.lookPitch > 180f)))return false;
@@ -51,6 +55,8 @@ namespace JustOneMorePeel
                 if(item==null || string.IsNullOrEmpty(item.id) || !seen.Add(item.id) || !index.TryGetValue(item.id,out var stack) ||
                     item.cleared<0 || item.cleared>stack.PosterCount || !ValidStrips(item.strips,item.cleared==stack.PosterCount))return false;
             }
+            // Before sorting was added, archive saves contained only the two issue stacks.
+            if(legacyIssue && (!seen.Contains("archive.issue.precision") || !seen.Contains("archive.issue.wide")))return false;
             error=null;return true;
         }
         static bool Finite(float v) => !float.IsNaN(v) && !float.IsInfinity(v);
