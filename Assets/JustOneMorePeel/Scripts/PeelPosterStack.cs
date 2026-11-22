@@ -393,6 +393,26 @@ namespace JustOneMorePeel
             if(flatBack)Destroy(flatBack.GetComponent<MeshFilter>().sharedMesh);
         }
         public void RecordRemoval(int index) { removedMask|=1<<index; }
+        internal bool PullAsSheet(float amount)
+        {
+            bool ready=true;
+            int stripCount=0;
+            foreach(var strip in front)
+            {
+                if(!strip.IsExposed)continue;
+                if(strip.progress<1f)strip.Pull(amount,deferDetach:true);
+                if(strip.progress<1f)ready=false;
+                stripCount++;
+            }
+            if(!ready || stripCount==0)return false;
+
+            // A strip that was already partly peeled stays attached until the whole remainder is ready.
+            foreach(var strip in front)
+                if(strip.IsExposed)strip.DetachFromSheet();
+            game.CollectSheet(stripCount);
+            return true;
+        }
+
         public void AdvanceIfComplete()
         {
             if(!NeedsAdvance)return;

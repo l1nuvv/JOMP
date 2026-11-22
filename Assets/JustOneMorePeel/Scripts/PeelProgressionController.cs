@@ -8,7 +8,9 @@ namespace JustOneMorePeel
         internal const int SteamExpansionCost=800;
         internal const int PaperCapacity=5;
         internal const int StripValue=2;
-        internal int CollectedStrips { get; private set; }
+        internal int CollectedItems { get; private set; }
+        internal int FreePaperSlots => PaperCapacity-CollectedItems;
+        int collectedPaperValue;
         internal static int UpgradeCost(int toolLevel) => toolLevel==0?25:toolLevel==1?160:640;
         internal static bool CanUpgrade(int money,int toolLevel) => toolLevel<3 && money>=UpgradeCost(toolLevel);
         internal static bool CanBuySteam(int money,int toolLevel,bool steamUnlocked) => toolLevel>0 && !steamUnlocked && money>=SteamCost;
@@ -70,12 +72,13 @@ namespace JustOneMorePeel
             return true;
         }
 
-        internal void RecordStripDetached(ref int money,ref int removed,int total,int toolLevel,bool steamUnlocked,bool steamExpanded,bool collectPaper)
+        internal void RecordStripDetached(ref int money,ref int removed,int total,int toolLevel,bool steamUnlocked,bool steamExpanded,
+            bool collectPaper,bool partOfSheet)
         {
             removed++;
             if(collectPaper)
             {
-                CollectedStrips++;
+                if(!partOfSheet)CollectPaper(1);
                 return;
             }
 
@@ -88,13 +91,20 @@ namespace JustOneMorePeel
             else if(CanExpandSteam(money,steamUnlocked,steamExpanded) && !CanExpandSteam(previousMoney,steamUnlocked,steamExpanded))Notify(PeelText.WiderSteamAvailable);
         }
 
-        internal (int Strips,int Payout) DeliverPaper(ref int money)
+        internal void CollectPaper(int stripCount)
         {
-            int strips=CollectedStrips;
-            int payout=strips*StripValue;
-            CollectedStrips=0;
+            CollectedItems++;
+            collectedPaperValue+=stripCount*StripValue;
+        }
+
+        internal (int Items,int Payout) DeliverPaper(ref int money)
+        {
+            int items=CollectedItems;
+            int payout=collectedPaperValue;
+            CollectedItems=0;
+            collectedPaperValue=0;
             money+=payout;
-            return (strips,payout);
+            return (items,payout);
         }
     }
 }

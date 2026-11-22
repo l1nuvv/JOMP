@@ -63,8 +63,11 @@ namespace JustOneMorePeel
         }
 
         internal void StepPeeling(bool pressed,Vector2 delta,float seconds, Camera view,float reach,
-            int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,bool canStartGrip,ref int removed)
+            int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,int? freePaperSlots,ref int removed)
         {
+            bool canStartGrip=freePaperSlots is null or >0;
+            bool collectWholeSheets=freePaperSlots.HasValue && toolLevel>0;
+            bool usingSteam=toolLevel>0 && activeTool==1 && steamUnlocked;
             target=null;
             if(Physics.Raycast(view.transform.position,view.transform.forward,out var hit,reach))
             {
@@ -73,10 +76,15 @@ namespace JustOneMorePeel
                     target=posterField.ResolveTarget(hit,target,view.transform.position,view.transform.forward);
             }
             previewStacks.Clear();
-            if(workingStrips.Count>0)previewStacks.AddRange(workingStacks);
+            if(IsPeeling)
+            {
+                foreach(var stack in workingStacks)
+                    if(!collectWholeSheets || !stack.NeedsAdvance)previewStacks.Add(stack);
+            }
             else if(canStartGrip && target && target.IsExposed)
             {
-                if(toolLevel>0 && activeTool==1 && steamUnlocked)SelectSteamTargets(target.Stack,previewStacks,view,reach,steamExpanded);
+                if(usingSteam)
+                    SelectSteamTargets(target.Stack,previewStacks,view,reach,steamExpanded,Mathf.Min(steamExpanded?5:3,freePaperSlots??5));
                 else previewStacks.Add(target.Stack);
             }
             if(Outline)Outline.SetTargets(previewStacks,toolLevel>0);
@@ -95,11 +103,11 @@ namespace JustOneMorePeel
                 gripPoint=hit.point;
                 contactStrip=target;
                 contactOnSheet=target.transform.InverseTransformPoint(hit.point);
-                liftingWithScraper=toolLevel>0 && !(activeTool==1 && steamUnlocked);
+                liftingWithScraper=toolLevel>0 && !usingSteam;
                 if(toolLevel==0)workingStrips.Add(target);
                 else
                 {
-                    if(activeTool==1 && steamUnlocked)
+                    if(usingSteam)
                     {
                         foreach(var stack in previewStacks)AddPoster(stack);
                     }
@@ -115,7 +123,6 @@ namespace JustOneMorePeel
                 SteamTurnBonus(Vector2.zero,seconds);
                 return;
             }
-            bool usingSteam=activeTool==1 && steamUnlocked;
             float amount=PeelAmount(delta,seconds,toolLevel,usingSteam);
             if(usingSteam)amount*=1f+.8f*SteamTurnBonus(delta,seconds);
             if(toolLevel>0 && !usingSteam && workingStacks.Count==1 && workingStacks[0].PrecisionWork)
@@ -126,12 +133,29 @@ namespace JustOneMorePeel
             int removedBefore=removed;
             bool finished=true;
             bool completedSheet=false;
-            foreach(var strip in workingStrips)
+            if(collectWholeSheets)
             {
-                if(strip.IsRemoved)continue;
-                strip.Pull(amount);
-                if(!strip.IsRemoved)finished=false;
-                else if(strip.Stack && strip.Stack.NeedsAdvance)completedSheet=true;
+                foreach(var stack in workingStacks)
+                {
+                    if(stack.NeedsAdvance)continue;
+                    if(stack.PullAsSheet(amount))completedSheet=true;
+                    else finished=false;
+                }
+                if(completedSheet)
+                {
+                    previewStacks.RemoveAll(stack=>stack.NeedsAdvance);
+                    if(Outline)Outline.SetTargets(previewStacks,true);
+                }
+            }
+            else
+            {
+                foreach(var strip in workingStrips)
+                {
+                    if(strip.IsRemoved)continue;
+                    strip.Pull(amount);
+                    if(!strip.IsRemoved)finished=false;
+                    else if(strip.Stack && strip.Stack.NeedsAdvance)completedSheet=true;
+                }
             }
             int detached=removed-removedBefore;
             audio.PlayDetach(detached,completedSheet);
@@ -160,12 +184,13 @@ namespace JustOneMorePeel
             foreach(var strip in stack.CurrentStrips)if(strip.IsExposed)workingStrips.Add(strip);
         }
         internal bool NeedsStripScrap(PeelStrip strip) { return !wholePosterVisuals.Contains(strip.Stack); }
-        void SelectSteamTargets(PeelPosterStack origin,List<PeelPosterStack> result, Camera view,float reach,bool steamExpanded)
+        void SelectSteamTargets(PeelPosterStack origin,List<PeelPosterStack> result, Camera view,float reach,bool steamExpanded,int maxTargets)
         {
             result.Add(origin);
+            if(maxTargets==1)return;
             float radius=steamExpanded?2.5f:1.5f;
             wallVisibility.FindNearby(origin.transform.position,radius,nearbyStacks);
-            for(int i=0;i<(steamExpanded?4:2);i++)
+            while(result.Count<maxTargets)
             {
                 PeelPosterStack closest=null;float distance=radius*radius;
                 foreach(var candidate in nearbyStacks)
@@ -175,7 +200,8 @@ namespace JustOneMorePeel
                     if(d>=distance || !VisiblePoster(candidate,view,reach))continue;
                     closest=candidate;distance=d;
                 }
-                if(closest)result.Add(closest);
+                if(!closest)break;
+                result.Add(closest);
             }
         }
         bool VisiblePoster(PeelPosterStack stack,Camera view,float reach)

@@ -91,13 +91,14 @@ namespace JustOneMorePeel
             destination.Clear();destination.vertices=wholeVertices;destination.uv=wholeUv;destination.triangles=triangles;
             destination.RecalculateNormals();destination.RecalculateBounds();
         }
-        public void Pull(float amount)
+        public void Pull(float amount) => Pull(amount,false);
+        internal void Pull(float amount,bool deferDetach)
         {
             if(!IsExposed || amount<=0 || (game && !game.CanPeelPaper)) return;
             bool wasFlat=progress==0;
             progress=Mathf.Clamp01(progress+amount);
             Deform();
-            if(progress>=1) Detach();
+            if(progress>=1 && !deferDetach)Detach(false);
             if(wasFlat && Stack)Stack.RefreshFlatFront();
         }
         internal void RestoreProgress(float value, bool removed)
@@ -143,12 +144,13 @@ namespace JustOneMorePeel
             }
             mesh.vertices=vertices;mesh.RecalculateNormals();mesh.RecalculateBounds();
         }
-        void Detach()
+        internal void DetachFromSheet() => Detach(true);
+        void Detach(bool partOfSheet)
         {
             if(IsRemoved) return;
             IsRemoved=true;pulling=false;enabled=false;
             paperCollider.enabled=false;
-            if(game)game.RecordStripDetached();
+            if(game)game.RecordStripDetached(partOfSheet);
             paperRenderer.enabled=false;
             if(Stack)Stack.RecordRemoval(BufferIndex);
             if(game && game.NeedsStripScrap(this) && game.Scraps)game.Scraps.Emit(this);

@@ -50,8 +50,8 @@ namespace JustOneMorePeel
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
-        internal bool SteamAvailable => !PaperCollectionActive && (archiveIssueSlice || steamUnlocked);
-        internal bool CanPeelPaper => !PaperCollectionActive || progression.CollectedStrips<PeelProgressionController.PaperCapacity;
+        internal bool SteamAvailable => archiveIssueSlice || steamUnlocked;
+        internal bool CanPeelPaper => !PaperCollectionActive || progression.FreePaperSlots>0;
         bool PaperCollectionActive { get; set; }
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
@@ -107,7 +107,7 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
         bool IPeelGameUIState.ArchiveIssueAddressFound => archiveIssueAddress && archiveIssueAddress.ClearedPosters>0;
         bool IPeelGameUIState.PaperCollectionActive => PaperCollectionActive;
-        int IPeelGameUIState.CollectedStrips => progression.CollectedStrips;
+        int IPeelGameUIState.CollectedItems => progression.CollectedItems;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
         float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
@@ -257,13 +257,13 @@ namespace JustOneMorePeel
                     Release();activeTool=0;
                     if(archiveIssueSlice)toolLevel=0;
                 }
-                if(!PaperCollectionActive && keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
+                if(keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
                 {
                     Release();
                     if(archiveIssueSlice){activeTool=0;toolLevel=1;}
                     else activeTool=1;
                 }
-                if(archiveIssueSlice && !PaperCollectionActive && keyboard.digit3Key.wasPressedThisFrame)
+                if(archiveIssueSlice && keyboard.digit3Key.wasPressedThisFrame)
                 {
                     Release();activeTool=1;toolLevel=1;
                 }
@@ -414,13 +414,14 @@ namespace JustOneMorePeel
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
         void DeliverPaper()
         {
-            var (strips,payout)=progression.DeliverPaper(ref money);
-            if(strips==0)return;
+            var (items,payout)=progression.DeliverPaper(ref money);
+            if(items==0)return;
             Release();
-            ui.ShowPaperReceipt(strips,payout);
+            ui.ShowPaperReceipt(items,payout);
         }
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
-            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,CanPeelPaper,ref removed);
+            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,
+                PaperCollectionActive ? progression.FreePaperSlots : null,ref removed);
         public bool NeedsStripScrap(PeelStrip strip) => interaction.NeedsStripScrap(strip);
         public static float PeelAmount(Vector2 delta,float seconds,int level,bool steam) =>
             PeelInteractionController.PeelAmount(delta,seconds,level,steam);
@@ -432,8 +433,9 @@ namespace JustOneMorePeel
         public bool TryUpgrade() => progression.TryUpgrade(ref money,ref toolLevel);
         public bool TryBuySteam() => progression.TryBuySteam(ref money,toolLevel,ref activeTool,ref steamUnlocked);
         public bool TryExpandSteam() => progression.TryExpandSteam(ref money,steamUnlocked,ref steamExpanded);
-        internal void RecordStripDetached() =>
-            progression.RecordStripDetached(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded,PaperCollectionActive);
+        internal void RecordStripDetached(bool partOfSheet) =>
+            progression.RecordStripDetached(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded,PaperCollectionActive,partOfSheet);
+        internal void CollectSheet(int stripCount) => progression.CollectPaper(stripCount);
         void NotifyProgression(PeelText notice)
         {
             if(archiveIssueSlice && (notice==PeelText.ScraperAvailable || notice==PeelText.Finished))return;

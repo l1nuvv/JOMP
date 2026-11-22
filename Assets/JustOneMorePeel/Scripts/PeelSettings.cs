@@ -91,14 +91,14 @@ namespace JustOneMorePeel
             {"Paper bundle · {0}/{1}","Пачка · {0}/{1}"},
             {"Bundle full · {0}/{1}","Пачка полна · {0}/{1}"},
             {"Trial progress is not saved","Проба проходит без сохранения"},
-            {"WASD — move · Mouse — look · Hold LMB to peel\nE — drop off paper · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
-             "WASD — движение · Мышь — обзор · ЛКМ — снять полосу\nE — сдать бумагу · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
+            {"WASD — move · Mouse — look · Hold LMB to peel\n1 — Card · 2 — Scraper · 3 — Steam\nE — drop off paper · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
+             "WASD — движение · Мышь — обзор · ЛКМ — снять бумагу\n1 — карта · 2 — шпатель · 3 — пар\nE — сдать бумагу · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
             {"PAPER DROP-OFF","МАКУЛАТУРА"},
             {"Drop off the bundle at the cart","Сдай пачку у тележки"},
-            {"Collect more strips or drop off at the cart","Собирай полосы или сдай пачку у тележки"},
+            {"Collect more paper or drop off at the cart","Продолжай сбор или сдай пачку у тележки"},
             {"E — Drop off paper","E — Сдать бумагу"},
             {"Paper drop-off · bundle empty","Приём бумаги · пачка пуста"},
-            {"Strips accepted · {0} · +${1}","Сдано {0} шт. · +${1}"}
+            {"Items accepted · {0} · +${1}","Сдано {0} шт. · +${1}"}
         };
 
         void Awake() { Load(); }

@@ -21,7 +21,7 @@ namespace JustOneMorePeel
         bool ArchiveIssueSlice { get; }
         bool ArchiveIssueAddressFound { get; }
         bool PaperCollectionActive { get; }
-        int CollectedStrips { get; }
+        int CollectedItems { get; }
         PeelScreen RestartReturn { get; }
         bool ResetFailed { get; }
         float CompletionNoticeUntil { get; }
@@ -49,7 +49,7 @@ namespace JustOneMorePeel
         bool focusMenu=true;
         int menuSelection;
         int payoutAmount, payoutFrame=-1;
-        int paperReceiptStrips;
+        int paperReceiptItems;
         float payoutUntil;
         PeelText notice=PeelText.Welcome;
         bool purchaseSaveFailed;
@@ -97,9 +97,9 @@ namespace JustOneMorePeel
             if(payoutFrame!=Time.frameCount)payoutAmount=0;
             payoutAmount+=StripValue;payoutFrame=Time.frameCount;payoutUntil=Time.unscaledTime+1.25f;
         }
-        internal void ShowPaperReceipt(int strips,int payout)
+        internal void ShowPaperReceipt(int items,int payout)
         {
-            paperReceiptStrips=strips;payoutAmount=payout;payoutUntil=Time.unscaledTime+3f;
+            paperReceiptItems=items;payoutAmount=payout;payoutUntil=Time.unscaledTime+3f;
         }
 
         string PauseSaveStatus()
@@ -435,11 +435,11 @@ namespace JustOneMorePeel
             int remaining=routePrototype ? routePrototype.RemainingHere
                 : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
             string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
-            bool bundleFull=paperCollection && session.CollectedStrips>=PaperCapacity;
+            bool bundleFull=paperCollection && session.CollectedItems>=PaperCapacity;
             if(paperCollection)
                 objective=bundleFull ? T(PeelText.PaperDropOffObjective)
-                    : session.CollectedStrips>0 ? T(PeelText.PaperDropOffOptional)
-                    : (ru ? "Собери полосы картой" : "Collect strips with the card");
+                    : session.CollectedItems>0 ? T(PeelText.PaperDropOffOptional)
+                    : (ru ? "Собери бумагу" : "Collect paper");
             else if(archiveIssueSlice)
             {
                 objective=session.ArchiveIssueAddressFound
@@ -472,12 +472,12 @@ namespace JustOneMorePeel
                 if(paperCollection)
                 {
                     string bundle=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
-                        session.CollectedStrips,PaperCapacity);
+                        session.CollectedItems,PaperCapacity);
                     float width=center.CalcSize(new GUIContent(bundle)).x+24f;
                     DrawHint(new Rect(w-22f-width,80f,width,29f),bundle);
                     if(Time.unscaledTime<payoutUntil)
                     {
-                        string receipt=string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptStrips,payoutAmount);
+                        string receipt=string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptItems,payoutAmount);
                         float receiptWidth=center.CalcSize(new GUIContent(receipt)).x+24f;
                         DrawHint(new Rect(w-22f-receiptWidth,117f,receiptWidth,29f),receipt);
                     }
@@ -492,21 +492,20 @@ namespace JustOneMorePeel
                     DrawHint(new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29),offer);
                 }
 
-                bool archiveTools=archiveIssueSlice && !paperCollection;
-                bool hasSecondary=archiveTools || steamUnlocked;
+                bool hasSecondary=archiveIssueSlice || steamUnlocked;
                 bool secondarySelected=archiveIssueSlice ? toolLevel>0 && activeTool==0 : activeTool==1;
                 string primary=T(toolLevel>0 && !archiveIssueSlice ? PeelText.Scraper : PeelText.Card);
                 string secondary=T(archiveIssueSlice ? PeelText.Scraper : PeelText.Steamer);
                 float primaryWidth=hudObjective.CalcSize(new GUIContent(primary)).x+(hasSecondary ? 65f : 34f);
                 float secondaryWidth=hasSecondary ? hudObjective.CalcSize(new GUIContent(secondary)).x+65f : 0f;
                 string steam=T(PeelText.Steamer);
-                float steamWidth=archiveTools ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
+                float steamWidth=archiveIssueSlice ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
                 float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f)
-                    -(archiveTools ? steamWidth+6f : 0f);
+                    -(archiveIssueSlice ? steamWidth+6f : 0f);
                 DrawToolSlot(new Rect(toolX,h-72,primaryWidth,50),primary,
                     hasSecondary ? "1" : "",archiveIssueSlice ? toolLevel==0 : !secondarySelected);
                 if(hasSecondary)DrawToolSlot(new Rect(toolX+primaryWidth+6f,h-72,secondaryWidth,50),secondary,"2",secondarySelected);
-                if(archiveTools)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
+                if(archiveIssueSlice)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
             }
             DrawReticle(w,h);
             if(IsPeeling)return;
@@ -516,7 +515,7 @@ namespace JustOneMorePeel
                 hint=(ru ? "Дополнительно" : "Optional")+" · "+hint;
             if(session.CanUseWorkbench())
                 hint=paperCollection
-                    ? T(session.CollectedStrips>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
+                    ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
                     : WorkbenchHint();
             if(routePrototype && routePrototype.CanOpenDoor())hint=ru ? "E   Открыть дверь" : "E   Open door";
             if(basementLight && basementLight.CanInteract())
