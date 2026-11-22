@@ -65,7 +65,7 @@ namespace JustOneMorePeel
             bool feedbackVisible=game && (game.CurrentScreen==PeelScreen.Playing || game.CurrentScreen==PeelScreen.Shop);
             bool scraperReady=playing && PeelProgressionController.CanUpgrade(game.money,game.toolLevel);
             bool steamReady=game &&
-                (PeelProgressionController.CanBuySteam(game.money,game.toolLevel,game.steamUnlocked) ||
+                (PeelProgressionController.CanBuySteam(game.money,game.toolLevel,game.steamUnlocked,game.SteamPrice) ||
                  PeelProgressionController.CanExpandSteam(game.money,game.steamUnlocked,game.steamExpanded));
             if(singleToolDisplay && scraper!=null && steamer!=null)
             {

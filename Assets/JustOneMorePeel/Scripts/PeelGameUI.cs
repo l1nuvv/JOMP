@@ -12,6 +12,7 @@ namespace JustOneMorePeel
         int TotalPosters { get; }
         int ClearedPosters { get; }
         int UpgradeCost { get; }
+        int SteamPrice { get; }
         int Money { get; }
         int ToolLevel { get; }
         int ActiveTool { get; }
@@ -376,8 +377,8 @@ namespace JustOneMorePeel
                 }
                 else
                 {
-                    string steam=steamUnlocked?T(PeelText.SteamOwned):string.Format(T(PeelText.BuySteam),SteamCost);
-                    if(ShopOffer(240,1,steam,T(PeelText.SteamDescription),steamUnlocked,SteamCost,toolLevel==0?T(PeelText.SteamLocked):null))session.TryBuySteam();
+                    string steam=steamUnlocked?T(PeelText.SteamOwned):string.Format(T(PeelText.BuySteam),session.SteamPrice);
+                    if(ShopOffer(240,1,steam,T(PeelText.SteamDescription),steamUnlocked,session.SteamPrice,toolLevel==0?T(PeelText.SteamLocked):null))session.TryBuySteam();
                     string expansion=steamExpanded?T(PeelText.SteamExpandedOwned):string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost);
                     if(ShopOffer(335,2,expansion,T(PeelText.ShopWiderSteamEffect),steamExpanded,SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null))session.TryExpandSteam();
                 }
@@ -470,7 +471,7 @@ namespace JustOneMorePeel
             {
                 bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
                 bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;
-                int cost=upgradeNotice?UpgradeCost:notice==PeelText.SteamAvailable?SteamCost:SteamExpansionCost;
+                int cost=upgradeNotice?UpgradeCost:notice==PeelText.SteamAvailable?session.SteamPrice:SteamExpansionCost;
                 string message=upgradeNotice || steamNotice ? string.Format(T(notice),cost) : T(notice);
                 float width=Mathf.Min(720f,center.CalcSize(new GUIContent(message)).x+36f);
                 DrawHint(new Rect((w-width)*.5f,noticeY,width,42),message);
@@ -607,7 +608,7 @@ namespace JustOneMorePeel
         string WorkbenchHint()
         {
             string scraperOffer=CanUpgrade(money,toolLevel) ? string.Format(T(toolLevel==0 ? PeelText.BuyScraper : PeelText.Upgrade),UpgradeCost) : "";
-            string steamOffer=CanBuySteam(money,toolLevel,steamUnlocked) ? string.Format(T(PeelText.BuySteam),SteamCost) :
+            string steamOffer=CanBuySteam(money,toolLevel,steamUnlocked,session.SteamPrice) ? string.Format(T(PeelText.BuySteam),session.SteamPrice) :
                 CanExpandSteam(money,steamUnlocked,steamExpanded) ? string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost) : "";
             if(scraperOffer.Length==0 && steamOffer.Length==0)return T(PeelText.Workbench);
             if(scraperOffer.Length==0)return "E · "+steamOffer;

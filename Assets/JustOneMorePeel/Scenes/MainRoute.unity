@@ -9200,6 +9200,7 @@ MonoBehaviour:
   steamUnlocked: 0
   steamExpanded: 0
   reach: 3.4
+  steamPrice: 39
   activeTool: 0
 --- !u!114 &510054570
 MonoBehaviour:

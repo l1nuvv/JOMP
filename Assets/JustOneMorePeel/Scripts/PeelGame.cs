@@ -28,6 +28,8 @@ namespace JustOneMorePeel
         public bool steamExpanded;
         public float reach=3.4f;
         public const int SteamCost=PeelProgressionController.SteamCost;
+        [SerializeField, Min(1)] int steamPrice=SteamCost;
+        public int SteamPrice => steamPrice;
         public const int SteamExpansionCost=PeelProgressionController.SteamExpansionCost;
         const string ArchiveIssueSaveFile="main-archive-issue-v1.json";
         const string PaperCollectionSaveFile="main-archive-paper-v1.json";
@@ -159,7 +161,7 @@ namespace JustOneMorePeel
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
             ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight);
-            progression=new PeelProgressionController(Release,SavePurchase,NotifyProgression,ui.ShowPayout
+            progression=new PeelProgressionController(SteamPrice,Release,SavePurchase,NotifyProgression,ui.ShowPayout
 #if UNITY_EDITOR
                 ,LogRoutePlaytest
 #endif

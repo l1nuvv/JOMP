@@ -5,6 +5,7 @@ namespace JustOneMorePeel
     internal sealed class PeelProgressionController
     {
         internal const int SteamCost=480;
+        readonly int steamPrice;
         internal const int SteamExpansionCost=800;
         internal const int StripValue=2;
         internal int PaperCapacity { get; private set; }=PeelPaperSave.StartingCapacity;
@@ -15,7 +16,7 @@ namespace JustOneMorePeel
         int collectedPaperValue;
         internal static int UpgradeCost(int toolLevel) => toolLevel==0?25:toolLevel==1?160:640;
         internal static bool CanUpgrade(int money,int toolLevel) => toolLevel<3 && money>=UpgradeCost(toolLevel);
-        internal static bool CanBuySteam(int money,int toolLevel,bool steamUnlocked) => toolLevel>0 && !steamUnlocked && money>=SteamCost;
+        internal static bool CanBuySteam(int money,int toolLevel,bool steamUnlocked,int price) => toolLevel>0 && !steamUnlocked && money>=price;
         internal static bool CanExpandSteam(int money,bool steamUnlocked,bool steamExpanded) => steamUnlocked && !steamExpanded && money>=SteamExpansionCost;
         internal static bool IsPurchaseNotice(PeelText notice) => notice is
             PeelText.Upgraded or PeelText.ScraperSharpened or PeelText.SteamBought or PeelText.SteamExpanded;
@@ -27,12 +28,13 @@ namespace JustOneMorePeel
         readonly Action<string> LogRoutePlaytest;
 #endif
 
-        internal PeelProgressionController(Action release,Func<bool> savePurchase,Action<PeelText> notify,Action showPayout
+        internal PeelProgressionController(int steamPrice,Action release,Func<bool> savePurchase,Action<PeelText> notify,Action showPayout
 #if UNITY_EDITOR
             , Action<string> logRoutePlaytest
 #endif
             )
         {
+            this.steamPrice=steamPrice;
             Release=release;SavePurchase=savePurchase;Notify=notify;ShowPayout=showPayout;
 #if UNITY_EDITOR
             LogRoutePlaytest=logRoutePlaytest;
@@ -52,10 +54,10 @@ namespace JustOneMorePeel
         }
         internal bool TryBuySteam(ref int money,int toolLevel,ref int activeTool,ref bool steamUnlocked)
         {
-            if(!CanBuySteam(money,toolLevel,steamUnlocked))return false;
+            if(!CanBuySteam(money,toolLevel,steamUnlocked,steamPrice))return false;
             int previousTool=activeTool;
-            Release();money-=SteamCost;steamUnlocked=true;activeTool=1;
-            if(!SavePurchase()){money+=SteamCost;steamUnlocked=false;activeTool=previousTool;return false;}
+            Release();money-=steamPrice;steamUnlocked=true;activeTool=1;
+            if(!SavePurchase()){money+=steamPrice;steamUnlocked=false;activeTool=previousTool;return false;}
             Notify(PeelText.SteamBought);
 #if UNITY_EDITOR
             LogRoutePlaytest("Steam purchased");
@@ -89,7 +91,7 @@ namespace JustOneMorePeel
             ShowPayout();
             if(removed==total)Notify(PeelText.Finished);
             else if(CanUpgrade(money,toolLevel) && !CanUpgrade(previousMoney,toolLevel))Notify(toolLevel==0?PeelText.ScraperAvailable:PeelText.SharpenAvailable);
-            else if(CanBuySteam(money,toolLevel,steamUnlocked) && !CanBuySteam(previousMoney,toolLevel,steamUnlocked))Notify(PeelText.SteamAvailable);
+            else if(CanBuySteam(money,toolLevel,steamUnlocked,steamPrice) && !CanBuySteam(previousMoney,toolLevel,steamUnlocked,steamPrice))Notify(PeelText.SteamAvailable);
             else if(CanExpandSteam(money,steamUnlocked,steamExpanded) && !CanExpandSteam(previousMoney,steamUnlocked,steamExpanded))Notify(PeelText.WiderSteamAvailable);
         }
 
