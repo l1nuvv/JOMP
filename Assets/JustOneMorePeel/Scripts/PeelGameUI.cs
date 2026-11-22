@@ -19,6 +19,7 @@ namespace JustOneMorePeel
         bool SteamExpanded { get; }
         bool WorldSession { get; }
         bool ArchiveIssueSlice { get; }
+        bool ArchiveIssueAddressFound { get; }
         PeelScreen RestartReturn { get; }
         bool ResetFailed { get; }
         float CompletionNoticeUntil { get; }
@@ -218,8 +219,8 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(60,h-310,580,45),"Just One More Peel",title);
                 bool ru=Settings.Language==PeelLanguage.Russian;
                 string intro=archiveIssueSlice
-                    ? (ru ? "Подойди к планшетам выдачи (WASD).\nНаведи взгляд на лист и удерживай ЛКМ.\n1 — карта, 2 — шпатель."
-                          : "Walk up to the issue boards (WASD).\nAim at a notice and hold LMB.\n1 — Card, 2 — Scraper.")
+                    ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист. 1 — карта, 2 — шпатель."
+                          : "Building records. File 17 is about the knocking.\nPeel the top sheet on the left board to find its shelf.\nWASD to move, LMB to peel. 1 — Card, 2 — Scraper.")
                     : routePrototype ? (ru
                     ? "Подойди к заклеенной двери (WASD).\nНаведи взгляд на лист и удерживай ЛКМ, чтобы снять его.\nПосмотри на тележку вблизи и нажми E для покупки."
                     : "Walk up to the paper-covered door (WASD).\nAim at a notice and hold LMB to peel it.\nTo buy a tool, look at the cart up close and press E.") : T(PeelText.Intro);
@@ -390,15 +391,12 @@ namespace JustOneMorePeel
                 }
                 return;
             }
-            if(ClearedPosters==TotalPosters)
+            if(!archiveIssueSlice && ClearedPosters==TotalPosters)
             {
-                string finished=archiveIssueSlice
-                    ? (Settings.Language==PeelLanguage.Russian ? "Планшеты выдачи очищены" : "Issue boards cleared")
-                    : T(PeelText.Finished);
-                GUI.Label(new Rect(w/2-360,noticeY,720,50),finished,center);
+                GUI.Label(new Rect(w/2-360,noticeY,720,50),T(PeelText.Finished),center);
                 noticeY += 55f;
             }
-            else if(Time.time<noticeUntil && (!routePrototype || notice!=PeelText.Welcome))
+            else if(Time.time<noticeUntil && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
             {
                 bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
                 bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;
@@ -418,15 +416,21 @@ namespace JustOneMorePeel
             bool door=routePrototype && routePrototype.UsesLocalCourtyardGate && routePrototype.CurrentArea==0;
             int remaining=routePrototype ? routePrototype.RemainingHere
                 : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
-            string objective=archiveIssueSlice && remaining>0 ? (ru ? "Сними листы с планшетов выдачи" : "Peel the notices from the issue boards")
-                : routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
+            string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
+            if(archiveIssueSlice)
+            {
+                objective=session.ArchiveIssueAddressFound
+                    ? (ru ? "Полка Б за столом" : "Shelf B is past the desk")
+                    : (ru ? "Сними верхний лист слева" : "Peel the top sheet on the left");
+            }
             if(!complete && basementLight && basementLight.IsDark)
                 objective=basementLight.SwitchIsOn
                     ? (ru ? "Лампа зажигается…" : "Lamp warming up…")
                     : (ru ? "Найди выключатель слева от входа" : "Find the switch left of the entrance");
             if(objective.Length>0)
             {
-                string label=complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
+                string label=archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
+                    : complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
                     : (door ? (ru ? "На двери" : "On the door") : T(PeelText.RemainingPosters))+"  "+remaining;
                 float width=Mathf.Clamp(hudObjective.CalcSize(new GUIContent(objective)).x+38f,268f,490f);

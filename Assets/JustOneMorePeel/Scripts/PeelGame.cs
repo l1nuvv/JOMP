@@ -20,6 +20,8 @@ namespace JustOneMorePeel
         [SerializeField] private GameObject scraperViewPrefab;
         [SerializeField] private GameObject steamerViewPrefab;
         [SerializeField] private bool archiveIssueSlice;
+        [SerializeField] private PeelPosterStack archiveIssueAddress;
+        [SerializeField] private TextMesh archiveIssueShelfLabel;
         public int money, removed, total, toolLevel;
         public bool steamUnlocked;
         public bool steamExpanded;
@@ -96,6 +98,7 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.SteamExpanded => steamExpanded;
         bool IPeelGameUIState.WorldSession => worldSession;
         bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
+        bool IPeelGameUIState.ArchiveIssueAddressFound => archiveIssueAddress && archiveIssueAddress.ClearedPosters>0;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
         float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
@@ -153,6 +156,8 @@ namespace JustOneMorePeel
             if(!appliedSettings || appliedLanguage!=Settings.Language)
             {
                 foreach(var stack in stacks)stack.RefreshMaterials();
+                if(archiveIssueShelfLabel)
+                    archiveIssueShelfLabel.text=Settings.Language==PeelLanguage.Russian ? "Полка Б" : "Shelf B";
                 Settings.ApplyWorldText();appliedLanguage=Settings.Language;appliedSettings=true;
             }
         }
@@ -392,7 +397,7 @@ namespace JustOneMorePeel
         public void Pay(PeelStrip strip) => progression.Pay(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded);
         void NotifyProgression(PeelText notice)
         {
-            if(archiveIssueSlice && notice==PeelText.ScraperAvailable)return;
+            if(archiveIssueSlice && (notice==PeelText.ScraperAvailable || notice==PeelText.Finished))return;
             ui.Notify(notice);
             if(CurrentScreen!=PeelScreen.Shop || !PeelProgressionController.IsPurchaseNotice(notice))return;
 
