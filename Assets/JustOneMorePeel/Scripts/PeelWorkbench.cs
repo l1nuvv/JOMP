@@ -5,10 +5,12 @@ namespace JustOneMorePeel
     public class PeelWorkbench : MonoBehaviour
     {
         [SerializeField] private TextMesh paperDropOffLabel;
+        [SerializeField] private bool singleToolDisplay;
         PeelGame game;
         PeelRoutePrototype route;
         sealed class ToolHighlight
         {
+            public GameObject model;
             public LineRenderer ring;
             public bool highlighted, confirming;
             public float purchaseUntil;
@@ -39,7 +41,7 @@ namespace JustOneMorePeel
         {
             var child=transform.Find(childName);
             if(!child)return null;
-            var parts=child.GetComponentsInChildren<Renderer>();
+            var parts=child.GetComponentsInChildren<Renderer>(true);
             if(parts.Length==0)return null;
             var bounds=parts[0].bounds;
             foreach(var part in parts)bounds.Encapsulate(part.bounds);
@@ -54,7 +56,7 @@ namespace JustOneMorePeel
                 var point=new Vector3(bounds.center.x+Mathf.Cos(angle)*(bounds.extents.x+.08f),y,bounds.center.z+Mathf.Sin(angle)*(bounds.extents.z+.08f));
                 ring.SetPosition(i,transform.InverseTransformPoint(point));
             }
-            return new ToolHighlight { ring=ring };
+            return new ToolHighlight { model=child.gameObject, ring=ring };
         }
 
         void Update()
@@ -62,15 +64,26 @@ namespace JustOneMorePeel
             bool playing=game && game.CurrentScreen==PeelScreen.Playing && !(route && route.ReviewMode);
             bool feedbackVisible=game && (game.CurrentScreen==PeelScreen.Playing || game.CurrentScreen==PeelScreen.Shop);
             bool scraperReady=playing && PeelProgressionController.CanUpgrade(game.money,game.toolLevel);
-            bool steamReady=playing &&
+            bool steamReady=game &&
                 (PeelProgressionController.CanBuySteam(game.money,game.toolLevel,game.steamUnlocked) ||
                  PeelProgressionController.CanExpandSteam(game.money,game.steamUnlocked,game.steamExpanded));
+            if(singleToolDisplay && scraper!=null && steamer!=null)
+            {
+                bool showSteam=steamer.purchaseUntil>Time.unscaledTime ||
+                    (steamReady && scraper.purchaseUntil<=Time.unscaledTime);
+                if(steamer.model.activeSelf!=showSteam)steamer.model.SetActive(showSteam);
+                if(scraper.model.activeSelf==showSteam)scraper.model.SetActive(!showSteam);
+                scraperReady &= !showSteam;
+                steamReady &= showSteam;
+            }
             SetHighlight(scraper,scraperReady,feedbackVisible);
-            SetHighlight(steamer,steamReady,feedbackVisible);
+            SetHighlight(steamer,playing && steamReady,feedbackVisible);
         }
 
         internal void ShowPurchase(bool steam)
         {
+            var other=steam ? scraper : steamer;
+            if(singleToolDisplay && other!=null)other.purchaseUntil=0f;
             var tool=steam ? steamer : scraper;
             if(tool!=null)tool.purchaseUntil=Time.unscaledTime+PurchasePulseDuration;
         }
