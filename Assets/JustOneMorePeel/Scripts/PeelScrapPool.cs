@@ -14,6 +14,7 @@ namespace JustOneMorePeel
             public Mesh mesh;
             public MeshRenderer renderer;
             public Vector3 origin;
+            public Vector3 pivotOffset;
             public Quaternion initialRotation;
             public float age;
             public float opacity;
@@ -100,10 +101,7 @@ namespace JustOneMorePeel
             TotalEmissions++;
             strip.CopyMeshTo(scrap.mesh);
             SetMaterial(scrap,strip.GetComponent<Renderer>().sharedMaterial);
-            scrap.origin=strip.transform.position;scrap.age=0;
-            scrap.go.transform.SetPositionAndRotation(strip.transform.position,strip.transform.rotation);
-            scrap.initialRotation=strip.transform.rotation;
-            scrap.go.transform.localScale=strip.transform.lossyScale;scrap.go.SetActive(true);
+            PlaceScrap(scrap,strip.transform.position,strip.transform.rotation,strip.transform.lossyScale);
         }
         public void EmitPoster(PeelPosterStack stack)
         {
@@ -112,10 +110,17 @@ namespace JustOneMorePeel
             var strip=stack.CurrentStrips[0];strip.CopyWholePosterTo(scrap.mesh);
             SetMaterial(scrap,strip.GetComponent<Renderer>().sharedMaterial);
             float centerX=strip.transform.localPosition.x+strip.width*1.5f;
-            scrap.origin=stack.transform.TransformPoint(new Vector3(centerX,0,strip.transform.localPosition.z));scrap.age=0;
-            scrap.go.transform.SetPositionAndRotation(scrap.origin,stack.transform.rotation);
-            scrap.initialRotation=stack.transform.rotation;
-            scrap.go.transform.localScale=stack.transform.lossyScale;scrap.go.SetActive(true);
+            Vector3 position=stack.transform.TransformPoint(new Vector3(centerX,strip.transform.localPosition.y,strip.transform.localPosition.z));
+            PlaceScrap(scrap,position,stack.transform.rotation,stack.transform.lossyScale);
+        }
+        static void PlaceScrap(Scrap scrap,Vector3 position,Quaternion rotation,Vector3 scale)
+        {
+            scrap.pivotOffset=Vector3.Scale(scrap.mesh.bounds.center,scale);
+            scrap.origin=position+rotation*scrap.pivotOffset;
+            scrap.age=0;
+            scrap.initialRotation=rotation;
+            scrap.go.transform.SetPositionAndRotation(position,rotation);
+            scrap.go.transform.localScale=scale;scrap.go.SetActive(true);
         }
         void Update()
         {
@@ -123,11 +128,14 @@ namespace JustOneMorePeel
             {
                 if(scrap==null || !scrap.go || !scrap.go.activeSelf)continue;
                 scrap.age+=Time.deltaTime;
-                // Leave along the paper face, while gravity remains in world space.
-                float drift=(1f-Mathf.Cos(scrap.age*4f))*.04f;
-                Vector3 localMotion=new Vector3(drift,0,-scrap.age*.35f);
-                scrap.go.transform.position=scrap.origin+scrap.initialRotation*localMotion+Vector3.down*(scrap.age*scrap.age*1.8f);
-                scrap.go.transform.rotation=scrap.initialRotation*Quaternion.Euler(45f*scrap.age,35f*scrap.age,55f*scrap.age);
+                // Fall beside the wall and tumble around the paper's own centre.
+                float drift=(1f-Mathf.Cos(scrap.age*4f))*.024f;
+                float clearance=.042f*(1f-Mathf.Exp(-scrap.age*6f));
+                Vector3 localMotion=new Vector3(drift,0,-clearance);
+                Vector3 center=scrap.origin+scrap.initialRotation*localMotion+Vector3.down*(scrap.age*scrap.age*1.8f);
+                Quaternion rotation=scrap.initialRotation*Quaternion.Euler(12f*Mathf.Sin(scrap.age*4f),
+                    8f*Mathf.Sin(scrap.age*3f),32f*scrap.age);
+                scrap.go.transform.SetPositionAndRotation(center-rotation*scrap.pivotOffset,rotation);
                 if(scrap.age>2.2f)scrap.go.SetActive(false);
             }
             foreach(var scrap in scraps)

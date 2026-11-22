@@ -26,6 +26,7 @@ namespace JustOneMorePeel
         BoxCollider paperCollider;
         const int rows=24;
         bool pulling;
+        bool liftFromBottom;
         int lastDeformFrame=-1;
         static readonly ProfilerMarker DeformMarker=new ProfilerMarker("Poster.Deform");
         public void Prepare()
@@ -53,12 +54,17 @@ namespace JustOneMorePeel
             Deform();
         }
         void Awake() { if(mesh==null) Prepare(); enabled=false; }
-        public void Begin() { if(IsExposed) {pulling=true;enabled=true;} }
+        public void Begin(bool fromBottom=false)
+        {
+            if(!IsExposed)return;
+            liftFromBottom=fromBottom;
+            pulling=true;enabled=true;
+        }
         public void End() { pulling=false;enabled=false; }
         public void ResetForPoster(PeelGame owner,float w,float h,Vector3 localPosition,Material material,bool visible)
         {
             if(mesh==null)Prepare();
-            game=owner;width=w;height=h;progress=0;SoundSample=0;IsRemoved=!visible;pulling=false;enabled=false;
+            game=owner;width=w;height=h;progress=0;SoundSample=0;IsRemoved=!visible;pulling=false;liftFromBottom=false;enabled=false;
             transform.localPosition=localPosition;
             paperCollider.center=Vector3.zero;
             paperCollider.size=new Vector3(width,height,.00002f);paperCollider.enabled=visible;
@@ -68,6 +74,15 @@ namespace JustOneMorePeel
         {
             destination.Clear();destination.vertices=vertices;destination.uv=uv;destination.triangles=triangles;
             destination.RecalculateNormals();destination.RecalculateBounds();
+        }
+        internal Vector3 SurfacePoint(Vector2 restPoint)
+        {
+            // The two vertices of each row share the same curl. Sample the rendered sheet.
+            float row = Mathf.Clamp01(.5f - restPoint.y / height) * rows;
+            int top = Mathf.Min(Mathf.FloorToInt(row), rows - 1);
+            Vector3 point = Vector3.Lerp(vertices[2 * top], vertices[2 * (top + 1)], row - top);
+            point.x = Mathf.Clamp(restPoint.x, -width * .5f, width * .5f);
+            return transform.TransformPoint(point);
         }
         public void CopyWholePosterTo(Mesh destination)
         {
@@ -95,19 +110,33 @@ namespace JustOneMorePeel
             if(mesh==null) return;
             using var sample=DeformMarker.Auto();
             lastDeformFrame=Time.frameCount;
-            float boundary=height*(1-progress);
-            for(int i=0;i<=rows;i++)
+            float direction=liftFromBottom?-1f:1f;
+            float looseLength=height*progress;
+            float seam=height*.5f-looseLength;
+            // Start at the attached seam. Each row advances by its original
+            // length while the free edge winds into a progressively tighter roll.
+            float radius=Mathf.Max(.001f,Mathf.Min(height*.19f,.105f));
+            radius*=1f+.025f*Mathf.Sin(Time.time*8f);
+            float previousLoose=0f, offset=0f, depth=0f;
+            for(int row=0;row<=rows;row++)
             {
+                int i=liftFromBottom?row:rows-row;
                 float y=height*.5f-height*i/rows;
-                float fromBottom=y+height*.5f;
-                float loose=Mathf.Max(0,fromBottom-boundary);
-                float curl=loose>0 ? Mathf.Sin(Mathf.Min(loose*4,Mathf.PI*.85f))*.15f+loose*.42f : 0;
-                float lift=loose>0 ? loose*.45f : 0;
+                float loose=Mathf.Max(0,direction*y-seam);
+                if(loose>0f)
+                {
+                    float step=loose-previousLoose;
+                    float travel=(previousLoose+step*.5f)/radius;
+                    float angle=travel*(1f+.012f*travel);
+                    offset+=Mathf.Cos(angle)*step;
+                    depth-=Mathf.Sin(angle)*step;
+                    previousLoose=loose;
+                    y=direction*(seam+offset);
+                }
                 for(int s=0;s<2;s++)
                 {
                     float x=(s==0 ? -.5f : .5f)*width;
-                    float edge=loose>0 ? Mathf.Sin(i*.8f+Time.time*12)*.008f : 0;
-                    vertices[i*2+s]=new Vector3(x,y-lift,-curl+edge);
+                    vertices[i*2+s]=new Vector3(x,y,depth);
                 }
             }
             mesh.vertices=vertices;mesh.RecalculateNormals();mesh.RecalculateBounds();
