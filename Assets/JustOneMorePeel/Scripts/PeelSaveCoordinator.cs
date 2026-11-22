@@ -24,7 +24,7 @@ namespace JustOneMorePeel
         internal bool Failed => saveBlocked || saveWriteFailed;
         internal bool Succeeded => saveSucceeded;
         internal bool WriteFailed => saveWriteFailed;
-        internal bool PurchaseBackupPending { get; private set; }
+        internal bool CheckpointBackupPending { get; private set; }
         internal float RecoveryNoticeUntil { get; private set; }
         internal PeelWorldSave InspectedSave { get; private set; }
         internal bool InspectedShiftFinished { get; private set; }
@@ -62,14 +62,14 @@ namespace JustOneMorePeel
             Debug.LogError("World save disabled: "+error,context);saveBlocked=true;return false;
         }
         internal bool Write(int money,int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,float elapsed,
-            GameObject player,FirstPersonController controller,bool checkpointPurchase)
+            GameObject player,FirstPersonController controller,bool checkpointBackup,PeelPaperSave paper)
         {
             if((routePrototype && routePrototype.ReviewMode) || !SaveIndex(out var index))return false;
             saveSucceeded=false;
             var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
                 rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,lightOn=basementLight && basementLight.SwitchIsOn,
-                stacks=new PeelStackSave[index.Count]};
+                stacks=new PeelStackSave[index.Count],paper=paper};
             if(controller && controller.CinemachineCameraTarget)
             {
                 data.hasLookPitch=true;
@@ -82,7 +82,13 @@ namespace JustOneMorePeel
                 if(stack.RemainingPosters>0)
                 {
                     int done=0;
-                    for(int i=0;i<4;i++){item.strips[i]=stack.CurrentStrips[i].progress;if(item.strips[i]>=1)done++;}
+                    for(int i=0;i<4;i++)
+                    {
+                        var strip=stack.CurrentStrips[i];
+                        if(strip.IsRemoved){item.strips[i]=1f;done++;}
+                        // A fully lifted part can still be attached while the rest of its sheet catches up.
+                        else item.strips[i]=Mathf.Min(strip.progress,.9999999f);
+                    }
                     if(done==4){item.cleared++;item.strips=new float[4];}
                 }
                 data.stacks[n++]=item;
@@ -98,15 +104,15 @@ namespace JustOneMorePeel
             catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not write world save: "+e.Message,context);return false;}
 
             saveWriteFailed=false;saveSucceeded=true;
-            // A successful normal write rotates the prior primary, including any already saved purchase.
-            PurchaseBackupPending=false;
-            if(checkpointPurchase)
+            // Publish the primary first. A failed first move must never leave a new state in the backup.
+            CheckpointBackupPending=false;
+            if(checkpointBackup || !File.Exists(WorldSavePath+".bak"))
             {
                 try { PeelWorldSave.CheckpointBackup(WorldSavePath); }
                 catch(System.Exception e)
                 {
-                    PurchaseBackupPending=true;
-                    Debug.LogWarning("Could not update the backup after purchase: "+e.Message,context);
+                    CheckpointBackupPending=true;
+                    Debug.LogWarning("Could not update the checkpoint backup: "+e.Message,context);
                 }
             }
             return true;
@@ -133,15 +139,30 @@ namespace JustOneMorePeel
             InspectedShiftFinished=data!=null && routePrototype && routePrototype.IsSavedArchiveCleared(data);
             if(saveEntry==SaveEntry.New)return true;
             if(saveEntry==SaveEntry.Unreadable || saveEntry==SaveEntry.Incompatible){requestRestart();return false;}
+            if(saveEntry==SaveEntry.Backup)
+            {
+                recoveryPending=true;
+                try { PeelWorldSave.Recover(WorldSavePath);recoveryPending=false; }
+                catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not restore backup to disk: "+e.Message,context);}
+                RecoveryNoticeUntil=Time.unscaledTime+10f;
+            }
+            return Restore(data,index,applyProgress,restorePlayer);
+        }
+
+        internal bool LoadArchiveCopy(PeelSaveCoordinator archive, Action<PeelWorldSave,int,int> applyProgress, Action<PeelWorldSave> restorePlayer)
+        {
+            if(File.Exists(WorldSavePath) || File.Exists(WorldSavePath+".bak"))return false;
+            var entry=archive.InspectWorld(out var data,out var index);
+            if(entry!=SaveEntry.Continue && entry!=SaveEntry.Backup)return false;
+            data.paper=new PeelPaperSave {capacity=PeelPaperSave.StartingCapacity,scraperOwned=data.toolLevel>0};
+            return Restore(data,index,applyProgress,restorePlayer);
+        }
+
+        bool Restore(PeelWorldSave data,Dictionary<string,PeelPosterStack> index,
+            Action<PeelWorldSave,int,int> applyProgress,Action<PeelWorldSave> restorePlayer)
+        {
             try
             {
-                if(saveEntry==SaveEntry.Backup)
-                {
-                    recoveryPending=true;
-                    try { PeelWorldSave.Recover(WorldSavePath);recoveryPending=false; }
-                    catch(System.Exception e){saveWriteFailed=true;Debug.LogError("Could not restore backup to disk: "+e.Message,context);}
-                    RecoveryNoticeUntil=Time.unscaledTime+10f;
-                }
                 int savedRemoved=0,savedCleared=0;
                 foreach(var item in data.stacks)
                 {

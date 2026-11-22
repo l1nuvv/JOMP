@@ -12,11 +12,19 @@ namespace JustOneMorePeel
         public float[] strips;
     }
 
+    [Serializable] public struct PeelPaperSave
+    {
+        public const int StartingCapacity=5;
+        public int capacity, items, value;
+        public bool scraperOwned;
+    }
+
     [Serializable] public sealed class PeelWorldSave
     {
         public const int CurrentVersion = 3;
         public const string RouteScene = "three-area";
         public const string ArchiveIssueScene = "main-archive-issue";
+        public const string PaperCollectionScene = "main-archive-paper";
         public const string MainRouteScene = "main-route";
         public const string LegacyRouteScene = "Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity";
         public int version;
@@ -29,6 +37,7 @@ namespace JustOneMorePeel
         public Vector3 position;
         public Quaternion rotation;
         public PeelStackSave[] stacks;
+        public PeelPaperSave paper;
 
         public static string DefaultPath => Path.Combine(Application.persistentDataPath,"three-area-save-v1.json");
 
@@ -36,12 +45,14 @@ namespace JustOneMorePeel
             Dictionary<string,PeelPosterStack> index, out string error)
         {
             error="Invalid or incompatible save";
-            bool archive=scene==ArchiveIssueScene;
+            bool paperTrial=scene==PaperCollectionScene;
+            bool archive=scene==ArchiveIssueScene || paperTrial;
             if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>1 ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
                 (archive && (save.toolLevel>1 || save.steamUnlocked)) ||
                 (save.activeTool==1 && (archive ? save.toolLevel!=1 : !save.steamUnlocked)) ||
+                (paperTrial && (!ValidPaper(save.paper) || (save.toolLevel>0 && !save.paper.scraperOwned))) ||
                 !Finite(save.elapsed) || save.elapsed<0 ||
                 !Finite(save.position.x) || !Finite(save.position.y) || !Finite(save.position.z) ||
                 !Finite(save.rotation.x) || !Finite(save.rotation.y) || !Finite(save.rotation.z) || !Finite(save.rotation.w) ||
@@ -49,11 +60,18 @@ namespace JustOneMorePeel
             float q=save.rotation.x*save.rotation.x+save.rotation.y*save.rotation.y+save.rotation.z*save.rotation.z+save.rotation.w*save.rotation.w;
             if(q<.9f || q>1.1f)return false;
             var seen=new HashSet<string>();
+            int removed=0;
             foreach(var item in save.stacks)
             {
                 if(item==null || string.IsNullOrEmpty(item.id) || !seen.Add(item.id) || !index.TryGetValue(item.id,out var stack) ||
                     item.cleared<0 || item.cleared>stack.PosterCount || !ValidStrips(item.strips,item.cleared==stack.PosterCount))return false;
+                if(paperTrial)
+                {
+                    removed+=item.cleared*4;
+                    foreach(float p in item.strips)if(p==1f)removed++;
+                }
             }
+            if(paperTrial && (seen.Count!=index.Count || save.paper.value>removed*PeelProgressionController.StripValue))return false;
             if(seen.Count!=index.Count)
             {
                 // Older archive shifts ended at issue (2 stacks) or sorting (5 stacks).
@@ -62,6 +80,12 @@ namespace JustOneMorePeel
                     seen.Contains("archive.sorting.parcels") && seen.Contains("archive.sorting.warning")))return false;
             }
             error=null;return true;
+        }
+        static bool ValidPaper(PeelPaperSave paper)
+        {
+            const int rate=PeelProgressionController.StripValue;
+            return paper.capacity is 5 or 10 or 15 or 20 && paper.items>=0 && paper.items<=paper.capacity
+                && paper.value>=paper.items*rate && paper.value<=paper.items*4*rate && paper.value%rate==0;
         }
         static bool Finite(float v) => !float.IsNaN(v) && !float.IsInfinity(v);
         internal static bool ValidStrips(float[] strips,bool completed)
@@ -81,11 +105,7 @@ namespace JustOneMorePeel
             string temporary=path+".tmp";
             File.WriteAllText(temporary,JsonUtility.ToJson(save));
             if(File.Exists(path))File.Replace(temporary,path,path+".bak");
-            else
-            {
-                if(!File.Exists(path+".bak"))File.Copy(temporary,path+".bak");
-                File.Move(temporary,path);
-            }
+            else File.Move(temporary,path);
         }
 
         internal static void CheckpointBackup(string path)

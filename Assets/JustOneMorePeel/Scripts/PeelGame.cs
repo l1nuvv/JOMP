@@ -30,6 +30,7 @@ namespace JustOneMorePeel
         public const int SteamCost=PeelProgressionController.SteamCost;
         public const int SteamExpansionCost=PeelProgressionController.SteamExpansionCost;
         const string ArchiveIssueSaveFile="main-archive-issue-v1.json";
+        const string PaperCollectionSaveFile="main-archive-paper-v1.json";
         const string MainRouteSaveFile="main-route-save-v1.json";
         public PeelSettings Settings { get; private set; }
         public PeelScrapPool Scraps { get; private set; }
@@ -59,7 +60,8 @@ namespace JustOneMorePeel
         readonly PeelAudioController audio=new PeelAudioController();
         readonly PeelInteractionController interaction=new PeelInteractionController();
         readonly PeelScreenController screenController=new PeelScreenController();
-        PeelSaveCoordinator save;
+        PeelSaveCoordinator save, paperSave;
+        PeelSaveCoordinator ActiveSave => PaperCollectionActive ? paperSave : save;
         PeelProgressionController progression;
         PeelGameUI ui;
         FirstPersonController controller;
@@ -74,7 +76,7 @@ namespace JustOneMorePeel
         bool worldSession, restarting, resetFailed, completionSeen;
         float nextWorldSave, completionNoticeUntil;
         bool HasSavedShift => archiveIssueSlice || routePrototype;
-        bool CanSaveShift => HasSavedShift && !PaperCollectionActive && (!routePrototype || !routePrototype.ReviewMode);
+        bool CanSaveShift => HasSavedShift && (!routePrototype || !routePrototype.ReviewMode);
         int furthestAnnouncedArea;
         Vector3 spawnPosition;
         Quaternion spawnRotation;
@@ -85,18 +87,17 @@ namespace JustOneMorePeel
         public static string WorldSavePathOverride;
         public static bool IsTimingPlaytest { get; set; }
 #endif
-        string WorldSavePath
+        string WorldSavePath(bool paperCollection=false)
         {
-            get
-            {
 #if UNITY_EDITOR
-                if(!string.IsNullOrEmpty(WorldSavePathOverride))return WorldSavePathOverride;
-                if(archiveIssueSlice)return Path.Combine(Application.dataPath,"..","Library",ArchiveIssueSaveFile);
+            if(!string.IsNullOrEmpty(WorldSavePathOverride))
+                return paperCollection ? Path.ChangeExtension(WorldSavePathOverride,"paper.json") : WorldSavePathOverride;
+            if(archiveIssueSlice)
+                return Path.Combine(Application.dataPath,"..","Library",paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
 #endif
-                if(routePrototype && routePrototype.IsMainRoute)
-                    return Path.Combine(Application.persistentDataPath,MainRouteSaveFile);
-                return archiveIssueSlice ? Path.Combine(Application.persistentDataPath,ArchiveIssueSaveFile) : PeelWorldSave.DefaultPath;
-            }
+            if(archiveIssueSlice)return Path.Combine(Application.persistentDataPath,paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
+            if(routePrototype && routePrototype.IsMainRoute)return Path.Combine(Application.persistentDataPath,MainRouteSaveFile);
+            return PeelWorldSave.DefaultPath;
         }
 
         int IPeelGameUIState.Money => money;
@@ -150,10 +151,12 @@ namespace JustOneMorePeel
             total=TotalPosters*4;removed=0;ClearedPosters=0;
             string saveScene=archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
                 routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
-            save=new PeelSaveCoordinator(this,()=>WorldSavePath,saveScene,stacks,TotalPosters,routePrototype,basementLight);
+            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight);
+            if(archiveIssueSlice && paperDropOff)
+                paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
-            ui=new PeelGameUI(this,interaction,save,routePrototype,areaExperiment,basementLight);
+            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight);
             progression=new PeelProgressionController(Release,SavePurchase,NotifyProgression,ui.ShowPayout
 #if UNITY_EDITOR
                 ,LogRoutePlaytest
@@ -301,11 +304,22 @@ namespace JustOneMorePeel
             }
             SetScreen(PeelScreen.Playing);
         }
-        public void BeginPaperCollection()
+        public void BeginPaperCollection() => StartPaperCollection(false);
+        public void CopyArchiveToPaperCollection() => StartPaperCollection(true);
+        void StartPaperCollection(bool copyArchive)
         {
-            if(CurrentScreen!=PeelScreen.Intro || !archiveIssueSlice || !paperDropOff)return;
+            if(CurrentScreen!=PeelScreen.Intro || paperSave==null)return;
             PaperCollectionActive=true;
             paperDropOff.gameObject.SetActive(true);
+            bool loaded=copyArchive ? paperSave.LoadArchiveCopy(save,ApplySavedProgress,RestorePlayer) : LoadWorld();
+            if(!loaded)
+            {
+                paperDropOff.gameObject.SetActive(false);
+                if(CurrentScreen==PeelScreen.Intro)PaperCollectionActive=false;
+                return;
+            }
+            worldSession=true;nextWorldSave=Time.unscaledTime+5f;
+            if(copyArchive)WriteWorld(true);
             SetScreen(PeelScreen.Playing);
         }
         public void OpenSettings()
@@ -316,7 +330,11 @@ namespace JustOneMorePeel
         public void Back()
         {
             if(CurrentScreen==PeelScreen.Settings){Settings.Save();SetScreen(settingsReturn);}
-            else if(CurrentScreen==PeelScreen.ConfirmRestart)SetScreen(restartReturn);
+            else if(CurrentScreen==PeelScreen.ConfirmRestart)
+            {
+                if(restartReturn==PeelScreen.Intro)PaperCollectionActive=false;
+                SetScreen(restartReturn);
+            }
             else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingArchiveNote)SetScreen(PeelScreen.Playing);
         }
         public void RequestRestart()
@@ -330,7 +348,7 @@ namespace JustOneMorePeel
             Settings.Save();
             if(CanSaveShift)
             {
-                try { save.Reset(); }
+                try { ActiveSave.Reset(); }
                 catch(System.Exception e){resetFailed=true;ui.FocusFirst();Debug.LogError("Could not reset world save: "+e.Message,this);return;}
             }
             ReloadToIntro();
@@ -340,8 +358,8 @@ namespace JustOneMorePeel
             if (CurrentScreen != PeelScreen.Paused || !HasSavedShift) return;
             if (worldSession && CanSaveShift)
             {
-                if (!save.Succeeded || save.WriteFailed) SaveWorld();
-                if (!save.Succeeded || save.Failed) return;
+                if (!ActiveSave.Succeeded || ActiveSave.WriteFailed) SaveWorld();
+                if (!ActiveSave.Succeeded || ActiveSave.Failed) return;
             }
             ReloadToIntro();
         }
@@ -377,13 +395,19 @@ namespace JustOneMorePeel
             ui.NotifyPurchaseFailed();
             return false;
         }
-        bool WriteWorld(bool checkpointPurchase) =>
-            save.Write(money,toolLevel,activeTool,steamUnlocked,steamExpanded,ElapsedPlayTime,player,controller,checkpointPurchase);
-        bool LoadWorld() => save.Load(RequestRestart,ApplySavedProgress,RestorePlayer);
+        bool WriteWorld(bool checkpointBackup) =>
+            ActiveSave.Write(money,toolLevel,activeTool,steamUnlocked,steamExpanded,ElapsedPlayTime,player,controller,checkpointBackup,
+                PaperCollectionActive ? progression.CapturePaper(trialScraperOwned) : default);
+        bool LoadWorld() => ActiveSave.Load(RequestRestart,ApplySavedProgress,RestorePlayer);
         void ApplySavedProgress(PeelWorldSave data,int savedRemoved,int savedCleared)
         {
             money=data.money;toolLevel=data.toolLevel;activeTool=data.activeTool;steamUnlocked=data.steamUnlocked;steamExpanded=data.steamExpanded;
             removed=savedRemoved;ClearedPosters=savedCleared;ElapsedPlayTime=data.elapsed;
+            if(PaperCollectionActive)
+            {
+                progression.RestorePaper(data.paper);
+                trialScraperOwned=data.paper.scraperOwned;
+            }
         }
         void RestorePlayer(PeelWorldSave data)
         {
@@ -421,9 +445,17 @@ namespace JustOneMorePeel
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
         void DeliverPaper()
         {
-            var (items,payout)=progression.DeliverPaper(ref money);
-            if(items==0)return;
+            var paper=progression.CapturePaper(trialScraperOwned);
+            if(paper.items==0)return;
             Release();
+            var (items,payout)=progression.DeliverPaper(ref money);
+            if(!WriteWorld(true))
+            {
+                money-=payout;
+                progression.RestorePaper(paper);
+                ui.ShowPaperDeliveryFailure();
+                return;
+            }
             ui.ShowPaperReceipt(items,payout);
         }
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
@@ -439,10 +471,12 @@ namespace JustOneMorePeel
 
         public bool TryUpgrade()
         {
-            if(PaperCollectionActive && (CurrentScreen!=PeelScreen.Shop || trialScraperOwned))return false;
-            if(!progression.TryUpgrade(ref money,ref toolLevel))return false;
-            if(PaperCollectionActive)trialScraperOwned=true;
-            return true;
+            if(!PaperCollectionActive)return progression.TryUpgrade(ref money,ref toolLevel);
+            if(CurrentScreen!=PeelScreen.Shop || trialScraperOwned)return false;
+            trialScraperOwned=true;
+            if(progression.TryUpgrade(ref money,ref toolLevel))return true;
+            trialScraperOwned=false;
+            return false;
         }
         public bool TryUpgradePaperCapacity() =>
             PaperCollectionActive && CurrentScreen==PeelScreen.Shop && progression.TryUpgradePaperCapacity(ref money);

@@ -31,6 +31,7 @@ namespace JustOneMorePeel
         float CompletionNoticeUntil { get; }
         void BeginShift();
         void BeginPaperCollection();
+        void CopyArchiveToPaperCollection();
         void OpenSettings();
         void Back();
         void RequestRestart();
@@ -47,7 +48,7 @@ namespace JustOneMorePeel
     {
         readonly IPeelGameUIState session;
         readonly PeelInteractionController interaction;
-        readonly PeelSaveCoordinator save;
+        readonly PeelSaveCoordinator shiftSave, paperSave;
         readonly PeelRoutePrototype routePrototype;
         readonly PeelAreaExperiment areaExperiment;
         readonly PeelBasementLight basementLight;
@@ -78,6 +79,10 @@ namespace JustOneMorePeel
         bool worldSession => session.WorldSession;
         bool archiveIssueSlice => session.ArchiveIssueSlice;
         bool paperCollection => session.PaperCollectionActive;
+        PeelSaveCoordinator save => paperCollection ? paperSave : shiftSave;
+        bool HasAlternateStart => routePrototype || paperSave!=null;
+        bool CanCopyArchive => paperSave!=null && paperSave.InspectIfPathChanged()==SaveEntry.New
+            && shiftSave.InspectIfPathChanged() is SaveEntry.Continue or SaveEntry.Backup;
         int ShopOptionCount => paperCollection?3:4;
         bool hasSavedShift => archiveIssueSlice || routePrototype;
         PeelScreen restartReturn => session.RestartReturn;
@@ -88,9 +93,9 @@ namespace JustOneMorePeel
         PeelStrip target => interaction.Target;
 
         internal PeelGameUI(IPeelGameUIState session,PeelInteractionController interaction,PeelSaveCoordinator save,
-            PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light)
+            PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light)
         {
-            this.session=session;this.interaction=interaction;this.save=save;
+            this.session=session;this.interaction=interaction;shiftSave=save;this.paperSave=paperSave;
             routePrototype=route;areaExperiment=area;basementLight=light;
         }
 
@@ -107,20 +112,21 @@ namespace JustOneMorePeel
         {
             paperReceiptItems=items;payoutAmount=payout;payoutUntil=Time.unscaledTime+3f;
         }
+        internal void ShowPaperDeliveryFailure() { payoutUntil=0;Notify(PeelText.PaperDropOffSaveFailed); }
 
         string PauseSaveStatus()
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
-            if(paperCollection)return T(PeelText.PaperCollectionUnsaved);
             if(routePrototype && routePrototype.ReviewMode)return ru ? "Осмотр не сохраняется" : "Route review is not saved";
             if(!worldSession)return "";
             if(save.Failed)return ru ? "Не удалось сохранить прогресс" : "Progress could not be saved";
-            if(save.PurchaseBackupPending)return ru ? "Резерв ещё не обновлён" : "Backup update pending";
+            if(save.CheckpointBackupPending)return ru ? "Резерв ещё не обновлён" : "Backup update pending";
             return save.Succeeded ? (ru ? "Прогресс сохранён" : "Progress saved") : (ru ? "Ожидается первая запись" : "Waiting for first save");
         }
         internal void NavigateMenu(Keyboard keyboard)
         {
-            int count=CurrentScreen==PeelScreen.Intro?(hasSavedShift?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings?4:3;
+            int count=CurrentScreen==PeelScreen.Intro?(CanCopyArchive?4:HasAlternateStart?3:2)
+                :CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings?4:3;
             if(CurrentScreen==PeelScreen.Shop)count=ShopOptionCount;
             if(CurrentScreen==PeelScreen.ReadingArchiveNote)count=1;
             if (CurrentScreen == PeelScreen.Paused && hasSavedShift) count = 4;
@@ -144,7 +150,8 @@ namespace JustOneMorePeel
                 if(menuSelection==0)session.BeginShift();
                 else if(menuSelection==1)session.OpenSettings();
                 else if(menuSelection==2 && routePrototype){routePrototype.OpenForReview();session.BeginShift();}
-                else if(menuSelection==2 && archiveIssueSlice)session.BeginPaperCollection();
+                else if(menuSelection==2 && paperSave!=null)session.BeginPaperCollection();
+                else if(menuSelection==3 && CanCopyArchive)session.CopyArchiveToPaperCollection();
             }
             else if(CurrentScreen==PeelScreen.Paused){if(menuSelection==0)session.Back();else if(menuSelection==1)session.OpenSettings();else if(menuSelection==2)session.RequestRestart();else session.ReturnToMainMenu();}
             else if(CurrentScreen==PeelScreen.ReadingArchiveNote)session.Back();
@@ -240,8 +247,10 @@ namespace JustOneMorePeel
             if(CurrentScreen==PeelScreen.ReadingArchiveNote){DrawArchiveNote(w,h);FocusMenu();return;}
             if(CurrentScreen==PeelScreen.Intro)
             {
-                Panel(new Rect(38,h-326,625,288));
-                GUI.Label(new Rect(60,h-310,580,45),"Just One More Peel",title);
+                float extra=CanCopyArchive?52f:0f;
+                float introBottom=h-extra;
+                Panel(new Rect(38,introBottom-326,625,288+extra));
+                GUI.Label(new Rect(60,introBottom-310,580,45),"Just One More Peel",title);
                 bool ru=Settings.Language==PeelLanguage.Russian;
                 string intro=archiveIssueSlice
                     ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист.\n1 — карта, 2 — шпатель, 3 — пар."
@@ -249,7 +258,7 @@ namespace JustOneMorePeel
                     : routePrototype ? (ru
                     ? "Подойди к заклеенной двери (WASD).\nНаведи взгляд на лист и удерживай ЛКМ, чтобы снять его.\nПосмотри на тележку вблизи и нажми E для покупки."
                     : "Walk up to the paper-covered door (WASD).\nAim at a notice and hold LMB to peel it.\nTo buy a tool, look at the cart up close and press E.") : T(PeelText.Intro);
-                GUI.Label(new Rect(60,h-252,580,100),intro,text);
+                GUI.Label(new Rect(60,introBottom-252,580,100),intro,text);
                 string startLabel=T(PeelText.Start);
                 if(hasSavedShift)
                 {
@@ -286,18 +295,26 @@ namespace JustOneMorePeel
                             status+=ru?" Для новой смены можно сбросить сейв.":" Reset the save to start a new shift.";
                             break;
                     }
-                    GUI.Label(new Rect(60,h-140,580,30),status,small);
+                    GUI.Label(new Rect(60,introBottom-140,580,30),status,small);
                 }
-                if(hasSavedShift)
+                if(HasAlternateStart)
                 {
-                    if(MenuButton(new Rect(60,h-102,180,42),startLabel,0))session.BeginShift();
-                    if(MenuButton(new Rect(250,h-102,180,42),T(PeelText.Settings),1))session.OpenSettings();
-                    string alternate=routePrototype ? (ru?"Осмотр маршрута":"Review route") : T(PeelText.PaperCollection);
-                    if(MenuButton(new Rect(440,h-102,195,42),alternate,2))
+                    if(MenuButton(new Rect(60,introBottom-102,180,42),startLabel,0))session.BeginShift();
+                    if(MenuButton(new Rect(250,introBottom-102,180,42),T(PeelText.Settings),1))session.OpenSettings();
+                    string alternate=routePrototype ? (ru?"Осмотр маршрута":"Review route") : T(paperSave.InspectIfPathChanged() switch
+                    {
+                        SaveEntry.Continue => PeelText.PaperCollectionContinue,
+                        SaveEntry.Backup => PeelText.PaperCollectionBackup,
+                        SaveEntry.Unreadable or SaveEntry.Incompatible => PeelText.PaperCollectionReset,
+                        _ => PeelText.PaperCollection
+                    });
+                    if(MenuButton(new Rect(440,introBottom-102,195,42),alternate,2))
                     {
                         if(routePrototype){routePrototype.OpenForReview();session.BeginShift();}
                         else session.BeginPaperCollection();
                     }
+                    if(extra>0 && MenuButton(new Rect(60,h-102,575,42),T(PeelText.PaperCollectionCopy),3))
+                        session.CopyArchiveToPaperCollection();
                 }
                 else
                 {
@@ -310,13 +327,15 @@ namespace JustOneMorePeel
             bool hasObjective = playing && (areaExperiment || hasSavedShift);
             float noticeY = hasObjective ? 106f : 22f;
             bool saveWarning = save.Failed;
-            if (playing && !paperCollection && (saveWarning || save.PurchaseBackupPending || Time.unscaledTime < save.RecoveryNoticeUntil))
+            if (playing && (saveWarning || save.CheckpointBackupPending || Time.unscaledTime < save.RecoveryNoticeUntil))
             {
                 bool russian = Settings.Language == PeelLanguage.Russian;
-                string message = saveWarning
+                string message = saveWarning && notice==PeelText.PaperDropOffSaveFailed && Time.time<noticeUntil
+                    ? T(PeelText.PaperDropOffSaveFailed)
+                    : saveWarning
                     ? (russian ? "Прогресс не записан. Проверь доступ к папке сохранений."
                         : "Progress was not saved. Check access to the save folder.")
-                    : save.PurchaseBackupPending
+                    : save.CheckpointBackupPending
                     ? (russian ? "Прогресс записан. Резервная копия ещё не обновлена."
                         : "Progress saved. The backup has not been updated yet.")
                     : (russian ? "Загружена резервная копия. Последние изменения могли потеряться."
@@ -330,7 +349,7 @@ namespace JustOneMorePeel
             {
                 string tool=activeTool==1 ? T(PeelText.Steamer) : toolLevel>0 ? T(PeelText.Scraper) : T(PeelText.Card);
                 bool showPurchase=Time.time<noticeUntil && IsPurchaseNotice(notice);
-                bool showSaveStatus=!paperCollection && (saveWarning || save.PurchaseBackupPending);
+                bool showSaveStatus=saveWarning || save.CheckpointBackupPending;
                 float purchaseY=paperCollection?389:493;
                 float statusY=showPurchase ? purchaseY+38 : purchaseY;
                 float bottom=showSaveStatus ? statusY+40 : purchaseY+(showPurchase?52:12);
@@ -414,7 +433,7 @@ namespace JustOneMorePeel
                 string explanation=review
                     ? (ru ? "Осмотр завершится, и откроется главное меню. Сохранённая смена останется." : "The review will end and return to the main menu. Your saved shift will remain.")
                     : paperCollection
-                        ? (ru ? "Пачка и зачистка этой пробы будут сброшены." : "The trial bundle and cleanup progress will be reset.")
+                        ? (ru ? "Прогресс, деньги и резерв этой пробы будут сброшены." : "This trial’s progress, cash and backup will be reset.")
                     : fromIntro
                         ? (ru?"Текущее сохранение и его резервная копия будут удалены.":"The current save and its backup will be deleted.")
                         : (ru?"Прогресс, деньги и инструменты этой смены будут сброшены.":"Progress, money and tools from this shift will be reset.");
@@ -443,7 +462,7 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(w/2-360,noticeY,720,50),T(PeelText.Finished),center);
                 noticeY += 55f;
             }
-            else if(Time.time<noticeUntil && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
+            else if(Time.time<noticeUntil && notice!=PeelText.PaperDropOffSaveFailed && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
             {
                 bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
                 bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;

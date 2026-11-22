@@ -15,9 +15,10 @@ namespace JustOneMorePeel
         ShopScraperEffect, ShopSharpenEffect, ShopWiderSteamEffect, ShopRequiresSteam, ShopCashShortfall,
         ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable,
         PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool,
-        PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperCollectionUnsaved, PaperCollectionControls,
+        PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperDropOffSaveFailed, PaperCollectionControls,
         PaperDropOffSign, PaperDropOffObjective, PaperDropOffOptional, PaperDropOffInteract, PaperDropOffEmpty, PaperDropOffReceipt,
-        PaperShop, PaperShopScraperOwned, PaperShopScraperEffect, PaperCapacityOffer, PaperCapacityMax
+        PaperShop, PaperShopScraperOwned, PaperShopScraperEffect, PaperCapacityOffer, PaperCapacityMax,
+        PaperCollectionContinue, PaperCollectionBackup, PaperCollectionReset, PaperCollectionCopy
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -91,7 +92,7 @@ namespace JustOneMorePeel
             {"Paper collection trial","Проба сбора бумаги"},
             {"Paper bundle · {0}/{1}","Пачка · {0}/{1}"},
             {"Bundle full · {0}/{1}","Пачка полна · {0}/{1}"},
-            {"Trial progress is not saved","Проба проходит без сохранения"},
+            {"Could not save the drop-off. Your paper is still in the bundle.","Сдача не записана. Бумага осталась в пачке."},
             {"WASD — move · Mouse — look · Hold LMB to peel\n1 — Card · 2/3 — Scraper/Steam after purchase\nE — drop off paper · F — shop · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
              "WASD — движение · Мышь — обзор · ЛКМ — снять бумагу\n1 — карта · 2/3 — шпатель/пар после покупки\nE — сдача · F — магазин · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
             {"PAPER DROP-OFF","МАКУЛАТУРА"},
@@ -104,7 +105,11 @@ namespace JustOneMorePeel
             {"Scraper owned","Шпатель куплен"},
             {"Whole sheets · Steam included","Целые листы · пар в комплекте"},
             {"Bundle capacity {0} · ${1}","Вместимость {0} · ${1}"},
-            {"Bundle capacity {0} · maximum","Вместимость {0} · максимум"}
+            {"Bundle capacity {0} · maximum","Вместимость {0} · максимум"},
+            {"Continue trial","Продолжить пробу"},
+            {"Load trial backup","Проба из резерва"},
+            {"Reset trial save…","Сбросить пробу…"},
+            {"Copy archive shift into trial","Скопировать архивную смену в пробу"}
         };
 
         void Awake() { Load(); }
