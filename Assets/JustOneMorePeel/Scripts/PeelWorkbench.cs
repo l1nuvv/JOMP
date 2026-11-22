@@ -9,10 +9,12 @@ namespace JustOneMorePeel
         sealed class ToolHighlight
         {
             public LineRenderer ring;
-            public bool highlighted;
+            public bool highlighted, confirming;
+            public float purchaseUntil;
         }
         ToolHighlight scraper, steamer;
-        Material markerMaterial;
+        Material markerMaterial, purchaseMaterial;
+        const float PurchasePulseDuration=.8f, MarkerWidth=.025f;
 
         void Start()
         {
@@ -20,6 +22,8 @@ namespace JustOneMorePeel
             if(game)route=game.GetComponent<PeelRoutePrototype>();
             markerMaterial=new Material(Shader.Find("Universal Render Pipeline/Unlit"));
             markerMaterial.SetColor("_BaseColor",new Color(1f,.88f,.48f));
+            purchaseMaterial=new Material(markerMaterial);
+            purchaseMaterial.SetColor("_BaseColor",new Color(.64f,.95f,.78f));
             scraper=FindTool("Scraper on tray");
             steamer=FindTool("Steamer on tray");
         }
@@ -34,7 +38,7 @@ namespace JustOneMorePeel
             foreach(var part in parts)bounds.Encapsulate(part.bounds);
             var marker=new GameObject("Available tool marker");marker.transform.SetParent(transform,false);
             var ring=marker.AddComponent<LineRenderer>();ring.sharedMaterial=markerMaterial;
-            ring.useWorldSpace=false;ring.loop=true;ring.positionCount=48;ring.widthMultiplier=.025f;
+            ring.useWorldSpace=false;ring.loop=true;ring.positionCount=48;ring.widthMultiplier=MarkerWidth;
             ring.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;ring.receiveShadows=false;ring.enabled=false;
             float y=bounds.min.y+.04f;
             for(int i=0;i<ring.positionCount;i++)
@@ -49,20 +53,45 @@ namespace JustOneMorePeel
         void Update()
         {
             bool playing=game && game.CurrentScreen==PeelScreen.Playing && !(route && route.ReviewMode);
-            bool scraperReady=playing && game.toolLevel<3 && game.money>=game.UpgradeCost;
-            bool steamReady=playing && game.toolLevel>0 &&
-                ((!game.steamUnlocked && game.money>=PeelGame.SteamCost) ||
-                 (game.steamUnlocked && !game.steamExpanded && game.money>=PeelGame.SteamExpansionCost));
-            SetHighlight(scraper,scraperReady);
-            SetHighlight(steamer,steamReady);
+            bool feedbackVisible=game && (game.CurrentScreen==PeelScreen.Playing || game.CurrentScreen==PeelScreen.Shop);
+            bool scraperReady=playing && PeelProgressionController.CanUpgrade(game.money,game.toolLevel);
+            bool steamReady=playing &&
+                (PeelProgressionController.CanBuySteam(game.money,game.toolLevel,game.steamUnlocked) ||
+                 PeelProgressionController.CanExpandSteam(game.money,game.steamUnlocked,game.steamExpanded));
+            SetHighlight(scraper,scraperReady,feedbackVisible);
+            SetHighlight(steamer,steamReady,feedbackVisible);
         }
 
-        void SetHighlight(ToolHighlight tool,bool show)
+        internal void ShowPurchase(bool steam)
         {
-            if(tool==null || tool.highlighted==show)return;
-            tool.highlighted=show;
-            if(tool.ring)tool.ring.enabled=show;
+            var tool=steam ? steamer : scraper;
+            if(tool!=null)tool.purchaseUntil=Time.unscaledTime+PurchasePulseDuration;
         }
-        void OnDestroy(){if(markerMaterial)Destroy(markerMaterial);}
+
+        void SetHighlight(ToolHighlight tool,bool show,bool feedbackVisible)
+        {
+            if(tool==null || !tool.ring)return;
+            float remaining=tool.purchaseUntil-Time.unscaledTime;
+            bool confirming=feedbackVisible && remaining>0f;
+            bool visible=show || confirming;
+            if(tool.highlighted!=visible)
+            {
+                tool.highlighted=visible;
+                tool.ring.enabled=visible;
+            }
+            if(tool.confirming!=confirming)
+            {
+                tool.confirming=confirming;
+                tool.ring.sharedMaterial=confirming ? purchaseMaterial : markerMaterial;
+                tool.ring.widthMultiplier=MarkerWidth;
+            }
+            if(confirming)
+                tool.ring.widthMultiplier=MarkerWidth+.018f*Mathf.Sin(Mathf.Clamp01(remaining/PurchasePulseDuration)*Mathf.PI);
+        }
+        void OnDestroy()
+        {
+            if(markerMaterial)Destroy(markerMaterial);
+            if(purchaseMaterial)Destroy(purchaseMaterial);
+        }
     }
 }

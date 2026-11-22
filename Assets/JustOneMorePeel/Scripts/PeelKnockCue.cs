@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 
 namespace JustOneMorePeel
 {
-    // A provisional cue: the source and answer to the knocking remain unknown.
     public sealed class PeelKnockCue : MonoBehaviour
     {
         [SerializeField] float firstDelayMin=10f, firstDelayMax=20f;
@@ -17,6 +16,9 @@ namespace JustOneMorePeel
         Transform doorVisual;
         float nextEvent, nextBeat, shakeTime;
         int lastArea=-1, beatsLeft;
+        float courtyardTail;
+
+        internal bool CourtyardKnockActive => lastArea==0 && (beatsLeft>0 || courtyardTail>0f);
 
         public void Initialize(PeelGame owner,PeelRoutePrototype routeOwner,GameObject firstDoor,GameObject secondDoor)
         {
@@ -45,38 +47,46 @@ namespace JustOneMorePeel
         }
         void Update()
         {
-            if(!game || !route || !sound || !sound.clip)return;
+            if(!game || !route)return;
             int area=route.CurrentArea;
-            bool active=game.CurrentScreen==PeelScreen.Playing && area<2 && basementDoor && basementDoor.activeInHierarchy;
+            bool active=game.CurrentScreen==PeelScreen.Playing && area<2 && basementDoor && basementDoor.activeInHierarchy
+                && (!route.BasementDoorOpen || route.ReviewMode);
             if(!active)
             {
                 if(sound.isPlaying)sound.Stop();
-                beatsLeft=0;lastArea=-1;shakeTime=0;
+                beatsLeft=0;lastArea=-1;shakeTime=0;courtyardTail=0;
                 if(doorVisual)doorVisual.localPosition=Vector3.zero;
                 return;
             }
             if(area!=lastArea)
             {
-                sound.Stop();beatsLeft=0;shakeTime=0;lastArea=area;
+                sound.Stop();beatsLeft=0;shakeTime=0;courtyardTail=0;lastArea=area;
                 nextEvent=Random.Range(firstDelayMin,firstDelayMax);
             }
             sound.transform.position=area==0 ? courtyardDoor.transform.position : basementDoor.transform.position;
             sound.volume=game.Settings.SoundVolume*(area==0 ? courtyardVolume : basementVolume);
             filter.cutoffFrequency=area==0 ? 900f : 4500f;
             float dt=Time.deltaTime;
+            courtyardTail=Mathf.Max(0f,courtyardTail-dt);
             if(beatsLeft==0)
             {
                 nextEvent-=dt;
-                if(nextEvent<=0){beatsLeft=Random.Range(2,4);nextBeat=0;}
+                if(nextEvent<=0)
+                {
+                    beatsLeft=Random.Range(2,4);
+                    nextBeat=area==0 ? .1f : 0f;
+                }
             }
             if(beatsLeft>0)
             {
                 nextBeat-=dt;
                 if(nextBeat<=0)
                 {
-                    sound.PlayOneShot(sound.clip);beatsLeft--;
+                    if(sound.clip && sound.volume>0f)sound.PlayOneShot(sound.clip);
+                    beatsLeft--;
                     route.KnockPlayed(area);
                     if(area==1)shakeTime=.38f;
+                    else courtyardTail=.45f;
                     nextBeat=Random.Range(.22f,.33f);
                     if(beatsLeft==0)nextEvent=Random.Range(repeatDelayMin,repeatDelayMax);
                 }

@@ -2,14 +2,20 @@ using UnityEngine;
 
 namespace JustOneMorePeel
 {
-    // A provisional physical note replaces the old end marker without answering the mystery.
     public sealed class PeelArchiveClue : MonoBehaviour
     {
         PeelSettings settings;
         Material material;
         Texture2D russian, english;
+        Transform page;
+        Light revealLamp;
+        LightType originalLampType;
+        Quaternion originalLampRotation;
+        float originalSpotAngle, originalInnerSpotAngle;
 
-        public void Initialize(PeelSettings owner)
+        internal Texture2D CurrentTexture => settings && settings.Language==PeelLanguage.Russian ? russian : english;
+
+        public void Initialize(PeelSettings owner,Light lamp)
         {
             settings=owner;
             russian=Resources.Load<Texture2D>("ArchiveClue_ru");
@@ -26,16 +32,61 @@ namespace JustOneMorePeel
             note.transform.localPosition=new Vector3(0,0,-.6f);
             note.transform.localScale=new Vector3(.47f,.625f,1f);
             Destroy(note.GetComponent<Collider>());
+            page=note.transform;
             material=new Material(shader);
             material.SetFloat("_Smoothness",0f);
             note.GetComponent<Renderer>().sharedMaterial=material;
             settings.Changed+=RefreshLanguage;
             RefreshLanguage();
+            revealLamp=lamp;
+            if(revealLamp)
+            {
+                originalLampType=revealLamp.type;
+                originalLampRotation=revealLamp.transform.localRotation;
+                originalSpotAngle=revealLamp.spotAngle;
+                originalInnerSpotAngle=revealLamp.innerSpotAngle;
+                if(isActiveAndEnabled)FocusLamp();
+            }
+        }
+
+        void OnEnable() => FocusLamp();
+
+        void FocusLamp()
+        {
+            if(!revealLamp || !page)return;
+
+            revealLamp.type=LightType.Spot;
+            revealLamp.spotAngle=48f;
+            revealLamp.innerSpotAngle=26f;
+            revealLamp.transform.rotation=Quaternion.LookRotation(page.position-revealLamp.transform.position);
+        }
+
+        void OnDisable()
+        {
+            if(!revealLamp)return;
+
+            revealLamp.type=originalLampType;
+            revealLamp.spotAngle=originalSpotAngle;
+            revealLamp.innerSpotAngle=originalInnerSpotAngle;
+            revealLamp.transform.localRotation=originalLampRotation;
+        }
+
+        internal bool CanRead(Camera view)
+        {
+            if(!isActiveAndEnabled || !page || !view || !CurrentTexture)return false;
+
+            var ray=new Ray(view.transform.position,view.transform.forward);
+            var plane=new Plane(page.forward,page.position);
+            if(!plane.Raycast(ray,out float distance) || distance>2.5f || Vector3.Dot(ray.direction,page.forward)<=0f)return false;
+
+            var point=page.InverseTransformPoint(ray.GetPoint(distance));
+            return Mathf.Abs(point.x)<=.5f && Mathf.Abs(point.y)<=.5f &&
+                !Physics.Raycast(ray,distance-.01f,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore);
         }
 
         void RefreshLanguage()
         {
-            if(material && settings)material.SetTexture("_BaseMap",settings.Language==PeelLanguage.Russian?russian:english);
+            if(material)material.SetTexture("_BaseMap",CurrentTexture);
         }
         void OnDestroy()
         {

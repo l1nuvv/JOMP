@@ -9,11 +9,12 @@ namespace JustOneMorePeel
         Intro, Start, Settings, Language, Back, Sound, Sensitivity, SettingsHelp, Pause, Resume,
         Restart, Tools, MaxUpgrade, BuyScraper, Upgrade, SteamOwned, BuySteam, SteamDescription,
         Close, Card, Scraper, Steamer, Wall, SwitchTools, HoldCard, DragScraper, ReleaseGrip,
-        Workbench, Finished, Welcome, Upgraded, SteamBought, Milestone, Secret, SteamLocked,
+        Workbench, Finished, Welcome, Upgraded, SteamBought, Secret, SteamLocked,
         Posters, CardHint, ScraperHint, SteamHint, RemainingPosters, PlayTime,
         BuySteamExpansion, SteamExpandedOwned, SteamExpanded, SteamExpandedHint, HoldSteam, HoldExpandedSteam,
         ShopScraperEffect, ShopSharpenEffect, ShopWiderSteamEffect, ShopRequiresSteam, ShopCashShortfall,
-        ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable
+        ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable,
+        PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -38,16 +39,17 @@ namespace JustOneMorePeel
 
         static readonly string[,] Words = {
             {"Courtyard 17. Start with an old plastic card.\nHold LMB to keep peeling.\nBuy a scraper to remove whole posters.","Двор №17. Начни со старой пластиковой карты.\nДержи ЛКМ, чтобы снимать бумагу.\nКупи шпатель, чтобы снимать плакаты целиком."},
-            {"Start shift · Enter","Начать смену · Enter"},{"Settings","Настройки"},{"Language","Язык"},
+            {"Start shift","Начать смену"},{"Settings","Настройки"},{"Language","Язык"},
             {"Back","Назад"},{"Sound volume","Громкость звука"},{"Mouse sensitivity","Чувствительность мыши"},
-            {"Applies to menus, hints and printed notices.\nTab / arrows to navigate. Enter to choose. Esc to go back.","Меняет меню, подсказки и тексты объявлений.\nTab / стрелки — выбор. Enter — применить. Esc — назад."},
+            {"Keyboard and mouse\nWASD — move · Mouse — look · Hold LMB — peel\nE — interact · 1/2 or wheel — tools · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
+             "Клавиатура и мышь\nWASD — движение · Мышь — обзор · Держи ЛКМ, чтобы снять лист\nE — действие · 1/2 или колесо — инструмент · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
             {"Paused","Пауза"},{"Resume","Продолжить"},{"Restart shift","Начать смену заново"},
             {"Tools","Инструменты"},{"Scraper fully upgraded","Шпатель полностью улучшен"},
             {"Scraper — ${0}","Шпатель — ${0}"},{"Sharpen scraper — ${0}","Заточить шпатель — ${0}"},
             {"Steamer owned · key 2","Отпариватель куплен · клавиша 2"},{"Steamer — ${0}","Отпариватель — ${0}"},
-            {"Softens glue on up to 3 nearby posters at once.","Размягчает клей. До 3 соседних плакатов за раз."},
+            {"Up to 3 posters. Clockwise motion speeds up steam.","До 3 листов. Круг по часовой ускоряет пар."},
             {"Close","Закрыть"},{"Plastic card","Пластиковая карта"},{"Scraper","Шпатель"},{"Steamer","Отпариватель"},
-            {"of the wall","стены"},{"1 / 2 — switch tools","1 / 2 — сменить инструмент"},
+            {"of the wall","стены"},{"1/2 or wheel — switch tools","1/2 или колесо — сменить инструмент"},
             {"Hold LMB · one strip at a time","Держи ЛКМ · по одной полосе"},
             {"Hold LMB · move LEFT or RIGHT to peel faster","Держи ЛКМ · двигай ВЛЕВО или ВПРАВО для ускорения"},
             {"Release LMB before the next grip","Отпусти ЛКМ перед следующим захватом"},
@@ -55,7 +57,7 @@ namespace JustOneMorePeel
             {"Shift complete. The wall is clear.","Смена завершена. Стена очищена."},
             {"Welcome to your first shift","Добро пожаловать на первую смену"},
             {"Scraper purchased and equipped · hold LMB and move sideways","Шпатель куплен и активен · держи ЛКМ и двигай в стороны"},
-            {"Steamer purchased","Отпариватель куплен"},{"Good work. Upgrades are at the cart.","Чистая работа. Улучшения — на тележке."},
+            {"Steamer equipped · hold LMB and move clockwise to speed up","Отпариватель в руке · держи ЛКМ и веди мышь по часовой стрелке для ускорения"},
             {"OUR SUMMER\nWAS HERE","ЗДЕСЬ БЫЛО\nНАШЕ ЛЕТО"},{"Buy a scraper first","Сначала купи шпатель"},
             {"posters","плакатов"},{"The card peels slowly. A scraper unlocks whole posters.","Карта снимает медленно. Шпатель откроет целые плакаты."},
             {"Whole posters · move LEFT or RIGHT for speed","Целые плакаты · двигай ВЛЕВО или ВПРАВО для ускорения"},
@@ -65,19 +67,24 @@ namespace JustOneMorePeel
             {"Wider steam owned · up to 5 posters","Широкий пар куплен · до 5 плакатов"},
             {"Wider steam purchased","Широкий пар куплен"},
             {"Steam softens glue · up to 5 nearby posters at a time","Пар размягчает клей · до 5 соседних плакатов одновременно"},
-            {"Hold LMB · steam up to 3 nearby posters","Держи ЛКМ · пар для 3 соседних плакатов"},
-            {"Hold LMB · steam up to 5 nearby posters","Держи ЛКМ · пар для 5 соседних плакатов"},
+            {"Steam targets: {0} · hold LMB · move clockwise to speed up","Цели пара: {0} · держи ЛКМ · круг по часовой стрелке ускоряет пар"},
+            {"Wider steam targets: {0} · hold LMB · move clockwise to speed up","Цели широкого пара: {0} · держи ЛКМ · круг по часовой стрелке ускоряет пар"},
             {"Peel a whole poster per grip instead of one strip.","Снимает целый плакат за захват вместо одной полосы."},
-            {"Scraper: {0:0.0} → {1:0.0} s per poster. Steam speeds up too.","Шпатель: {0:0.0} → {1:0.0} с на лист. Пар тоже быстрее."},
+            {"Scraper: {0:0.0} → {1:0.0} s per poster at base speed.","Шпатель: {0:0.0} → {1:0.0} с на лист при базовой скорости."},
             {"Up to 3 → 5 posters · radius 1.5 → 2.5 m","До 3 → 5 листов · радиус 1,5 → 2,5 м"},
             {"Buy a steamer first.","Сначала купи отпариватель."},
             {"Need ${0} more.","Не хватает ${0}."},
             {"Scraper: {0:0.0} s per poster at base speed.","Шпатель: {0:0.0} с на лист при базовой скорости."},
-            {"Scraper sharpened · scraper and steam peel faster","Шпатель заточен · шпатель и пар снимают быстрее"},
+            {"Scraper sharpened · removes posters faster","Шпатель заточен · снимает листы быстрее"},
             {"Scraper available at the cart · ${0}","Шпатель доступен на тележке · ${0}"},
             {"Scraper sharpening available at the cart · ${0}","Заточка шпателя доступна на тележке · ${0}"},
             {"Steamer available at the cart · ${0}","Отпариватель доступен на тележке · ${0}"},
-            {"Wider steam available at the cart · ${0}","Широкий пар доступен на тележке · ${0}"}
+            {"Wider steam available at the cart · ${0}","Широкий пар доступен на тележке · ${0}"},
+            {"Tough paper · hold LMB and drag sideways","Плотная бумага · держи ЛКМ и веди мышь вбок"},
+            {"Steam targets — {0} · 1 to switch to the faster scraper","Цели пара — {0} · 1 — перейти на шпатель, здесь он быстрее"},
+            {"E — read the note","E — прочитать записку"},
+            {"Basement","Подвал"},{"Archive","Архив"},
+            {"Equipped — {0}","В руке — {0}"}
         };
 
         void Awake() { Load(); }

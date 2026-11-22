@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace JustOneMorePeel
@@ -14,10 +15,18 @@ namespace JustOneMorePeel
         [SerializeField] GameObject courtyardDoor;
         [SerializeField] GameObject basementDoor;
         [SerializeField] GameObject finalReveal;
+        [SerializeField] Light archiveRevealLamp;
         [SerializeField] Material passageLettering;
-        PeelPosterStack[] localCourtyard;
+        PeelPosterStack[] localCourtyard, optionalCourtyard;
         TextMesh passageNote, archiveSign;
         Material passagePaper;
+        Renderer courtyardLever;
+        Material courtyardLeverSteel, courtyardLeverReady;
+        PeelArchiveClue archiveClue;
+        PeelKnockCue knockCue;
+        Vector3 basementDoorClosedPosition;
+        Coroutine basementDoorOpening;
+        const float BasementDoorOpenDuration=.65f;
         bool courtyardUnlocked, courtyardOpen, basementOpen, courtyardKnockHeard;
         public bool Completed { get; private set; }
         public bool ReviewMode { get; private set; }
@@ -26,32 +35,55 @@ namespace JustOneMorePeel
         public bool UsesLocalCourtyardGate => true;
         internal System.Collections.Generic.IReadOnlyList<PeelPosterStack> DoorPosters => doorPosters;
         PeelPosterStack[] CourtyardGoal => localCourtyard;
-        int Area => game.player.transform.position.z < 3.35f ? 0 : game.player.transform.position.z < 14f ? 1 : 2;
+        int Area => AreaAt(game.player.transform.position.z);
+        internal static int AreaAt(float z) => z<3.35f ? 0 : z<14f ? 1 : 2;
         public int CurrentArea => Area;
+        internal bool CourtyardKnockActive => knockCue && knockCue.CourtyardKnockActive;
         static int Left(PeelPosterStack[] stacks)
         { int count=0; foreach(var s in stacks) if(s)count+=s.RemainingPosters; return count; }
-        public int RemainingHere => Area==0 ? Left(CourtyardGoal) : Area==1 ? Left(basement) : Left(hall);
+        public int RemainingHere => RemainingInArea(Area);
+        internal int RemainingInArea(int area) => Left(area==0 ? CourtyardGoal : area==1 ? basement : hall);
         public bool IsCourtyardGoal(PeelPosterStack stack) => Array.IndexOf(CourtyardGoal,stack)>=0;
+        internal int OptionalCourtyardNoticesLeft => Left(optionalCourtyard);
+        internal bool IsOptionalCourtyardNotice(PeelPosterStack stack) => Array.IndexOf(optionalCourtyard,stack)>=0;
+        internal Texture2D ArchiveNoteTexture => archiveClue ? archiveClue.CurrentTexture : null;
+        internal bool CanReadArchiveNote() => Completed && !ReviewMode && archiveClue && archiveClue.CanRead(game.view);
         public string Objective
         {
             get
             {
                 bool ru=game.Settings.Language==PeelLanguage.Russian;
                 if(ReviewMode)return ru ? "Осмотр маршрута: проходы открыты" : "Route review: passages are open";
-                if(Completed)return ru ? "Смена завершена · записка на дальней стене архива" : "Shift complete · the note is on the far archive wall";
+                if(Completed)
+                {
+                    if(Area==0)
+                    {
+                        int optionalLeft=OptionalCourtyardNoticesLeft;
+                        if(optionalLeft==0)return ru ? "Смена завершена · двор полностью очищен" : "Shift complete · courtyard fully cleared";
+                        return ru ? $"Смена завершена · во дворе осталось необязательных листов — {optionalLeft}"
+                            : $"Shift complete · optional courtyard notices left — {optionalLeft}";
+                    }
+                    return ru ? "Смена завершена · записка на дальней стене архива" : "Shift complete · the note is on the far archive wall";
+                }
                 if(Area==0)
                 {
-                    if(courtyardOpen)return ru ? "Дверь открыта: пройди внутрь" : "The door is open: go inside";
-                    if(courtyardUnlocked)return ru ? "Подойди к двери и открой её" : "Approach and open the door";
-                    if(courtyardKnockHeard && UsesLocalCourtyardGate)
-                        return ru ? "Стук за дверью. Сними листы с двери. Листы на стенах можно оставить."
-                            : "Knocking behind the door. Clear its notices. Wall notices are optional.";
-                    if(UsesLocalCourtyardGate)return ru ? "Чтобы открыть дверь, сними листы с неё. Листы на стенах можно оставить." : "Clear the door to open it. You can leave the notices on the walls.";
-                    if(courtyardKnockHeard)return ru ? "Стук за стеной... Что скрывают объявления?" : "Knocking behind the wall... What are the notices hiding?";
-                    return ru ? "Очисти стену и узнай, что за ней" : "Clear the wall and find out what is behind it";
+                    if(courtyardOpen)return ru ? "Дверь открыта · спустись в подвал" : "Door open · go down to the basement";
+                    if(courtyardUnlocked)return ru ? "Дверь готова · подойди, посмотри на неё и нажми E"
+                        : "Door ready · walk up, look at it and press E";
+                    if(courtyardKnockHeard)return ru ? "Опять стучит за дверью. Сними листы с двери, стены можно оставить."
+                        : "There it is again, behind the door. Clear the door. The walls can wait.";
+                    return ru ? "Заявка №17. Что стучит под двором? Сними объявления с двери."
+                        : "Job 17. What’s knocking under the courtyard? Peel the notices off the door.";
                 }
-                if(Area==1)return basementOpen ? (ru ? "Архив открыт · пройди через дальний проём" : "Archive open · go through the doorway ahead") : (ru ? "Сними объявления с дальней стены, чтобы открыть проход в архив" : "Clear the notices on the far wall to open the archive passage");
-                return ru ? "Сними объявления в архиве, чтобы открыть находку на дальней стене" : "Clear the archive notices to reveal what is on the far wall";
+                if(Area==1)
+                {
+                    if(basementDoorOpening!=null)return ru ? "Дверь в архив открывается" : "The archive door is opening";
+                    return basementOpen ? (ru ? "Архив открыт · пройди через дальний проём" : "Archive open · go through the doorway ahead")
+                        : (ru ? "Бирка на двери архива: «Проверить защёлку». Сними листы в подвале."
+                            : "Archive door tag: “Check latch.” Clear the basement notices.");
+                }
+                return ru ? "Сними листы в архиве. На дальней стене остался ответ по заявке №17."
+                    : "Clear the archive notices. The reply to job 17 is on the far wall.";
             }
         }
         public string FinishText(string time) => game.Settings.Language==PeelLanguage.Russian ? "Записка открыта. Смена завершена.\nВремя: "+time : "Note uncovered. Shift complete.\nTime: "+time;
@@ -76,17 +108,57 @@ namespace JustOneMorePeel
             hinge.position=door.position+Vector3.left*door.localScale.x*.5f;
             door.SetParent(hinge,true);
             hinge.rotation=Quaternion.Euler(0,90,0);
-            courtyardOpen=true;Physics.SyncTransforms();
+            courtyardOpen=true;
+            RefreshCourtyardLever();
+            Physics.SyncTransforms();
         }
         internal void RestoreProgress(bool firstDoorOpen)
         {
             courtyardUnlocked=Left(CourtyardGoal)==0;
             if(firstDoorOpen && courtyardUnlocked && !courtyardOpen)OpenCourtyardDoor();
-            basementOpen=Left(basement)==0;
-            basementDoor.SetActive(!basementOpen);
+            else RefreshCourtyardLever();
+            SetBasementDoorOpen(Left(basement)==0,false);
             Completed=Left(hall)==0;
             finalReveal.SetActive(Completed);
             Physics.SyncTransforms();
+        }
+        void SetBasementDoorOpen(bool open,bool animate)
+        {
+            if(basementDoorOpening!=null)
+            {
+                StopCoroutine(basementDoorOpening);
+                basementDoorOpening=null;
+            }
+
+            basementOpen=open;
+            basementDoor.transform.localPosition=basementDoorClosedPosition;
+            if(open && animate && basementDoor.activeInHierarchy)
+                basementDoorOpening=StartCoroutine(LiftBasementDoor());
+            else basementDoor.SetActive(!open);
+        }
+        IEnumerator LiftBasementDoor()
+        {
+            var door=basementDoor.transform;
+            var travel=door.localRotation*Vector3.up*(Mathf.Abs(door.localScale.y)+.08f);
+            for(float elapsed=0f;elapsed<BasementDoorOpenDuration;elapsed+=Time.deltaTime)
+            {
+                float lift=Mathf.SmoothStep(0f,1f,elapsed/BasementDoorOpenDuration);
+                door.localPosition=basementDoorClosedPosition+travel*lift;
+                yield return null;
+            }
+            basementDoor.SetActive(false);
+            door.localPosition=basementDoorClosedPosition;
+            basementDoorOpening=null;
+            Physics.SyncTransforms();
+        }
+        internal bool IsSavedArchiveCleared(PeelWorldSave data)
+        {
+            foreach(var stack in hall)
+            {
+                var saved=Array.Find(data.stacks,item=>item.id==stack.PersistentId);
+                if(saved==null || saved.cleared!=stack.PosterCount)return false;
+            }
+            return true;
         }
         internal bool CanRestoreProgress(PeelWorldSave data)
         {
@@ -183,6 +255,7 @@ namespace JustOneMorePeel
         public void OpenForReview()
         {
             ReviewMode=true;courtyardUnlocked=true;courtyardOpen=true;basementOpen=true;
+            RefreshCourtyardLever();
             courtyardDoor.SetActive(false);
             // In the route-only review, paper covering the passages is hidden so
             // the geometry can be walked without clearing hundreds of sheets.
@@ -205,26 +278,44 @@ namespace JustOneMorePeel
         }
         void Start()
         {
-            if(!game || courtyard==null || basement==null || hall==null || !courtyardDoor || !basementDoor || !finalReveal)
+            if(!game || courtyard==null || doorPosters==null || basement==null || hall==null || !courtyardDoor || !basementDoor || !finalReveal)
             {Debug.LogError("Route prototype: missing scene references",this);enabled=false;return;}
             // The trial uses stacks centered within the doorway, including the overlapping edge sheets.
             localCourtyard=doorPosters;
-            gameObject.AddComponent<PeelKnockCue>().Initialize(game,this,courtyardDoor,basementDoor);
-            finalReveal.AddComponent<PeelArchiveClue>().Initialize(game.Settings);
+            optionalCourtyard=Array.FindAll(courtyard,stack=>stack && !IsCourtyardGoal(stack));
+            InitializeCourtyardLever();
+            basementDoorClosedPosition=basementDoor.transform.localPosition;
+            knockCue=gameObject.AddComponent<PeelKnockCue>();
+            knockCue.Initialize(game,this,courtyardDoor,basementDoor);
+            archiveClue=finalReveal.AddComponent<PeelArchiveClue>();
+            archiveClue.Initialize(game.Settings,archiveRevealLamp);
             CreatePassageNote();
             var basementProps=Resources.Load<GameObject>("BasementStorageCandidate");
             var archiveProps=Resources.Load<GameObject>("ArchiveStorageCandidates");
             if(basementProps)Instantiate(basementProps,basementDoor.transform.parent,false).name="Basement service storage";
-            if(archiveProps)
-            {
-                var storage=Instantiate(archiveProps,basementDoor.transform.parent,false);
-                storage.name="Archive storage";
-                foreach(Transform item in storage.transform)
-                    item.localPosition+=new Vector3(0,0,5.5f);
-            }
+            if(archiveProps)Instantiate(archiveProps,basementDoor.transform.parent,false).name="Archive storage";
 
             game.PosterWasCleared+=OnPosterCleared;
             if(game.Settings)game.Settings.Changed+=RefreshRouteLanguage;
+        }
+        void InitializeCourtyardLever()
+        {
+            var handle=courtyardDoor.transform.Find("Door lever");
+            if(!handle)return;
+            courtyardLever=handle.GetComponentInChildren<Renderer>();
+            if(!courtyardLever || !courtyardLever.sharedMaterial)return;
+
+            courtyardLeverSteel=courtyardLever.sharedMaterial;
+            courtyardLeverReady=new Material(courtyardLeverSteel) { name="Unlocked courtyard door lever" };
+            courtyardLeverReady.SetColor("_BaseColor",new Color(.94f,.70f,.31f));
+            courtyardLeverReady.SetFloat("_Metallic",.24f);
+            courtyardLeverReady.EnableKeyword("_EMISSION");
+            courtyardLeverReady.SetColor("_EmissionColor",new Color(.20f,.09f,.02f));
+        }
+        void RefreshCourtyardLever()
+        {
+            if(courtyardLever && courtyardLeverReady)
+                courtyardLever.sharedMaterial=courtyardUnlocked && !courtyardOpen && !ReviewMode ? courtyardLeverReady : courtyardLeverSteel;
         }
         void CreatePassageNote()
         {
@@ -235,7 +326,7 @@ namespace JustOneMorePeel
             Destroy(note.GetComponent<Collider>());
             note.transform.position=door.TransformPoint(new Vector3(0f,.45f,-.55f));
             note.transform.rotation=door.rotation;
-            note.transform.localScale=new Vector3(.58f,.23f,1f);
+            note.transform.localScale=new Vector3(.72f,.23f,1f);
             note.transform.SetParent(door,true);
             var shader=Shader.Find("Universal Render Pipeline/Lit");
             passagePaper=new Material(shader) { color=new Color(.82f,.73f,.54f) };
@@ -267,7 +358,7 @@ namespace JustOneMorePeel
         void RefreshRouteLanguage()
         {
             if(passageNote)passageNote.text=game.Settings.Language==PeelLanguage.Russian
-                ? "АРХИВ\nза этой дверью" : "ARCHIVE\nthrough this door";
+                ? "АРХИВ · №17\nПроверить защёлку" : "ARCHIVE · 17\nCheck latch";
             if(archiveSign)archiveSign.text=game.Settings.Language==PeelLanguage.Russian ? "АРХИВ" : "ARCHIVE";
             DisableBasementCollisions();
         }
@@ -279,11 +370,16 @@ namespace JustOneMorePeel
                 if(game.Settings)game.Settings.Changed-=RefreshRouteLanguage;
             }
             if(passagePaper)Destroy(passagePaper);
+            if(courtyardLeverReady)Destroy(courtyardLeverReady);
         }
         void OnPosterCleared(PeelPosterStack stack)
         {
-            if(!courtyardUnlocked && Left(CourtyardGoal)==0)courtyardUnlocked=true;
-            if(!basementOpen && Left(basement)==0){basementOpen=true;basementDoor.SetActive(false);Physics.SyncTransforms();}
+            if(!courtyardUnlocked && Left(CourtyardGoal)==0)
+            {
+                courtyardUnlocked=true;
+                RefreshCourtyardLever();
+            }
+            if(!basementOpen && Left(basement)==0)SetBasementDoorOpen(true,true);
             if(!Completed && Left(hall)==0){Completed=true;finalReveal.SetActive(true);}
         }
     }

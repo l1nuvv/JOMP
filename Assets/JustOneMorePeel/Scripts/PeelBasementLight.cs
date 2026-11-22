@@ -16,15 +16,26 @@ namespace JustOneMorePeel
         [SerializeField] float exitZ=14f;
         [SerializeField] float interactionReach=2.2f;
         public bool IsOn { get; private set; }
+        internal bool SwitchIsOn { get; private set; }
         readonly List<Renderer> surfaces=new List<Renderer>();
         readonly List<Material[]> originalMaterials=new List<Material[]>();
         readonly Dictionary<Material,Material> dimMaterials=new Dictionary<Material,Material>();
+        static readonly int BaseColor=Shader.PropertyToID("_BaseColor");
+        static readonly Color SwitchOnColor=new Color(.23f,.72f,.42f);
+        Renderer switchIndicator;
+        MaterialPropertyBlock switchIndicatorProperties;
+        Color switchOffColor;
+        AudioSource switchClick;
+        float fullLampIntensity;
+        const float LampDelaySeconds=.55f, LampWarmupSeconds=.38f, LampStartLevel=.12f;
+        float lampDelayRemaining;
         PeelRoutePrototype route;
         public bool IsDark => game && game.player && !IsOn && game.player.transform.position.z>=entryZ && game.player.transform.position.z<exitZ;
         void Start()
         {
             if (!game || !lightSwitch || !basementLamp || !basementRoot || !darknessShader) { Debug.LogError("Basement light: missing references",this);enabled=false;return; }
             route=game.GetComponent<PeelRoutePrototype>();
+            InitializeSwitchFeedback();
             foreach(Transform child in basementRoot)
             {
                 if(!child.name.StartsWith("Basement "))continue;
@@ -34,8 +45,30 @@ namespace JustOneMorePeel
                     surfaces.Add(renderer);originalMaterials.Add(renderer.sharedMaterials);
                 }
             }
+            fullLampIntensity=basementLamp.intensity;
             SetLight(false);
             if(game.Settings)game.Settings.Changed+=RefreshMaterials;
+        }
+        void InitializeSwitchFeedback()
+        {
+            var indicator=lightSwitch.transform.Find("Switch indicator");
+            if(indicator && indicator.TryGetComponent(out switchIndicator) && switchIndicator.sharedMaterial && switchIndicator.sharedMaterial.HasProperty(BaseColor))
+            {
+                switchOffColor=switchIndicator.sharedMaterial.GetColor(BaseColor);
+                switchIndicatorProperties=new MaterialPropertyBlock();
+                switchIndicator.GetPropertyBlock(switchIndicatorProperties);
+            }
+
+            var clip=Resources.Load<AudioClip>("BasementSwitchClick");
+            if(!clip)return;
+            switchClick=lightSwitch.gameObject.AddComponent<AudioSource>();
+            switchClick.playOnAwake=false;
+            switchClick.clip=clip;
+            switchClick.spatialBlend=1f;
+            switchClick.dopplerLevel=0f;
+            switchClick.rolloffMode=AudioRolloffMode.Linear;
+            switchClick.minDistance=.65f;
+            switchClick.maxDistance=4f;
         }
         void OnDestroy()
         {
@@ -44,6 +77,14 @@ namespace JustOneMorePeel
         }
         void Update()
         {
+            if(SwitchIsOn && !IsOn)
+            {
+                lampDelayRemaining-=Time.deltaTime;
+                if(lampDelayRemaining<=0f)SetLight(true,true);
+            }
+            else if(IsOn && basementLamp.intensity<fullLampIntensity)
+                basementLamp.intensity=Mathf.MoveTowards(basementLamp.intensity,fullLampIntensity,
+                    fullLampIntensity*(1f-LampStartLevel)*Time.deltaTime/LampWarmupSeconds);
             float doorway=route && route.CourtyardDoorOpen ? 1f : 0f;
             foreach(var material in dimMaterials.Values)if(material)material.SetFloat("_DoorOpen",doorway);
         }
@@ -73,12 +114,36 @@ namespace JustOneMorePeel
         public bool TryToggle()
         {
             if (!CanInteract()) return false;
-            SetLight(!IsOn);return true;
+            SetSwitch(!SwitchIsOn);
+            if(SwitchIsOn)lampDelayRemaining=LampDelaySeconds;
+            else SetLight(false);
+            if(switchClick && game.Settings.SoundVolume>0f)
+            {
+                switchClick.pitch=SwitchIsOn ? 1f : .88f;
+                switchClick.volume=game.Settings.SoundVolume*.42f;
+                switchClick.Play();
+            }
+            return true;
         }
-        internal void RestoreProgress(bool on) { SetLight(on); }
-        void SetLight(bool on)
+        internal void RestoreProgress(bool on)
         {
-            IsOn=on;basementLamp.enabled=on;
+            SetSwitch(on);
+            SetLight(on);
+        }
+        void SetSwitch(bool on)
+        {
+            SwitchIsOn=on;
+            if(switchIndicator && switchIndicatorProperties!=null)
+            {
+                switchIndicatorProperties.SetColor(BaseColor,on ? SwitchOnColor : switchOffColor);
+                switchIndicator.SetPropertyBlock(switchIndicatorProperties);
+            }
+        }
+        void SetLight(bool on,bool warmUp=false)
+        {
+            IsOn=on;
+            basementLamp.intensity=on && warmUp ? fullLampIntensity*LampStartLevel : fullLampIntensity;
+            basementLamp.enabled=on;
             if(route)route.BasementLightingChanged(on);
             for(int i=0;i<surfaces.Count;i++)
             {

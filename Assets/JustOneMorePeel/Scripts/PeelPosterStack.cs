@@ -12,6 +12,7 @@ namespace JustOneMorePeel
         [SerializeField] private int firstDesign;
         [SerializeField] private int secondDesign;
         [SerializeField] private int sequenceOffset;
+        [SerializeField] private int[] deeperDesigns;
         [SerializeField] private float maximumPaperSize;
         [SerializeField, Min(.1f)] private float firstLayerScale=1f;
         [SerializeField, Min(.1f)] private float deeperLayerScale=1f;
@@ -104,6 +105,8 @@ namespace JustOneMorePeel
             int count=game.Settings.PaperCount;
             int second=secondDesign==firstDesign ? (secondDesign+1)%count : secondDesign;
             if(layer==1)return second;
+            if(deeperDesigns!=null && deeperDesigns.Length>0)
+                return deeperDesigns[(layer-2)%deeperDesigns.Length];
             int start=sequenceOffset%count;
             if(start==second)start=(start+sequenceStride)%count;
             return (start+((layer-2)%Mathf.Min(10,count))*sequenceStride)%count;

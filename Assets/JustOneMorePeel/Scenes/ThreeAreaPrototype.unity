@@ -1581,6 +1581,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &23558423
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 23558424}
+  - component: {fileID: 23558426}
+  - component: {fileID: 23558425}
+  m_Layer: 0
+  m_Name: Torn paste edge Street collage 3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &23558424
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23558423}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.05233596, y: 0.9986295, z: -0.0000000022876774, w: -0.000000043651482}
+  m_LocalPosition: {x: -0.26091427, y: -0.44896, z: 0.50250006}
+  m_LocalScale: {x: 0.056384567, y: 0.02635253, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2052461082}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &23558425
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23558423}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &23558426
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23558423}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!43 &23700046
 Mesh:
   m_ObjectHideFlags: 0
@@ -3382,9 +3472,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 22
-  secondDesign: 11
+  firstDesign: 27
+  secondDesign: 5
   sequenceOffset: 14
+  deeperDesigns: 0d0000001c000000000000001b00000005000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -3697,8 +3788,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 23
-  secondDesign: 7
+  secondDesign: 22
   sequenceOffset: 25
+  deeperDesigns: 01000000090000001d0000001700000016000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0223441
@@ -4013,10 +4105,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 1
-  secondDesign: 1
+  firstDesign: 5
+  secondDesign: 13
   sequenceOffset: 2
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 1c000000000000001b000000050000000d000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 0.98286915
   firstLayerOffset: 0
@@ -4213,7 +4306,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 46985084}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0.009255742, y: -0.7070462, z: -0.009255742, w: 0.7070462}
   m_LocalPosition: {x: -7.28, y: -0.2, z: 19.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4241,14 +4334,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 16
-  firstDesign: 2
-  secondDesign: 9
+  firstDesign: 11
+  secondDesign: 31
   sequenceOffset: 13
+  deeperDesigns: 150000000900000016000000010000000b0000001f000000i
   maximumPaperSize: 1.6200001
-  firstLayerScale: 1
+  firstLayerScale: 0.78
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 1
   front:
   - {fileID: 57814042}
@@ -5795,9 +5889,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 11
-  secondDesign: 6
+  firstDesign: 29
+  secondDesign: 23
   sequenceOffset: 7
+  deeperDesigns: 1600000001000000090000001d00000017000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 0.9044855
@@ -6708,8 +6803,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 1
-  secondDesign: 2
+  secondDesign: 9
   sequenceOffset: 18
+  deeperDesigns: 1d00000017000000160000000100000009000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 1.0420002
@@ -6912,9 +7008,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 13
-  secondDesign: 17
+  firstDesign: 24
+  secondDesign: 21
   sequenceOffset: 5
+  deeperDesigns: 0b0000000f000000140000001800000015000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 1.0152305
@@ -9506,9 +9603,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 18
-  secondDesign: 7
+  firstDesign: 22
+  secondDesign: 1
   sequenceOffset: 28
+  deeperDesigns: 090000001d000000170000001600000001000000i
   maximumPaperSize: 2.2150002
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -11737,6 +11835,7 @@ MonoBehaviour:
   firstDesign: 14
   secondDesign: 15
   sequenceOffset: 16
+  deeperDesigns: 
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -11967,6 +12066,7 @@ Transform:
   - {fileID: 1535191767}
   - {fileID: 805546093}
   - {fileID: 1363396304}
+  - {fileID: 1320603216}
   m_Father: {fileID: 1804103015}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &157230934
@@ -17472,6 +17572,96 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 262335904}
   m_Mesh: {fileID: 622068148}
+--- !u!1 &263563534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 263563535}
+  - component: {fileID: 263563537}
+  - component: {fileID: 263563536}
+  m_Layer: 0
+  m_Name: Torn paste edge Street collage 13
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &263563535
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263563534}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.055478964, y: -0.704927, z: 0.055478964, w: 0.704927}
+  m_LocalPosition: {x: 0.5050001, y: -0.37013, z: -0.13326623}
+  m_LocalScale: {x: 0.07978096, y: 0.06477655, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1355448682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &263563536
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263563534}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &263563537
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263563534}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!43 &264689049
 Mesh:
   m_ObjectHideFlags: 0
@@ -17681,10 +17871,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 17
-  secondDesign: 0
+  firstDesign: 8
+  secondDesign: 16
   sequenceOffset: 16
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 0c000000130000001a0000000800000010000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.0254313
   firstLayerOffset: 0
@@ -18844,6 +19035,7 @@ MonoBehaviour:
   firstDesign: 5
   secondDesign: 6
   sequenceOffset: 7
+  deeperDesigns: 
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -21103,9 +21295,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 1
-  secondDesign: 9
+  firstDesign: 11
+  secondDesign: 15
   sequenceOffset: 3
+  deeperDesigns: 1400000018000000150000000b0000000f000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -21177,8 +21370,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
   firstDesign: 10
-  secondDesign: 12
+  secondDesign: 3
   sequenceOffset: 16
+  deeperDesigns: 1100000007000000120000000a00000003000000i
   maximumPaperSize: 2.2150002
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -23124,7 +23318,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 356816665}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.012340715, y: -0.7069991, z: 0.012340715, w: 0.7069991}
   m_LocalPosition: {x: -7.28, y: -0.2, z: 24.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -23152,14 +23346,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 24
-  firstDesign: 9
-  secondDesign: 16
+  firstDesign: 21
+  secondDesign: 1
   sequenceOffset: 20
+  deeperDesigns: 1d0000001f0000000b000000090000001500000001000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.8
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1894968190}
@@ -25032,7 +25227,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 383094353}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.008726535, w: 0.9999619}
   m_LocalPosition: {x: 0, y: -0.20000005, z: 33.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -25060,14 +25255,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 16
-  firstDesign: 18
-  secondDesign: 19
+  firstDesign: 31
+  secondDesign: 1
   sequenceOffset: 20
+  deeperDesigns: 09000000160000000b0000001d0000001f00000001000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.89
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1235188069}
@@ -25422,8 +25618,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 11
-  secondDesign: 12
+  secondDesign: 15
   sequenceOffset: 0
+  deeperDesigns: 1400000018000000150000000b0000000f000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.091957
@@ -27535,9 +27732,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 5
-  secondDesign: 21
+  firstDesign: 7
+  secondDesign: 18
   sequenceOffset: 13
+  deeperDesigns: 0a00000003000000110000000700000012000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9403182
@@ -28529,6 +28727,96 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 430432094}
   m_Mesh: {fileID: 403916386}
+--- !u!1 &430581631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 430581632}
+  - component: {fileID: 430581634}
+  - component: {fileID: 430581633}
+  m_Layer: 0
+  m_Name: Torn paste edge Basement notice upper left
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &430581632
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430581631}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0.16504762, w: 0.9862857}
+  m_LocalPosition: {x: 0.3411085, y: 0.03722638, z: -0.5100002}
+  m_LocalScale: {x: 0.3328084, y: 0.1825809, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1359497587}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &430581633
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430581631}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &430581634
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430581631}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &431231464
 GameObject:
   m_ObjectHideFlags: 0
@@ -28559,9 +28847,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 23
-  secondDesign: 10
+  firstDesign: 0
+  secondDesign: 27
   sequenceOffset: 8
+  deeperDesigns: 050000000d0000001c000000000000001b000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1.0068842
@@ -30646,9 +30935,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 10
-  secondDesign: 13
+  firstDesign: 13
+  secondDesign: 28
   sequenceOffset: 0
+  deeperDesigns: 000000001b000000050000000d0000001c000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.9290385
@@ -32063,6 +32353,96 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &472629864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 472629865}
+  - component: {fileID: 472629867}
+  - component: {fileID: 472629866}
+  m_Layer: 0
+  m_Name: Torn paste edge Archive side notice 4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &472629865
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 472629864}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.04316784, y: 0.7057879, z: 0.04316784, w: 0.7057879}
+  m_LocalPosition: {x: -0.5124998, y: 0.0890867, z: -0.24809523}
+  m_LocalScale: {x: 0.07487856, y: 0.16686721, z: 2.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1589302501}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &472629866
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 472629864}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &472629867
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 472629864}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &474585097
 GameObject:
   m_ObjectHideFlags: 0
@@ -32648,10 +33028,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 14
-  secondDesign: 25
+  firstDesign: 23
+  secondDesign: 22
   sequenceOffset: 16
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 01000000090000001d0000001700000016000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 0.93664795
   firstLayerOffset: 0
@@ -32833,9 +33214,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 17
-  secondDesign: 24
+  firstDesign: 21
+  secondDesign: 11
   sequenceOffset: 10
+  deeperDesigns: 0f0000001400000018000000150000000b000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9152329
@@ -35322,7 +35704,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 515540604}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.02617695, w: 0.99965733}
   m_LocalPosition: {x: -2.55, y: -0.20000005, z: 33.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -35350,14 +35732,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 8
-  firstDesign: 8
-  secondDesign: 9
+  firstDesign: 9
+  secondDesign: 31
   sequenceOffset: 10
+  deeperDesigns: 16000000010000001d00000017000000090000001f000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.8
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 849623621}
@@ -35644,9 +36027,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 28
-  secondDesign: 12
+  firstDesign: 24
+  secondDesign: 21
   sequenceOffset: 2
+  deeperDesigns: 0b0000000f000000140000001800000015000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 1.0547199
@@ -35740,9 +36124,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 14
-  secondDesign: 29
+  firstDesign: 8
+  secondDesign: 16
   sequenceOffset: 25
+  deeperDesigns: 0c000000130000001a0000000800000010000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0406027
@@ -37387,9 +37772,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 0
-  secondDesign: 27
+  firstDesign: 12
+  secondDesign: 19
   sequenceOffset: 5
+  deeperDesigns: 1a00000008000000100000000c00000013000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -37437,9 +37823,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 2
-  secondDesign: 17
+  firstDesign: 26
+  secondDesign: 8
   sequenceOffset: 3
+  deeperDesigns: 100000000c000000130000001a00000008000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1.0636673
@@ -40694,6 +41081,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 7d5d3a8023610a74aa04c7cf1997710e, type: 2}
   - {fileID: 2100000, guid: f1264a46445ea724da32c6cedc9de247, type: 2}
   - {fileID: 2100000, guid: 1859af051756aca40a6809bec5598097, type: 2}
+  - {fileID: 2100000, guid: 559270ee7dbcad54989a0e20eda102b9, type: 2}
+  - {fileID: 2100000, guid: 38dacc24d9675c74498a1ac093c87a2f, type: 2}
   englishPapers:
   - {fileID: 2100000, guid: 6587facc431d3f346824596c272d2c78, type: 2}
   - {fileID: 2100000, guid: 1b8ec4f8a2bfcde4c94dabe9db40a678, type: 2}
@@ -40725,7 +41114,9 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 1df40efa5516c7447836aa5f400d141e, type: 2}
   - {fileID: 2100000, guid: 5609f537a38efc24ba0b6bfb09ff1055, type: 2}
   - {fileID: 2100000, guid: ce77367e1ba55634d90dc146c6ff496f, type: 2}
-  opaquePapers: 000100000000000000000101010101010100010100010101000101010100y
+  - {fileID: 2100000, guid: 688cf9a288696664a9d97c87606b4a32, type: 2}
+  - {fileID: 2100000, guid: cbf33cb0a04109e4080b516195ca43ae, type: 2}
+  opaquePapers: 0001000000000000000001010101010101000101000101010001010101000101y
   paperAspects:
   - 1.3333334
   - 1.3333334
@@ -40757,6 +41148,8 @@ MonoBehaviour:
   - 1
   - 0.6660156
   - 1.3339844
+  - 1.4
+  - 0.60714287
   wallWriting: {fileID: 1539005373}
 --- !u!114 &578812984
 MonoBehaviour:
@@ -40908,6 +41301,7 @@ MonoBehaviour:
   courtyardDoor: {fileID: 282283099}
   basementDoor: {fileID: 359379474}
   finalReveal: {fileID: 456255541}
+  archiveRevealLamp: {fileID: 914807209}
   passageLettering: {fileID: 2100000, guid: 0dfdf8d6fb15a4349b640bc48b7765da, type: 2}
 --- !u!114 &578812985
 MonoBehaviour:
@@ -45961,9 +46355,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 14
-  secondDesign: 6
+  firstDesign: 26
+  secondDesign: 8
   sequenceOffset: 19
+  deeperDesigns: 100000000c000000130000001a00000008000000i
   maximumPaperSize: 2.2150002
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -47669,9 +48064,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 9
-  secondDesign: 1
+  firstDesign: 17
+  secondDesign: 7
   sequenceOffset: 8
+  deeperDesigns: 120000000a000000030000001100000007000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 1.096301
@@ -48846,7 +49242,8 @@ Transform:
   m_LocalPosition: {x: -7.5, y: 0.099999905, z: 24}
   m_LocalScale: {x: 0.4, y: 4.2, z: 20}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1105420749}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &719411663
@@ -49268,10 +49665,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 24
-  secondDesign: 29
+  firstDesign: 10
+  secondDesign: 3
   sequenceOffset: 19
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 1100000007000000120000000a00000003000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.0667374
   firstLayerOffset: 0
@@ -50748,6 +51146,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 42916878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &750434217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 750434218}
+  - component: {fileID: 750434220}
+  - component: {fileID: 750434219}
+  m_Layer: 0
+  m_Name: Torn paste edge Archive notice left
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &750434218
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750434217}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.02617695, w: 0.99965733}
+  m_LocalPosition: {x: -0.13614622, y: 0.08102404, z: -0.51000214}
+  m_LocalScale: {x: 0.098861635, y: 0.1749582, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 804430194}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &750434219
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750434217}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &750434220
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 750434217}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &751578550
 GameObject:
   m_ObjectHideFlags: 0
@@ -53163,6 +53651,96 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &800179455
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 800179456}
+  - component: {fileID: 800179458}
+  - component: {fileID: 800179457}
+  m_Layer: 0
+  m_Name: Torn paste edge Archive notice right
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &800179456
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800179455}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.08715575, w: 0.9961947}
+  m_LocalPosition: {x: 0.20397417, y: -0.19011083, z: -0.51000214}
+  m_LocalScale: {x: 0.10085633, y: 0.16351207, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 804430194}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &800179457
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800179455}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &800179458
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800179455}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &800869745
 GameObject:
   m_ObjectHideFlags: 0
@@ -53194,8 +53772,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 19
-  secondDesign: 6
+  secondDesign: 26
   sequenceOffset: 17
+  deeperDesigns: 08000000100000000c000000130000001a000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9865301
@@ -53621,7 +54200,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.099999905, z: 34}
   m_LocalScale: {x: 15, y: 4.2, z: 0.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 750434218}
+  - {fileID: 800179456}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &804430195
@@ -53732,9 +54313,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 24
-  secondDesign: 1
+  firstDesign: 9
+  secondDesign: 29
   sequenceOffset: 20
+  deeperDesigns: 170000001600000001000000090000001d000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.9538319
@@ -53937,7 +54519,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.9823085
+      value: 0.9208991
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalPosition.z
@@ -53945,19 +54527,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7010574
+      value: 0.7183151
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.7010574
+      value: 0.6816555
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.09229596
+      value: -0.10095262
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.09229596
+      value: 0.09580044
       objectReference: {fileID: 0}
     - target: {fileID: 3274418168186998137, guid: 7c17bfda8a46fd0459e5a6d0cdaa5f48, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -55199,8 +55781,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 817282905}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.55, y: -0.20000005, z: 13.72}
+  m_LocalRotation: {x: 0, y: 0, z: -0.02617695, w: 0.99965733}
+  m_LocalPosition: {x: -2.55, y: -0.43, z: 13.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -55227,14 +55809,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 16
-  firstDesign: 5
-  secondDesign: 6
+  firstDesign: 14
+  secondDesign: 30
   sequenceOffset: 7
-  maximumPaperSize: 2.25
-  firstLayerScale: 1
+  deeperDesigns: 0600000007000000050000000d0000000e0000001e000000i
+  maximumPaperSize: 0.99
+  firstLayerScale: 0.8
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1526379673}
@@ -57193,9 +57776,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 19
-  secondDesign: 10
+  firstDesign: 3
+  secondDesign: 17
   sequenceOffset: 25
+  deeperDesigns: 07000000120000000a0000000300000011000000i
   maximumPaperSize: 2.2150002
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -61366,9 +61950,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 29
-  secondDesign: 22
+  firstDesign: 12
+  secondDesign: 19
   sequenceOffset: 6
+  deeperDesigns: 1a00000008000000100000000c00000013000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.9229185
@@ -62260,8 +62845,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 1
-  secondDesign: 4
+  secondDesign: 9
   sequenceOffset: 22
+  deeperDesigns: 1d00000017000000160000000100000009000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.90174234
@@ -63627,9 +64213,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 2
-  secondDesign: 24
+  firstDesign: 5
+  secondDesign: 13
   sequenceOffset: 8
+  deeperDesigns: 1c000000000000001b000000050000000d000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -65024,9 +65611,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 11
-  secondDesign: 2
+  firstDesign: 29
+  secondDesign: 23
   sequenceOffset: 28
+  deeperDesigns: 1600000001000000090000001d00000017000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.9205212
@@ -65672,9 +66260,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 15
-  secondDesign: 25
+  firstDesign: 27
+  secondDesign: 5
   sequenceOffset: 28
+  deeperDesigns: 0d0000001c000000000000001b00000005000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0656667
@@ -65745,9 +66334,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 24
-  secondDesign: 6
+  firstDesign: 27
+  secondDesign: 5
   sequenceOffset: 15
+  deeperDesigns: 0d0000001c000000000000001b00000005000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.92272025
@@ -67917,7 +68507,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1007718532}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0.018509898, y: -0.7068645, z: -0.018509898, w: 0.7068645}
   m_LocalPosition: {x: -7.28, y: -0.2, z: 29.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -67945,14 +68535,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 32
-  firstDesign: 20
-  secondDesign: 27
+  firstDesign: 29
+  secondDesign: 22
   sequenceOffset: 1
+  deeperDesigns: 090000001f000000010000000b0000001d00000016000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.89
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 901172285}
@@ -68989,9 +69580,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 13
+  firstDesign: 19
   secondDesign: 26
   sequenceOffset: 11
+  deeperDesigns: 08000000100000000c000000130000001a000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -69463,7 +70055,8 @@ Transform:
   m_LocalPosition: {x: 3.45, y: 0, z: 14}
   m_LocalScale: {x: 4.5, y: 4, z: 0.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1624556340}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1039226094
@@ -74143,8 +74736,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1100237025}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.02617695, w: 0.99965733}
-  m_LocalPosition: {x: -1.3, y: 0.62, z: 13.66}
+  m_LocalRotation: {x: 0, y: 0, z: -0.05233596, w: 0.99862957}
+  m_LocalPosition: {x: -1.3, y: 0.49, z: 13.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -74171,14 +74764,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 32
-  firstDesign: 17
-  secondDesign: 20
+  firstDesign: 5
+  secondDesign: 14
   sequenceOffset: 22
-  maximumPaperSize: 2.25
-  firstLayerScale: 1
+  deeperDesigns: 07000000060000001e0000001a000000050000000e000000i
+  maximumPaperSize: 0.7
+  firstLayerScale: 0.89
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 32195914}
@@ -74746,6 +75340,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1153267575}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1105420748
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1105420749}
+  - component: {fileID: 1105420751}
+  - component: {fileID: 1105420750}
+  m_Layer: 0
+  m_Name: Torn paste edge Archive side notice 2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1105420749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105420748}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.04932528, y: -0.7053843, z: 0.04932528, w: 0.7053843}
+  m_LocalPosition: {x: 0.5124998, y: -0.19427308, z: 0.049595356}
+  m_LocalScale: {x: 0.075149916, y: 0.16422428, z: 2.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 719411662}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1105420750
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105420748}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1105420751
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105420748}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1107923152
 GameObject:
   m_ObjectHideFlags: 0
@@ -75152,9 +75836,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 27
-  secondDesign: 17
+  firstDesign: 22
+  secondDesign: 1
   sequenceOffset: 29
+  deeperDesigns: 090000001d000000170000001600000001000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 1.093414
@@ -77215,7 +77900,8 @@ Transform:
   m_LocalPosition: {x: 6, y: 3, z: 1}
   m_LocalScale: {x: 1, y: 6, z: 10}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1206714196}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1152541319
@@ -77380,9 +78066,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 8
-  secondDesign: 16
+  firstDesign: 16
+  secondDesign: 12
   sequenceOffset: 28
+  deeperDesigns: 130000001a00000008000000100000000c000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.9523913
@@ -78489,9 +79176,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 22
-  secondDesign: 14
+  firstDesign: 15
+  secondDesign: 20
   sequenceOffset: 24
+  deeperDesigns: 18000000150000000b0000000f00000014000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0888656
@@ -78585,9 +79273,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 8
-  secondDesign: 13
+  firstDesign: 0
+  secondDesign: 27
   sequenceOffset: 9
+  deeperDesigns: 050000000d0000001c000000000000001b000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -79143,9 +79832,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 10
-  secondDesign: 10
+  firstDesign: 7
+  secondDesign: 18
   sequenceOffset: 6
+  deeperDesigns: 0a00000003000000110000000700000012000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.9781808
@@ -80162,6 +80852,96 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1205838973}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1206714195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1206714196}
+  - component: {fileID: 1206714198}
+  - component: {fileID: 1206714197}
+  m_Layer: 0
+  m_Name: Torn paste edge Street collage 6
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1206714196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1206714195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.0185099, y: 0.7068645, z: 0.0185099, w: 0.7068645}
+  m_LocalPosition: {x: -0.5050001, y: -0.2680363, z: -0.31710592}
+  m_LocalScale: {x: 0.07908665, y: 0.06571334, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1141163163}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1206714197
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1206714195}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1206714198
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1206714195}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!43 &1209637317
 Mesh:
   m_ObjectHideFlags: 0
@@ -80371,9 +81151,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 16
-  secondDesign: 10
+  firstDesign: 9
+  secondDesign: 29
   sequenceOffset: 21
+  deeperDesigns: 170000001600000001000000090000001d000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9310558
@@ -81598,10 +82379,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 15
-  secondDesign: 29
+  firstDesign: 20
+  secondDesign: 24
   sequenceOffset: 6
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 150000000b0000000f0000001400000018000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.0650836
   firstLayerOffset: 0
@@ -85161,7 +85943,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1269559706}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0.0061705927, y: 0.7070799, z: 0.0061705927, w: 0.7070799}
   m_LocalPosition: {x: 7.28, y: -0.2, z: 19.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -85189,14 +85971,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 16
-  firstDesign: 12
-  secondDesign: 19
+  firstDesign: 1
+  secondDesign: 9
   sequenceOffset: 23
+  deeperDesigns: 0b0000001f0000001d000000150000000100000009000000i
   maximumPaperSize: 1.6200001
-  firstLayerScale: 1
+  firstLayerScale: 0.73
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 1
   front:
   - {fileID: 1511284040}
@@ -87401,9 +88184,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 16
-  secondDesign: 5
+  firstDesign: 15
+  secondDesign: 20
   sequenceOffset: 0
+  deeperDesigns: 18000000150000000b0000000f00000014000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -88249,6 +89033,7 @@ MonoBehaviour:
   firstDesign: 23
   secondDesign: 24
   sequenceOffset: 25
+  deeperDesigns: 
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -88921,6 +89706,80 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1001 &1320603215
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 157230933}
+    m_Modifications:
+    - target: {fileID: 6093502220761694918, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_Name
+      value: Spare card on tray
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8489502
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8489502
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8489502
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.055513352
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.89794016
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.18216212
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7018361
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7018361
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.086174645
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.086174645
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+--- !u!4 &1320603216 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9203901602725917357, guid: a4f04645d3d73df4d9c8fc880e0d8294, type: 3}
+  m_PrefabInstance: {fileID: 1320603215}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1321502502
 Mesh:
   m_ObjectHideFlags: 0
@@ -90228,6 +91087,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 516743965}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1347388374
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1347388375}
+  - component: {fileID: 1347388377}
+  - component: {fileID: 1347388376}
+  m_Layer: 0
+  m_Name: Torn paste edge Street collage 14
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1347388375
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1347388374}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0185099, y: -0.7068645, z: 0.0185099, w: 0.7068645}
+  m_LocalPosition: {x: 0.5050001, y: -0.2680363, z: -0.3928941}
+  m_LocalScale: {x: 0.07908665, y: 0.06571334, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1355448682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1347388376
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1347388374}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1347388377
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1347388374}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1349714994
 GameObject:
   m_ObjectHideFlags: 0
@@ -90760,7 +91709,9 @@ Transform:
   m_LocalPosition: {x: -6, y: 3, z: 1}
   m_LocalScale: {x: 1, y: 6, z: 10}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1347388375}
+  - {fileID: 263563535}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1358343106
@@ -90926,7 +91877,9 @@ Transform:
   m_LocalPosition: {x: -3.45, y: 0, z: 14}
   m_LocalScale: {x: 4.5, y: 4, z: 0.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1540394657}
+  - {fileID: 430581632}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1359497588
@@ -91033,31 +91986,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.25010884
+      value: 0.23312984
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.1054063
+      value: 0.95348406
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.025106378
+      value: 0.025830686
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99813485
+      value: 0.3022642
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0.6112813
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0.6788966
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.061048545
+      value: 0.27215993
       objectReference: {fileID: 0}
     - target: {fileID: 6903397687385742038, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -93347,8 +94300,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1391282291}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.034899496, w: 0.99939084}
-  m_LocalPosition: {x: 1.3, y: 0.62, z: 13.65}
+  m_LocalRotation: {x: 0, y: 0, z: 0.043619387, w: 0.99904823}
+  m_LocalPosition: {x: 1.3, y: 0.49, z: 13.65}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -93375,14 +94328,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 40
-  firstDesign: 27
-  secondDesign: 0
+  firstDesign: 26
+  secondDesign: 7
   sequenceOffset: 2
-  maximumPaperSize: 2.25
-  firstLayerScale: 1
+  deeperDesigns: 1e0000000e00000006000000050000001a00000007000000i
+  maximumPaperSize: 0.65
+  firstLayerScale: 0.73
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 943926339}
@@ -96291,8 +97245,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1439906780}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.20000005, z: 13.72}
+  m_LocalRotation: {x: 0, y: 0, z: 0.008726535, w: 0.9999619}
+  m_LocalPosition: {x: 0, y: -0.385, z: 13.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -96319,14 +97273,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 32
-  firstDesign: 14
-  secondDesign: 15
+  firstDesign: 30
+  secondDesign: 6
   sequenceOffset: 16
-  maximumPaperSize: 2.25
-  firstLayerScale: 1
+  deeperDesigns: 0d000000070000000e000000050000001e00000006000000i
+  maximumPaperSize: 1.08
+  firstLayerScale: 0.89
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 317013818}
@@ -97564,10 +98519,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 5
-  secondDesign: 28
+  firstDesign: 22
+  secondDesign: 1
   sequenceOffset: 5
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 090000001d000000170000001600000001000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.0004
   firstLayerOffset: 0
@@ -97637,9 +98593,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 5
-  secondDesign: 3
+  firstDesign: 28
+  secondDesign: 0
   sequenceOffset: 25
+  deeperDesigns: 1b000000050000000d0000001c00000000000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9559385
@@ -100479,9 +101436,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 10
-  secondDesign: 10
+  firstDesign: 26
+  secondDesign: 8
   sequenceOffset: 20
+  deeperDesigns: 100000000c000000130000001a00000008000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0089076
@@ -102311,6 +103269,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1540394656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1540394657}
+  - component: {fileID: 1540394659}
+  - component: {fileID: 1540394658}
+  m_Layer: 0
+  m_Name: Torn paste edge Basement notice left
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1540394657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540394656}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.02617695, w: 0.99965733}
+  m_LocalPosition: {x: 0.312846, y: 0.11007522, z: -0.5100002}
+  m_LocalScale: {x: 0.32898903, y: 0.18493666, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1359497587}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1540394658
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540394656}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1540394659
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540394656}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1541524035
 GameObject:
   m_ObjectHideFlags: 0
@@ -102655,9 +103703,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 14
-  secondDesign: 1
+  firstDesign: 0
+  secondDesign: 27
   sequenceOffset: 16
+  deeperDesigns: 050000000d0000001c000000000000001b000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9564832
@@ -105473,8 +106522,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 21
-  secondDesign: 24
+  secondDesign: 11
   sequenceOffset: 9
+  deeperDesigns: 0f0000001400000018000000150000000b000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.99032694
@@ -105856,10 +106906,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 2
-  secondDesign: 15
+  firstDesign: 15
+  secondDesign: 20
   sequenceOffset: 24
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 18000000150000000b0000000f00000014000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 0.9050023
   firstLayerOffset: 0
@@ -107171,9 +108222,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 29
-  secondDesign: 21
+  firstDesign: 17
+  secondDesign: 7
   sequenceOffset: 5
+  deeperDesigns: 120000000a000000030000001100000007000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 0.9689167
@@ -107245,7 +108297,8 @@ Transform:
   m_LocalPosition: {x: 7.5, y: 0.099999905, z: 24}
   m_LocalScale: {x: 0.4, y: 4.2, z: 20}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 472629865}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1589302502
@@ -109450,6 +110503,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1640675455}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1624556339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1624556340}
+  - component: {fileID: 1624556342}
+  - component: {fileID: 1624556341}
+  m_Layer: 0
+  m_Name: Torn paste edge Basement notice right
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1624556340
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624556339}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.08715575, w: 0.9961947}
+  m_LocalPosition: {x: -0.086752795, y: -0.1746164, z: -0.5100002}
+  m_LocalScale: {x: 0.32999447, y: 0.18430531, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1039226093}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1624556341
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624556339}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7c55df498986c644ca63c272c6200092, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1624556342
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624556339}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1624750510
 GameObject:
   m_ObjectHideFlags: 0
@@ -110541,9 +111684,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 27
-  secondDesign: 12
+  firstDesign: 5
+  secondDesign: 13
   sequenceOffset: 22
+  deeperDesigns: 1c000000000000001b000000050000000d000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0399586
@@ -110746,9 +111890,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 1
-  secondDesign: 5
+  firstDesign: 28
+  secondDesign: 0
   sequenceOffset: 13
+  deeperDesigns: 1b000000050000000d0000001c00000000000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.94044507
@@ -112301,9 +113446,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 20
-  secondDesign: 25
+  firstDesign: 17
+  secondDesign: 7
   sequenceOffset: 20
+  deeperDesigns: 120000000a000000030000001100000007000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -114465,7 +115611,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1712445570}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.034899496, w: 0.99939084}
   m_LocalPosition: {x: 2.55, y: -0.20000005, z: 33.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -114493,14 +115639,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 24
-  firstDesign: 28
-  secondDesign: 29
+  firstDesign: 22
+  secondDesign: 9
   sequenceOffset: 0
+  deeperDesigns: 1f0000001d00000001000000150000001600000009000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.73
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 177751243}
@@ -116268,9 +117415,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 18
-  secondDesign: 2
+  firstDesign: 10
+  secondDesign: 3
   sequenceOffset: 4
+  deeperDesigns: 1100000007000000120000000a00000003000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0985775
@@ -116543,9 +117691,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 26
-  secondDesign: 12
+  firstDesign: 18
+  secondDesign: 10
   sequenceOffset: 0
+  deeperDesigns: 030000001100000007000000120000000a000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1.0583152
@@ -116720,8 +117869,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1740204954}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.55, y: -0.20000005, z: 13.72}
+  m_LocalRotation: {x: 0, y: 0, z: 0.034899496, w: 0.99939084}
+  m_LocalPosition: {x: 2.55, y: -0.34, z: 13.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -116748,14 +117897,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 48
-  firstDesign: 23
-  secondDesign: 24
+  firstDesign: 7
+  secondDesign: 18
   sequenceOffset: 25
-  maximumPaperSize: 2.25
-  firstLayerScale: 1
+  deeperDesigns: 060000001e000000040000000e0000000700000012000000i
+  maximumPaperSize: 0.91
+  firstLayerScale: 0.73
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1434692954}
@@ -117349,9 +118499,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 4
-  firstDesign: 23
-  secondDesign: 16
+  firstDesign: 1
+  secondDesign: 9
   sequenceOffset: 6
+  deeperDesigns: 1d00000017000000160000000100000009000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -123217,8 +124368,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1846523543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.85, y: -0.2, z: 13.69}
+  m_LocalRotation: {x: 0, y: 0, z: 0.017452406, w: 0.9998477}
+  m_LocalPosition: {x: 3.85, y: -0.385, z: 13.69}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -123245,14 +124396,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 24
-  firstDesign: 8
-  secondDesign: 11
+  firstDesign: 13
+  secondDesign: 5
   sequenceOffset: 13
-  maximumPaperSize: 1.6200001
-  firstLayerScale: 1
+  deeperDesigns: 04000000060000001e000000070000000d00000005000000i
+  maximumPaperSize: 0.78
+  firstLayerScale: 0.8
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 1
   front:
   - {fileID: 1599463608}
@@ -124205,9 +125357,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
   firstDesign: 3
-  secondDesign: 5
+  secondDesign: 17
   sequenceOffset: 7
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 07000000120000000a0000000300000011000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 0.9818436
   firstLayerOffset: 0
@@ -127280,7 +128433,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1916585168}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0.024677671, y: 0.70667607, z: 0.024677671, w: 0.70667607}
   m_LocalPosition: {x: 7.28, y: -0.2, z: 24.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -127308,14 +128461,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 24
-  firstDesign: 25
-  secondDesign: 2
+  firstDesign: 23
+  secondDesign: 29
   sequenceOffset: 6
+  deeperDesigns: 16000000150000001f00000009000000170000001d000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.78
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1696405723}
@@ -127645,9 +128799,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 3
-  firstDesign: 29
-  secondDesign: 4
+  firstDesign: 9
+  secondDesign: 29
   sequenceOffset: 23
+  deeperDesigns: 170000001600000001000000090000001d000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -128910,7 +130065,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942932596}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.009255742, y: 0.7070462, z: -0.009255742, w: 0.7070462}
   m_LocalPosition: {x: 7.28, y: -0.2, z: 29.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -128938,14 +130093,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 32
-  firstDesign: 4
+  firstDesign: 31
   secondDesign: 11
   sequenceOffset: 15
+  deeperDesigns: 150000000100000009000000160000001f0000000b000000i
   maximumPaperSize: 2.25
-  firstLayerScale: 1
+  firstLayerScale: 0.8
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 0
   front:
   - {fileID: 1470099764}
@@ -130071,9 +131227,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 4
-  secondDesign: 11
+  firstDesign: 12
+  secondDesign: 19
   sequenceOffset: 3
+  deeperDesigns: 1a00000008000000100000000c00000013000000i
   maximumPaperSize: 1.56
   firstLayerScale: 1
   deeperLayerScale: 1.0368667
@@ -131916,9 +133073,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 2
-  secondDesign: 9
+  firstDesign: 20
+  secondDesign: 24
   sequenceOffset: 2
+  deeperDesigns: 150000000b0000000f0000001400000018000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 0.91278845
@@ -134178,10 +135336,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 22
-  secondDesign: 19
+  firstDesign: 13
+  secondDesign: 28
   sequenceOffset: 3
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 000000001b000000050000000d0000001c000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.0862113
   firstLayerOffset: 0
@@ -134673,6 +135832,7 @@ MonoBehaviour:
   firstDesign: 11
   secondDesign: 21
   sequenceOffset: 27
+  deeperDesigns: 
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1
@@ -137646,7 +138806,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 7.5, z: -7.7}
   m_LocalScale: {x: 14, y: 15, z: 2}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 23558424}
   m_Father: {fileID: 2033609337}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &2052461083
@@ -140872,9 +142033,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 1
-  secondDesign: 16
+  firstDesign: 19
+  secondDesign: 26
   sequenceOffset: 17
+  deeperDesigns: 08000000100000000c000000130000001a000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 0.9301113
@@ -141652,9 +142814,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 22
-  secondDesign: 18
+  firstDesign: 11
+  secondDesign: 15
   sequenceOffset: 17
+  deeperDesigns: 1400000018000000150000000b0000000f000000i
   maximumPaperSize: 2.18
   firstLayerScale: 1
   deeperLayerScale: 1.0144837
@@ -142629,9 +143792,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 22
-  secondDesign: 14
+  firstDesign: 18
+  secondDesign: 10
   sequenceOffset: 5
+  deeperDesigns: 030000001100000007000000120000000a000000i
   maximumPaperSize: 2.25
   firstLayerScale: 1
   deeperLayerScale: 1.0519013
@@ -142829,8 +143993,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2126766096}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.85, y: -0.2, z: 13.69}
+  m_LocalRotation: {x: 0, y: 0, z: -0.013089596, w: 0.99991435}
+  m_LocalPosition: {x: -3.85, y: -0.43, z: 13.69}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -142857,14 +144021,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 16
-  firstDesign: 2
-  secondDesign: 5
+  firstDesign: 6
+  secondDesign: 25
   sequenceOffset: 7
-  maximumPaperSize: 1.6200001
-  firstLayerScale: 1
+  deeperDesigns: 0e0000001e0000000d000000050000000600000019000000i
+  maximumPaperSize: 0.75
+  firstLayerScale: 0.78
   deeperLayerScale: 1
   firstLayerOffset: 0
-  scatteredLayers: 0
+  scatteredLayers: 1
   precisionWork: 1
   front:
   - {fileID: 1959497744}
@@ -142907,10 +144072,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 3
-  secondDesign: 28
+  firstDesign: 16
+  secondDesign: 12
   sequenceOffset: 15
-  maximumPaperSize: 2.2150002
+  deeperDesigns: 130000001a00000008000000100000000c000000i
+  maximumPaperSize: 2.215
   firstLayerScale: 1
   deeperLayerScale: 1.032335
   firstLayerOffset: 0
@@ -143356,9 +144522,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 10
-  secondDesign: 28
+  firstDesign: 3
+  secondDesign: 17
   sequenceOffset: 14
+  deeperDesigns: 07000000120000000a0000000300000011000000i
   maximumPaperSize: 1.38
   firstLayerScale: 1
   deeperLayerScale: 1.025986

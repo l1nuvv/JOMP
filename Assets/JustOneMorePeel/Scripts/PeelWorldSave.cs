@@ -76,6 +76,15 @@ namespace JustOneMorePeel
             }
         }
 
+        internal static void CheckpointBackup(string path)
+        {
+            string backup=path+".bak";
+            string temporary=path+".tmp";
+            File.Copy(path,temporary,true);
+            if(File.Exists(backup))File.Replace(temporary,backup,null);
+            else File.Move(temporary,backup);
+        }
+
         public static void Reset(string path)
         {
             string backup=path+".bak";

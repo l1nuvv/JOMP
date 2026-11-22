@@ -69,6 +69,7 @@ namespace JustOneMorePeel
                 else check("Save contains payout and layer", false);
                 saveMethod.Invoke(game, null);
                 check("Separate backup remains readable", File.Exists(path + ".bak") && PeelWorldSave.Read(path + ".bak").scene == PeelWorldSave.RouteScene);
+                CheckPurchaseRecovery(game, path, check);
                 CheckSaveReliability(game, route, stack, path, saveMethod, check);
             }
             catch (Exception e) { results.Add("FAIL Exception: " + e); }
@@ -82,6 +83,40 @@ namespace JustOneMorePeel
             results.Add("Isolated files: " + dir);
             File.WriteAllLines("Logs/Peel-progression-checks.txt", results);
             return string.Join("\n", results) + "\nTOTAL: " + results.Count(s => s.StartsWith("PASS ")) + " PASS, " + results.Count(s => s.StartsWith("FAIL ")) + " FAIL";
+        }
+
+        static void CheckPurchaseRecovery(PeelGame game, string path, Action<string, bool> check)
+        {
+            const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+            var screen = typeof(PeelGame).GetMethod("SetScreen", Private);
+            var load = typeof(PeelGame).GetMethod("LoadWorld", Private);
+            game.money = 2000;
+            screen.Invoke(game, new object[] { PeelScreen.Shop });
+            bool boughtScraper = game.TryUpgrade();
+            string primary = File.ReadAllText(path);
+            string backup = File.ReadAllText(path + ".bak");
+
+            Directory.CreateDirectory(path + ".tmp");
+            try
+            {
+                check("Failed purchase keeps balance, active tool and both copies",
+                    !game.TryBuySteam() && game.money == 1975 && game.activeTool == 0 &&
+                    !game.steamUnlocked && File.ReadAllText(path) == primary && File.ReadAllText(path + ".bak") == backup);
+            }
+            finally { Directory.Delete(path + ".tmp"); }
+
+            bool boughtSteam = game.TryBuySteam();
+            bool boughtExpansion = game.TryExpandSteam();
+            var saved = PeelWorldSave.Read(path + ".bak");
+            check("Both copies immediately contain confirmed purchases",
+                boughtScraper && boughtSteam && boughtExpansion && File.ReadAllText(path) == File.ReadAllText(path + ".bak") &&
+                saved.money == 695 && saved.toolLevel == 1 && saved.activeTool == 1 && saved.steamUnlocked && saved.steamExpanded);
+
+            File.WriteAllText(path, "{broken after purchase");
+            check("Backup recovery preserves the last confirmed purchase",
+                (bool)load.Invoke(game, null) && game.money == saved.money && game.toolLevel == saved.toolLevel &&
+                game.activeTool == 1 && game.steamUnlocked && game.steamExpanded && File.ReadAllText(path) == File.ReadAllText(path + ".bak"));
+            game.Back();
         }
 
         static void CheckSaveReliability(PeelGame game, PeelRoutePrototype route, PeelPosterStack stack,

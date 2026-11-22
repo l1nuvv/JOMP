@@ -10,13 +10,15 @@ namespace JustOneMorePeel
         LineRenderer line;
         readonly List<LineRenderer> lines=new List<LineRenderer>();
         readonly List<PeelPosterStack> targets=new List<PeelPosterStack>();
-        Material material;
+        Material material, precisionMaterial;
         readonly Vector3[] corners=new Vector3[4];
         void Awake()
         {
             line=gameObject.AddComponent<LineRenderer>();
             material=new Material(Shader.Find("Universal Render Pipeline/Unlit"));
             material.SetColor("_BaseColor",new Color(.96f,.79f,.43f));line.sharedMaterial=material;
+            precisionMaterial=new Material(material);
+            precisionMaterial.SetColor("_BaseColor",new Color(.58f,.88f,.74f));
             line.useWorldSpace=true;line.loop=true;line.positionCount=4;line.widthMultiplier=.009f;
             line.numCornerVertices=3;line.numCapVertices=2;
             line.shadowCastingMode=ShadowCastingMode.Off;line.receiveShadows=false;line.enabled=false;
@@ -24,9 +26,9 @@ namespace JustOneMorePeel
         }
         public void SetTarget(PeelPosterStack stack)
         { targets.Clear();if(stack)targets.Add(stack);RefreshLines(); }
-        public void SetTargets(List<PeelPosterStack> stacks)
-        { targets.Clear();targets.AddRange(stacks);RefreshLines(); }
-        void RefreshLines()
+        public void SetTargets(List<PeelPosterStack> stacks, bool showPrecision=false)
+        { targets.Clear();targets.AddRange(stacks);RefreshLines(showPrecision); }
+        void RefreshLines(bool showPrecision=false)
         {
             Selected=targets.Count>0?targets[0]:null;
             while(lines.Count<targets.Count)
@@ -36,7 +38,14 @@ namespace JustOneMorePeel
                 extra.positionCount=4;extra.widthMultiplier=line.widthMultiplier;extra.numCornerVertices=3;extra.numCapVertices=2;
                 extra.shadowCastingMode=ShadowCastingMode.Off;extra.receiveShadows=false;lines.Add(extra);
             }
-            for(int i=0;i<lines.Count;i++)lines[i].enabled=i<targets.Count && targets[i] && targets[i].RemainingPosters>0;
+            for(int i=0;i<lines.Count;i++)
+            {
+                var current=lines[i];
+                current.enabled=i<targets.Count && targets[i] && targets[i].RemainingPosters>0;
+                if(!current.enabled)continue;
+                var outlineMaterial=showPrecision && targets[i].PrecisionWork ? precisionMaterial : material;
+                if(current.sharedMaterial!=outlineMaterial)current.sharedMaterial=outlineMaterial;
+            }
             UpdateCorners();
         }
         void LateUpdate() { UpdateCorners(); }
@@ -55,6 +64,10 @@ namespace JustOneMorePeel
             corners[3]=selected.transform.TransformPoint(new Vector3(x+w,-h,z));current.SetPositions(corners);
             }
         }
-        void OnDestroy() {if(material)Destroy(material);}
+        void OnDestroy()
+        {
+            if(material)Destroy(material);
+            if(precisionMaterial)Destroy(precisionMaterial);
+        }
     }
 }

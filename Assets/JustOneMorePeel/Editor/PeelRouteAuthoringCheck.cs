@@ -27,6 +27,10 @@ namespace JustOneMorePeel
                 return new[] { "Expected one peel route in " + scene.name };
 
             var issues = new List<string>();
+            foreach (var diagnostic in Components<PosterPerformanceProbe>(scene).Cast<Component>()
+                .Concat(Components<WallFrameProbe>(scene)).Concat(Components<MillionPosterField>(scene)))
+                issues.Add(diagnostic.name + ": " + diagnostic.GetType().Name + " belongs in a test scene, not the route.");
+
             var route = new SerializedObject(routes[0]);
             var game = route.FindProperty("game").objectReferenceValue as PeelGame;
             var settings = game ? game.GetComponent<PeelSettings>() : null;
