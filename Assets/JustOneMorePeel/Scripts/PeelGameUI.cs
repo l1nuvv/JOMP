@@ -60,7 +60,7 @@ namespace JustOneMorePeel
         float payoutUntil;
         PeelText notice=PeelText.Welcome;
         bool purchaseSaveFailed;
-        GUIStyle title, text, small, center, button, shopBalance, hudLabel, hudPrimary, hudHint;
+        GUIStyle title, text, small, center, button, primaryButton, shopBalance, hudLabel, hudPrimary, hudHint;
         static readonly Color Ink=new Color(.070f,.094f,.088f,.97f);
         static readonly Color Paper=new Color(.95f,.91f,.80f);
         static readonly Color Amber=new Color(.96f,.75f,.42f);
@@ -189,20 +189,30 @@ namespace JustOneMorePeel
             hudPrimary=new GUIStyle(hudLabel){fontSize=18,fontStyle=FontStyle.Bold};
             hudPrimary.normal.textColor=Paper;
             hudHint=new GUIStyle(hudPrimary){alignment=TextAnchor.UpperCenter,fontStyle=FontStyle.Normal};
+            primaryButton=new GUIStyle(button){fontSize=hudPrimary.fontSize,fontStyle=hudPrimary.fontStyle};
+            primaryButton.normal.textColor=primaryButton.hover.textColor=primaryButton.active.textColor=primaryButton.focused.textColor=Ink;
         }
         static void Fill(Rect rect,Color color,float radius=0f) =>
             GUI.DrawTexture(rect,Texture2D.whiteTexture,ScaleMode.StretchToFill,true,0f,color,0f,radius);
         void Panel(Rect rect)
         { Fill(rect,Ink,9f); }
-        bool MenuButton(Rect rect,string label,int index)
+        bool MenuButton(Rect rect,string label,int index,bool primary=false)
         {
             GUI.SetNextControlName("peel-menu-"+index);
             bool selected=menuSelection==index;
             bool hovered=GUI.enabled && rect.Contains(Event.current.mousePosition);
-            if(selected || hovered)Fill(rect,selected ? Amber : Paper,7f);
-            Fill(new Rect(rect.x+1f,rect.y+1f,rect.width-2f,rect.height-2f),
-                selected || hovered ? new Color(.21f,.28f,.23f) : new Color(.13f,.17f,.15f),6f);
-            bool clicked=GUI.Button(rect,label,button);
+            if(primary)
+            {
+                if(selected)Fill(new Rect(rect.x-4f,rect.y-4f,rect.width+8f,rect.height+8f),Paper,9f);
+                Fill(rect,hovered ? Paper : Amber,6f);
+            }
+            else
+            {
+                if(selected || hovered)Fill(rect,selected ? Amber : Paper,7f);
+                Fill(new Rect(rect.x+1f,rect.y+1f,rect.width-2f,rect.height-2f),
+                    selected || hovered ? new Color(.21f,.28f,.23f) : new Color(.13f,.17f,.15f),6f);
+            }
+            bool clicked=GUI.Button(rect,label,primary ? primaryButton : button);
             if(clicked)menuSelection=index;
             return clicked;
         }
@@ -251,23 +261,18 @@ namespace JustOneMorePeel
             if(CurrentScreen==PeelScreen.ReadingArchiveNote){DrawArchiveNote(w,h);FocusMenu();return;}
             if(CurrentScreen==PeelScreen.Intro)
             {
-                float extra=CanCopyArchive?52f:0f;
-                float introBottom=h-extra;
-                Panel(new Rect(38,introBottom-326,625,288+extra));
-                GUI.Label(new Rect(60,introBottom-310,580,45),"Just One More Peel",title);
                 bool ru=Settings.Language==PeelLanguage.Russian;
-                string intro=archiveIssueSlice
+                string details=archiveIssueSlice
                     ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист.\n1 — карта, 2 — шпатель, 3 — пар."
                           : "Building records. File 17 is about the knocking.\nPeel the top sheet on the left board to find its shelf.\nWASD to move, LMB to peel.\n1 — Card, 2 — Scraper, 3 — Steam.")
                     : routePrototype ? (ru
                     ? "Подойди к заклеенной двери (WASD).\nНаведи взгляд на лист и удерживай ЛКМ, чтобы снять его.\nПосмотри на тележку вблизи и нажми E для покупки."
                     : "Walk up to the paper-covered door (WASD).\nAim at a notice and hold LMB to peel it.\nTo buy a tool, look at the cart up close and press E.") : T(PeelText.Intro);
-                GUI.Label(new Rect(60,introBottom-252,580,100),intro,text);
                 string startLabel=T(PeelText.Start);
+                string state=ru ? "Новая смена" : "New shift";
                 if(hasSavedShift)
                 {
                     var saveEntry=save.InspectIfPathChanged();
-                    string status="";
                     switch(saveEntry)
                     {
                         case SaveEntry.Continue:
@@ -281,50 +286,28 @@ namespace JustOneMorePeel
                                     int chapter=routePrototype.AreaAt(saved.position.z);
                                     location=chapter==0 ? (ru ? "Двор" : "Courtyard") : T(chapter==1 ? PeelText.EnterBasement : PeelText.EnterArchive);
                                 }
-                                string progress=save.InspectedShiftFinished ? (ru ? "Смена завершена · " : "Shift complete · ") : "";
-                                status=$"{progress}{location} · ${saved.money}";
+                                state=save.InspectedShiftFinished ? (ru ? "Смена завершена" : "Shift complete")
+                                    : (ru ? "Смена сохранена" : "Saved shift");
+                                details=$"{location} · ${saved.money}";
                             }
                             break;
                         case SaveEntry.Backup:
-                            startLabel=ru?"Из резерва":"Load backup";
-                            status=ru?"Основной файл недоступен. Можно продолжить с резервной копии."
+                            startLabel=ru?"Загрузить резерв":"Load backup";
+                            state=ru ? "Доступна резервная копия" : "Backup available";
+                            details=ru?"Основной файл недоступен. Можно продолжить с резервной копии."
                                 :"Main save unavailable. You can continue from the backup.";
                             break;
                         case SaveEntry.Unreadable:
                         case SaveEntry.Incompatible:
-                            startLabel=ru?"Сбросить сейв…":"Reset save…";
-                            status=saveEntry==SaveEntry.Incompatible
+                            startLabel=ru?"Сбросить сохранение…":"Reset save…";
+                            state=saveEntry==SaveEntry.Incompatible
                                 ? (ru?"Версия сохранения не поддерживается.":"This save version is unsupported.")
                                 : (ru?"Сохранение не читается.":"The save could not be read.");
-                            status+=ru?" Для новой смены можно сбросить сейв.":" Reset the save to start a new shift.";
+                            details=ru ? "Для новой смены потребуется подтвердить сброс." : "Confirm a reset to start a new shift.";
                             break;
                     }
-                    GUI.Label(new Rect(60,introBottom-140,580,30),status,small);
                 }
-                if(HasAlternateStart)
-                {
-                    if(MenuButton(new Rect(60,introBottom-102,180,42),startLabel,0))session.BeginShift();
-                    if(MenuButton(new Rect(250,introBottom-102,180,42),T(PeelText.Settings),1))session.OpenSettings();
-                    string alternate=routePrototype ? (ru?"Осмотр маршрута":"Review route") : T(paperSave.InspectIfPathChanged() switch
-                    {
-                        SaveEntry.Continue => PeelText.PaperCollectionContinue,
-                        SaveEntry.Backup => PeelText.PaperCollectionBackup,
-                        SaveEntry.Unreadable or SaveEntry.Incompatible => PeelText.PaperCollectionReset,
-                        _ => PeelText.PaperCollection
-                    });
-                    if(MenuButton(new Rect(440,introBottom-102,195,42),alternate,2))
-                    {
-                        if(routePrototype){routePrototype.OpenForReview();session.BeginShift();}
-                        else session.BeginPaperCollection();
-                    }
-                    if(extra>0 && MenuButton(new Rect(60,h-102,575,42),T(PeelText.PaperCollectionCopy),3))
-                        session.CopyArchiveToPaperCollection();
-                }
-                else
-                {
-                    if(MenuButton(new Rect(60,h-102,280,42),startLabel,0))session.BeginShift();
-                    if(MenuButton(new Rect(355,h-102,280,42),T(PeelText.Settings),1))session.OpenSettings();
-                }
+                DrawIntro(h,ru,startLabel,state,details);
                 FocusMenu();return;
             }
             if(CurrentScreen==PeelScreen.Playing)
@@ -435,6 +418,46 @@ namespace JustOneMorePeel
                 if(MenuButton(new Rect(x+25,y+222,450,44),confirm,1))session.RestartShift();
                 FocusMenu();
             }
+        }
+
+        void DrawIntro(float h,bool ru,string action,string state,string details)
+        {
+            bool alternate=HasAlternateStart, canCopy=CanCopyArchive;
+            const float x=60f, width=575f, gap=10f, row=42f;
+            float footerY=h-69f;
+            float secondaryY=footerY-gap-row-(canCopy ? row+gap : 0f);
+            float actionY=secondaryY-gap-48f;
+            float detailHeight=hudLabel.CalcHeight(new GUIContent(details),width);
+            float detailY=actionY-16f-detailHeight;
+            float stateY=detailY-25f;
+            float titleY=stateY-54f;
+            Panel(new Rect(x-22f,titleY-16f,width+44f,h-titleY-22f));
+            GUI.Label(new Rect(x,titleY,width,44f),"Just One More Peel",title);
+            GUI.Label(new Rect(x,stateY,width,22f),state,hudPrimary);
+            GUI.Label(new Rect(x,detailY,width,detailHeight),details,hudLabel);
+            if(MenuButton(new Rect(x,actionY,width,48f),action,0,primary:true))session.BeginShift();
+
+            float secondaryWidth=alternate ? (width-gap)*.5f : width;
+            if(MenuButton(new Rect(x,secondaryY,secondaryWidth,row),T(PeelText.Settings),1))session.OpenSettings();
+            if(alternate)
+            {
+                string label=routePrototype ? (ru?"Осмотр маршрута":"Review route") : T(paperSave.InspectIfPathChanged() switch
+                {
+                    SaveEntry.Continue => PeelText.PaperCollectionContinue,
+                    SaveEntry.Backup => PeelText.PaperCollectionBackup,
+                    SaveEntry.Unreadable or SaveEntry.Incompatible => PeelText.PaperCollectionReset,
+                    _ => PeelText.PaperCollection
+                });
+                if(MenuButton(new Rect(x+secondaryWidth+gap,secondaryY,secondaryWidth,row),label,2))
+                {
+                    if(routePrototype){routePrototype.OpenForReview();session.BeginShift();}
+                    else session.BeginPaperCollection();
+                }
+            }
+            if(canCopy && MenuButton(new Rect(x,secondaryY+row+gap,width,row),T(PeelText.PaperCollectionCopy),3))
+                session.CopyArchiveToPaperCollection();
+            GUI.Label(new Rect(x,footerY,width,22f),
+                ru ? "Tab / ↑↓ — выбор · Enter — открыть" : "Tab / ↑↓ — select · Enter — open",hudLabel);
         }
 
         void DrawPlayingHud(float w,float h)
