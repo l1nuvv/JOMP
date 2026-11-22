@@ -60,10 +60,11 @@ namespace JustOneMorePeel
         float payoutUntil;
         PeelText notice=PeelText.Welcome;
         bool purchaseSaveFailed;
-        GUIStyle title, text, small, center, button, shopBalance, hudLabel, hudValue, hudObjective;
+        GUIStyle title, text, small, center, button, shopBalance, hudLabel, hudPrimary, hudHint;
         static readonly Color Ink=new Color(.070f,.094f,.088f,.97f);
         static readonly Color Paper=new Color(.95f,.91f,.80f);
         static readonly Color Amber=new Color(.96f,.75f,.42f);
+        const float HudInset=22f, HudPadding=14f;
         float noticeUntil;
 
         PeelSettings Settings => session.Settings;
@@ -184,11 +185,10 @@ namespace JustOneMorePeel
             shopBalance.normal.textColor=new Color(.97f,.87f,.63f);
             button=new GUIStyle(GUI.skin.label){fontSize=18,wordWrap=true,alignment=TextAnchor.MiddleCenter};
             button.normal.textColor=button.hover.textColor=button.active.textColor=button.focused.textColor=Paper;
-            hudLabel=new GUIStyle(small){fontSize=14,wordWrap=false};
-            hudValue=new GUIStyle(hudLabel){fontSize=22,fontStyle=FontStyle.Bold};
-            hudValue.normal.textColor=Paper;
-            hudObjective=new GUIStyle(small){fontSize=17,fontStyle=FontStyle.Bold};
-            hudObjective.normal.textColor=Paper;
+            hudLabel=new GUIStyle(small){padding=new RectOffset()};
+            hudPrimary=new GUIStyle(hudLabel){fontSize=18,fontStyle=FontStyle.Bold};
+            hudPrimary.normal.textColor=Paper;
+            hudHint=new GUIStyle(hudPrimary){alignment=TextAnchor.UpperCenter,fontStyle=FontStyle.Normal};
         }
         static void Fill(Rect rect,Color color,float radius=0f) =>
             GUI.DrawTexture(rect,Texture2D.whiteTexture,ScaleMode.StretchToFill,true,0f,color,0f,radius);
@@ -327,31 +327,15 @@ namespace JustOneMorePeel
                 }
                 FocusMenu();return;
             }
-            bool playing = CurrentScreen == PeelScreen.Playing;
-            bool hasObjective = playing && (areaExperiment || hasSavedShift);
-            float noticeY = hasObjective ? 106f : 22f;
-            bool saveWarning = save.Failed;
-            if (playing && (saveWarning || save.CheckpointBackupPending || Time.unscaledTime < save.RecoveryNoticeUntil))
+            if(CurrentScreen==PeelScreen.Playing)
             {
-                bool russian = Settings.Language == PeelLanguage.Russian;
-                string message = saveWarning && notice==PeelText.PaperDropOffSaveFailed && Time.time<noticeUntil
-                    ? T(PeelText.PaperDropOffSaveFailed)
-                    : saveWarning
-                    ? (russian ? "Прогресс не записан. Проверь доступ к папке сохранений."
-                        : "Progress was not saved. Check access to the save folder.")
-                    : save.CheckpointBackupPending
-                    ? (russian ? "Прогресс записан. Резервная копия ещё не обновлена."
-                        : "Progress saved. The backup has not been updated yet.")
-                    : (russian ? "Загружена резервная копия. Последние изменения могли потеряться."
-                        : "Backup loaded. Recent progress may have been lost.");
-                Panel(new Rect(w/2-360,noticeY,720,50));
-                GUI.Label(new Rect(w/2-350,noticeY,700,50),message,center);
-                noticeY += 55f;
+                if(guiEvent.type==EventType.Repaint)DrawPlayingHud(w,h);
+                return;
             }
-            if(playing)DrawPlayingHud(w,h);
             if(CurrentScreen==PeelScreen.Shop)
             {
                 string tool=activeTool==1 ? T(PeelText.Steamer) : toolLevel>0 ? T(PeelText.Scraper) : T(PeelText.Card);
+                bool saveWarning=save.Failed;
                 bool showPurchase=Time.time<noticeUntil && IsPurchaseNotice(notice);
                 bool showSaveStatus=saveWarning || save.CheckpointBackupPending;
                 float purchaseY=paperCollection?389:493;
@@ -451,32 +435,6 @@ namespace JustOneMorePeel
                 if(MenuButton(new Rect(x+25,y+222,450,44),confirm,1))session.RestartShift();
                 FocusMenu();
             }
-            if(!playing)return;
-            if(routePrototype && routePrototype.Completed)
-            {
-                if(Time.unscaledTime<completionNoticeUntil)
-                {
-                    Panel(new Rect(w/2-260,h-145,520,86));
-                    GUI.Label(new Rect(w/2-245,h-140,490,76),routePrototype.FinishText(FormatPlayTime()),center);
-                }
-                return;
-            }
-            if(!archiveIssueSlice && ClearedPosters==TotalPosters)
-            {
-                GUI.Label(new Rect(w/2-360,noticeY,720,50),T(PeelText.Finished),center);
-                noticeY += 55f;
-            }
-            else if(Time.time<noticeUntil && notice!=PeelText.PaperDropOffSaveFailed && !FirstScraperSignalActive
-                && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
-            {
-                bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
-                bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;
-                int cost=upgradeNotice?UpgradeCost:notice==PeelText.SteamAvailable?session.SteamPrice:SteamExpansionCost;
-                string message=upgradeNotice || steamNotice ? string.Format(T(notice),cost) : T(notice);
-                float width=Mathf.Min(720f,center.CalcSize(new GUIContent(message)).x+36f);
-                DrawHint(new Rect((w-width)*.5f,noticeY,width,42),message);
-                noticeY += 55f;
-            }
         }
 
         void DrawPlayingHud(float w,float h)
@@ -503,6 +461,7 @@ namespace JustOneMorePeel
                 objective=basementLight.SwitchIsOn
                     ? (ru ? "Лампа зажигается…" : "Lamp warming up…")
                     : (ru ? "Найди выключатель слева от входа" : "Find the switch left of the entrance");
+            float warningY=HudInset;
             if(objective.Length>0)
             {
                 string label=paperCollection ? T(PeelText.PaperCollection)
@@ -510,109 +469,131 @@ namespace JustOneMorePeel
                     : complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
                     : (door ? (ru ? "На двери" : "On the door") : T(PeelText.RemainingPosters))+"  "+remaining;
-                float width=Mathf.Clamp(hudObjective.CalcSize(new GUIContent(objective)).x+38f,268f,490f);
-                float height=Mathf.Max(20f,hudObjective.CalcHeight(new GUIContent(objective),width-56f));
-                Panel(new Rect(22,22,width,height+47f));
-                Fill(new Rect(34,34,3,height+21f),Amber,1.5f);
-                GUI.Label(new Rect(45,29,width-52,21),label,hudLabel);
-                GUI.Label(new Rect(45,51,width-56,height+4f),objective,hudObjective);
+                float width=Mathf.Clamp(hudPrimary.CalcSize(new GUIContent(objective)).x+2*HudPadding,228f,464f);
+                float innerWidth=width-2*HudPadding;
+                float height=hudPrimary.CalcHeight(new GUIContent(objective),innerWidth);
+                float labelHeight=hudLabel.CalcHeight(new GUIContent(label),innerWidth);
+                Rect panel=new Rect(HudInset,HudInset,width,2*HudPadding+height+labelHeight+4f);
+                Panel(panel);
+                float x=panel.x+HudPadding, y=panel.y+HudPadding;
+                GUI.Label(new Rect(x,y,innerWidth,height),objective,hudPrimary);
+                GUI.Label(new Rect(x,y+height+4f,innerWidth,labelHeight),label,hudLabel);
+                warningY=panel.yMax+8f;
             }
 
-            if(!complete)
-            {
-                Panel(new Rect(w-140,22,118,50));
-                GUI.Label(new Rect(w-128,28,94,35),"$"+money,hudValue);
-                if(paperCollection)
-                {
-                    string bundle=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
-                        session.CollectedItems,session.PaperCapacity);
-                    float width=center.CalcSize(new GUIContent(bundle)).x+24f;
-                    DrawHint(new Rect(w-22f-width,80f,width,29f),bundle);
-                    if(Time.unscaledTime<payoutUntil)
-                    {
-                        string receipt=string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptItems,payoutAmount);
-                        float receiptWidth=center.CalcSize(new GUIContent(receipt)).x+24f;
-                        DrawHint(new Rect(w-22f-receiptWidth,117f,receiptWidth,29f),receipt);
-                    }
-                }
-                else if(Time.unscaledTime<payoutUntil)
-                    DrawHint(new Rect(w-140,80,118,29),"+$"+payoutAmount);
-                if(ShowsFirstScraperOffer)
-                {
-                    string offer=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
-                        : T(PeelText.Scraper)+"  $"+money+" / $"+UpgradeCost;
-                    bool highlight=FirstScraperSignalActive;
-                    float width=center.CalcSize(new GUIContent(offer)).x+(highlight ? 38f : 24f);
-                    var offerRect=new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29);
-                    DrawHint(offerRect,offer);
-                    if(highlight)Fill(new Rect(offerRect.x+7f,offerRect.y+7f,3f,15f),Amber,1.5f);
-                }
-
-                bool hasSecondary=steamUnlocked;
-                bool archiveTools=archiveIssueSlice && hasSecondary;
-                bool secondarySelected=archiveIssueSlice ? toolLevel>0 && activeTool==0 : activeTool==1;
-                string primary=T(toolLevel>0 && !archiveIssueSlice ? PeelText.Scraper : PeelText.Card);
-                string secondary=T(archiveIssueSlice ? PeelText.Scraper : PeelText.Steamer);
-                float primaryWidth=hudObjective.CalcSize(new GUIContent(primary)).x+(hasSecondary ? 65f : 34f);
-                float secondaryWidth=hasSecondary ? hudObjective.CalcSize(new GUIContent(secondary)).x+65f : 0f;
-                string steam=T(PeelText.Steamer);
-                float steamWidth=archiveTools ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
-                float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f)
-                    -(archiveTools ? steamWidth+6f : 0f);
-                DrawToolSlot(new Rect(toolX,h-72,primaryWidth,50),primary,
-                    hasSecondary ? "1" : "",archiveIssueSlice ? toolLevel==0 : !secondarySelected);
-                if(hasSecondary)DrawToolSlot(new Rect(toolX+primaryWidth+6f,h-72,secondaryWidth,50),secondary,"2",secondarySelected);
-                if(archiveTools)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
-            }
+            DrawSaveWarning(warningY,ru);
+            DrawToolStatus(w,ru,bundleFull);
             DrawReticle(w,h);
             if(IsPeeling)return;
 
-            string hint=bundleFull ? "" : AwaitingRelease ? (complete ? "" : T(PeelText.ReleaseGrip)) : TargetHint();
-            if(!AwaitingRelease && target && routePrototype && door && routePrototype.IsOptionalCourtyardNotice(target.Stack))
-                hint=(ru ? "Дополнительно" : "Optional")+" · "+hint;
-            if(session.CanUseWorkbench())
-                hint=paperCollection
-                    ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
-                    : WorkbenchHint();
-            if(routePrototype && routePrototype.CanOpenDoor())hint=ru ? "E   Открыть дверь" : "E   Open door";
-            if(basementLight && basementLight.CanInteract())
-                hint=basementLight.SwitchIsOn ? (ru ? "E   Выключить свет" : "E   Switch off light")
-                    : (ru ? "E   Включить свет" : "E   Switch on light");
-            if(routePrototype && routePrototype.CanReadArchiveNote())hint=T(PeelText.ReadArchiveNote);
+            string hint=PlayingHint(ru,complete,door,bundleFull);
             if(hint.Length==0)return;
 
-            float hintWidth=Mathf.Min(680f,center.CalcSize(new GUIContent(hint)).x+32f);
-            float hintHeight=Mathf.Max(36f,center.CalcHeight(new GUIContent(hint),hintWidth-24f)+12f);
-            DrawHint(new Rect((w-hintWidth)*.5f,h-83f-hintHeight,hintWidth,hintHeight),hint);
+            var content=new GUIContent(hint);
+            float widthWithPadding=Mathf.Min(620f,hudHint.CalcSize(content).x+2*HudPadding);
+            float hintHeight=hudHint.CalcHeight(content,widthWithPadding-2*HudPadding);
+            float hintX=(w-widthWithPadding)*.5f, hintY=h-HudInset-hintHeight-20f;
+            Panel(new Rect(hintX,hintY,widthWithPadding,hintHeight+20f));
+            GUI.Label(new Rect(hintX+HudPadding,hintY+10f,widthWithPadding-2*HudPadding,hintHeight),content,hudHint);
         }
 
-        void DrawHint(Rect rect,string label)
+        void DrawSaveWarning(float y,bool ru)
         {
-            Panel(rect);
-            GUI.Label(new Rect(rect.x+8f,rect.y,rect.width-16f,rect.height),label,center);
+            string message;
+            if(save.Failed)
+                message=notice==PeelText.PaperDropOffSaveFailed && Time.time<noticeUntil
+                    ? T(PeelText.PaperDropOffSaveFailed)
+                    : ru ? "Прогресс не записан. Проверь доступ к папке сохранений."
+                        : "Progress was not saved. Check access to the save folder.";
+            else if(save.CheckpointBackupPending)
+                message=ru ? "Резервная копия ещё не обновлена." : "Backup update pending.";
+            else if(Time.unscaledTime<save.RecoveryNoticeUntil)
+                message=ru ? "Загружен резерв. Последние изменения могли потеряться."
+                    : "Backup loaded. Recent progress may have been lost.";
+            else return;
+
+            var content=new GUIContent(message);
+            float width=Mathf.Min(464f,hudLabel.CalcSize(content).x+2*HudPadding);
+            float height=hudLabel.CalcHeight(content,width-2*HudPadding);
+            Panel(new Rect(HudInset,y,width,height+20f));
+            GUI.Label(new Rect(HudInset+HudPadding,y+10f,width-2*HudPadding,height),content,hudLabel);
         }
 
-        void DrawToolSlot(Rect rect,string label,string key,bool active)
+        string SelectedToolLabel()
         {
-            Panel(rect);
-            if(active)Fill(new Rect(rect.x+9,rect.yMax-6,rect.width-18,2),Amber,1f);
-            float labelX=rect.x+12f;
-            if(key.Length>0)
+            bool steam=activeTool==1 && steamUnlocked;
+            string tool=T(steam ? PeelText.Steamer : toolLevel>0 ? PeelText.Scraper : PeelText.Card);
+            if(!steamUnlocked)return tool;
+            int key=steam ? (archiveIssueSlice ? 3 : 2) : archiveIssueSlice && toolLevel>0 ? 2 : 1;
+            return key+"  ·  "+tool;
+        }
+
+        void DrawToolStatus(float w,bool ru,bool bundleFull)
+        {
+            string label=SelectedToolLabel();
+            string balance="$"+money;
+            bool payout=Time.unscaledTime<payoutUntil;
+            if(payout && !paperCollection)balance+="   +$"+payoutAmount;
+
+            string detail="";
+            if(paperCollection)
             {
-                Fill(new Rect(labelX,rect.y+13,23,22),new Color(.20f,.25f,.21f),4f);
-                GUI.Label(new Rect(labelX+6,rect.y+13,17,21),key,hudLabel);
-                labelX+=32f;
+                detail=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
+                    session.CollectedItems,session.PaperCapacity);
+                if(payout)detail+="\n"+string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptItems,payoutAmount);
             }
-            GUI.Label(new Rect(labelX,rect.y+13,rect.xMax-labelX-6f,25),label,hudObjective);
+            else if(ShowsFirstScraperOffer)
+                detail=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
+                    : T(PeelText.Scraper)+"  $"+UpgradeCost;
+
+            float statusWidth=Mathf.Max(hudLabel.CalcSize(new GUIContent(balance)).x,hudLabel.CalcSize(new GUIContent(detail)).x);
+            float contentWidth=Mathf.Max(hudPrimary.CalcSize(new GUIContent(label)).x,statusWidth);
+            float width=Mathf.Clamp(contentWidth+2*HudPadding,148f,254f), innerWidth=width-2*HudPadding;
+            float x=w-HudInset-width, y=HudInset;
+            float labelHeight=hudPrimary.CalcHeight(new GUIContent(label),innerWidth);
+            float balanceHeight=hudLabel.CalcHeight(new GUIContent(balance),innerWidth);
+            float detailHeight=detail.Length>0 ? hudLabel.CalcHeight(new GUIContent(detail),innerWidth) : 0f;
+            float balanceY=y+HudPadding+labelHeight+4f;
+            float detailY=balanceY+balanceHeight+4f;
+            Panel(new Rect(x,y,width,(detailHeight>0f ? detailY+detailHeight : balanceY+balanceHeight)-y+HudPadding));
+            GUI.Label(new Rect(x+HudPadding,y+HudPadding,innerWidth,labelHeight),label,hudPrimary);
+            GUI.Label(new Rect(x+HudPadding,balanceY,innerWidth,balanceHeight),balance,hudLabel);
+            if(detailHeight==0f)return;
+            if(FirstScraperSignalActive)Fill(new Rect(x+6f,detailY+2f,3f,detailHeight-4f),Amber,1.5f);
+            GUI.Label(new Rect(x+HudPadding,detailY,innerWidth,detailHeight),detail,hudLabel);
         }
-        string WorkbenchHint()
+
+        string PlayingHint(bool ru,bool complete,bool door,bool bundleFull)
         {
-            string scraperOffer=CanUpgrade(money,toolLevel) ? string.Format(T(toolLevel==0 ? PeelText.BuyScraper : PeelText.Upgrade),UpgradeCost) : "";
-            string steamOffer=CanBuySteam(money,toolLevel,steamUnlocked,session.SteamPrice) ? string.Format(T(PeelText.BuySteam),session.SteamPrice) :
-                CanExpandSteam(money,steamUnlocked,steamExpanded) ? string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost) : "";
-            if(scraperOffer.Length==0 && steamOffer.Length==0)return T(PeelText.Workbench);
-            if(scraperOffer.Length==0)return "E · "+steamOffer;
-            return steamOffer.Length==0 ? "E · "+scraperOffer : $"E · {scraperOffer} / {steamOffer}";
+            // Match the order of E interactions in PeelGame.Update.
+            if(routePrototype && routePrototype.CanReadArchiveNote())return T(PeelText.ReadArchiveNote);
+            if(routePrototype && routePrototype.CanOpenDoor())return ru ? "E — Открыть дверь" : "E — Open door";
+            if(basementLight && basementLight.CanInteract())
+                return basementLight.SwitchIsOn ? (ru ? "E — Выключить свет" : "E — Switch off light")
+                    : (ru ? "E — Включить свет" : "E — Switch on light");
+            if(session.CanUseWorkbench())
+                return paperCollection ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
+                    : T(PeelText.Workbench);
+
+            if(complete && Time.unscaledTime<completionNoticeUntil)return routePrototype.FinishText(FormatPlayTime());
+            if(AwaitingRelease && !bundleFull)return T(PeelText.ReleaseGrip);
+            string hint=bundleFull ? "" : TargetHint();
+            if(hint.Length>0)
+                return door && routePrototype.IsOptionalCourtyardNotice(target.Stack)
+                    ? (ru ? "Дополнительно" : "Optional")+" · "+hint : hint;
+
+            if(complete)return "";
+            if(!archiveIssueSlice && !routePrototype && ClearedPosters==TotalPosters)return T(PeelText.Finished);
+            if(Time.time>=noticeUntil || notice==PeelText.PaperDropOffSaveFailed || FirstScraperSignalActive
+                || (notice==PeelText.Welcome && (routePrototype || archiveIssueSlice)))return "";
+
+            return notice switch
+            {
+                PeelText.ScraperAvailable or PeelText.SharpenAvailable => string.Format(T(notice),UpgradeCost),
+                PeelText.SteamAvailable => string.Format(T(notice),session.SteamPrice),
+                PeelText.WiderSteamAvailable => string.Format(T(notice),SteamExpansionCost),
+                _ => T(notice)
+            };
         }
         void DrawReticle(float width,float height)
         {
@@ -647,8 +628,8 @@ namespace JustOneMorePeel
             bool precision=target.Stack && target.Stack.PrecisionWork;
             if(usingSteam)
             {
-                var hint=precision ? PeelText.PrecisionSwitchToScraper : steamExpanded ? PeelText.HoldExpandedSteam : PeelText.HoldSteam;
-                return string.Format(T(hint),interaction.PreviewTargetCount);
+                if(precision)return string.Format(T(PeelText.PrecisionSwitchToScraper),archiveIssueSlice ? 2 : 1);
+                return string.Format(T(steamExpanded ? PeelText.HoldExpandedSteam : PeelText.HoldSteam),interaction.PreviewTargetCount);
             }
 
             return T(precision ? PeelText.PrecisionScraper : PeelText.DragScraper);
