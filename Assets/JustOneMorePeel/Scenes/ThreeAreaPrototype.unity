@@ -66334,14 +66334,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 5
-  firstDesign: 27
-  secondDesign: 5
-  sequenceOffset: 15
-  deeperDesigns: 0d0000001c000000000000001b00000005000000i
-  maximumPaperSize: 2.18
-  firstLayerScale: 1
-  deeperLayerScale: 0.92272025
-  firstLayerOffset: 0
+  firstDesign: 5
+  secondDesign: 14
+  sequenceOffset: 13
+  deeperDesigns: 090000001c000000000000001b00000005000000i
+  maximumPaperSize: 3.2
+  firstLayerScale: 0.62
+  deeperLayerScale: 1
+  firstLayerOffset: 0.67
   scatteredLayers: 1
   precisionWork: 0
   front:
@@ -66364,7 +66364,7 @@ Transform:
   m_GameObject: {fileID: 977056730}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.02634561, w: 0.9996529}
-  m_LocalPosition: {x: 0.021607941, y: 1.4162993, z: 3.023}
+  m_LocalPosition: {x: 0.021607941, y: 1.4162993, z: 2.992}
   m_LocalScale: {x: 0.22766304, y: 0.22766304, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
