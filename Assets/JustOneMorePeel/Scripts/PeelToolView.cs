@@ -6,12 +6,14 @@ namespace JustOneMorePeel
         PeelGame game;
         Transform tool;
         Transform hand;
+        PeelBundleView bundle;
         Transform wrist, forearm;
         Vector3 forearmRestPosition;
         Quaternion forearmRestRotation, wristRestRotation;
         Vector3 gripInModel;
         Quaternion modelGripFrame;
         static readonly string[] DigitNames={"Index","Middle","Ring","Pinky","Thumb"};
+        static string JointName(int digit,int joint) => DigitNames[digit]+"_0"+(joint+1);
         readonly Transform[,] fingers=new Transform[5,4];
         readonly Quaternion[,] fingerRest=new Quaternion[5,3];
         readonly Vector3[,] fingerFlexAxis=new Vector3[5,3];
@@ -85,7 +87,7 @@ namespace JustOneMorePeel
                     if(bone.name==DigitNames[digit]+"Tip")fingers[digit,3]=bone;
                     for(int joint=0;joint<3;joint++)
                     {
-                        if(bone.name!=DigitNames[digit]+"_0"+(joint+1))continue;
+                        if(bone.name!=JointName(digit,joint))continue;
                         fingers[digit,joint]=bone;
                         fingerRest[digit,joint]=bone.localRotation;
                     }
@@ -180,6 +182,42 @@ namespace JustOneMorePeel
             }
         }
 
+        void UpdateBundlePose()
+        {
+            if(!game)return;
+            bool visible=game.PaperCollectionActive && game.CurrentScreen==PeelScreen.Playing
+                && Cursor.lockState==CursorLockMode.Locked;
+            if(bundle==null && visible && game.CollectedItems>0 && hand)
+            {
+                bundle=new PeelBundleView(transform,game.Settings);
+                CreateBundleHand(bundle.Root);
+            }
+            bundle?.UpdatePose(visible,game.CollectedItems,game.PaperCapacity,game.IsPeeling);
+        }
+
+        void CreateBundleHand(Transform parent)
+        {
+            var mirror=new GameObject("Left hand mirror").transform;
+            mirror.SetParent(parent,false);
+            mirror.localScale=new Vector3(-1f,1f,1f);
+            var left=Instantiate(hand,mirror,false);
+            left.name="Left hand";
+            foreach(var bone in left.GetComponentsInChildren<Transform>(true))
+            {
+                if(bone.name=="Forearm")bone.SetLocalPositionAndRotation(forearmRestPosition,forearmRestRotation);
+                if(bone.name=="Wrist")bone.localRotation=wristRestRotation;
+                for(int digit=0;digit<DigitNames.Length;digit++)
+                for(int joint=0;joint<3;joint++)
+                {
+                    if(bone.name!=JointName(digit,joint))continue;
+                    Vector3 curl=digit==4 ? new Vector3(12f,16f,8f) : new Vector3(18f,24f,16f);
+                    bone.localRotation=fingerRest[digit,joint]*Quaternion.AngleAxis(curl[joint],fingerFlexAxis[digit,joint]);
+                }
+            }
+            left.localRotation=Quaternion.LookRotation(new Vector3(-.74f,.03f,.67f),Vector3.up)*Quaternion.Inverse(modelGripFrame);
+            left.localPosition=new Vector3(0,-.014f,0)-left.localRotation*Vector3.Scale(gripInModel,left.localScale);
+        }
+
         void ResetForearm()
         {
             forearm.SetLocalPositionAndRotation(forearmRestPosition,forearmRestRotation);
@@ -257,6 +295,7 @@ namespace JustOneMorePeel
         void LateUpdate()
         {
             UpdateToolPose();
+            UpdateBundlePose();
             if(!wallSteam || !game)return;
             if(!game.IsPeeling || game.activeTool!=1 || !game.SteamAvailable)
             {
@@ -373,6 +412,7 @@ namespace JustOneMorePeel
         void OnDestroy()
         {
             if(game)game.PaperDetached-=OnPaperDetached;
+            bundle?.Dispose();
             if(steamMaterial)Destroy(steamMaterial);
             if(steamTexture)Destroy(steamTexture);
         }

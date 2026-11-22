@@ -53,7 +53,9 @@ namespace JustOneMorePeel
         internal bool ArchiveIssueSlice => archiveIssueSlice;
         internal bool SteamAvailable => PaperCollectionActive ? trialScraperOwned : archiveIssueSlice || steamUnlocked;
         internal bool CanPeelPaper => !PaperCollectionActive || progression.FreePaperSlots>0;
-        bool PaperCollectionActive { get; set; }
+        internal bool PaperCollectionActive { get; private set; }
+        internal int CollectedItems => progression.CollectedItems;
+        internal int PaperCapacity => progression.PaperCapacity;
         bool trialScraperOwned;
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
@@ -109,8 +111,8 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
         bool IPeelGameUIState.ArchiveIssueAddressFound => archiveIssueAddress && archiveIssueAddress.ClearedPosters>0;
         bool IPeelGameUIState.PaperCollectionActive => PaperCollectionActive;
-        int IPeelGameUIState.CollectedItems => progression.CollectedItems;
-        int IPeelGameUIState.PaperCapacity => progression.PaperCapacity;
+        int IPeelGameUIState.CollectedItems => CollectedItems;
+        int IPeelGameUIState.PaperCapacity => PaperCapacity;
         int IPeelGameUIState.NextPaperCapacity => progression.NextPaperCapacity;
         int IPeelGameUIState.PaperCapacityPrice => progression.PaperCapacityPrice;
         bool IPeelGameUIState.TrialScraperOwned => trialScraperOwned;
