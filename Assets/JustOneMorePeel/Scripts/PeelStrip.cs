@@ -93,7 +93,7 @@ namespace JustOneMorePeel
         }
         public void Pull(float amount)
         {
-            if(!IsExposed || amount<=0) return;
+            if(!IsExposed || amount<=0 || (game && !game.CanPeelPaper)) return;
             bool wasFlat=progress==0;
             progress=Mathf.Clamp01(progress+amount);
             Deform();
@@ -148,7 +148,7 @@ namespace JustOneMorePeel
             if(IsRemoved) return;
             IsRemoved=true;pulling=false;enabled=false;
             paperCollider.enabled=false;
-            if(game)game.Pay(this);
+            if(game)game.RecordStripDetached();
             paperRenderer.enabled=false;
             if(Stack)Stack.RecordRemoval(BufferIndex);
             if(game && game.NeedsStripScrap(this) && game.Scraps)game.Scraps.Emit(this);

@@ -49,7 +49,9 @@ namespace JustOneMorePeel
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
-        internal bool SteamAvailable => archiveIssueSlice || steamUnlocked;
+        internal bool SteamAvailable => !PaperCollectionActive && (archiveIssueSlice || steamUnlocked);
+        internal bool CanPeelPaper => !PaperCollectionActive || progression.CollectedStrips<PeelProgressionController.PaperCapacity;
+        bool PaperCollectionActive { get; set; }
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
         readonly PeelAudioController audio=new PeelAudioController();
@@ -70,7 +72,7 @@ namespace JustOneMorePeel
         bool worldSession, restarting, resetFailed, completionSeen;
         float nextWorldSave, completionNoticeUntil;
         bool HasSavedShift => archiveIssueSlice || routePrototype;
-        bool CanSaveShift => HasSavedShift && (!routePrototype || !routePrototype.ReviewMode);
+        bool CanSaveShift => HasSavedShift && !PaperCollectionActive && (!routePrototype || !routePrototype.ReviewMode);
         int furthestAnnouncedArea;
         Vector3 spawnPosition;
         Quaternion spawnRotation;
@@ -103,6 +105,8 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.WorldSession => worldSession;
         bool IPeelGameUIState.ArchiveIssueSlice => archiveIssueSlice;
         bool IPeelGameUIState.ArchiveIssueAddressFound => archiveIssueAddress && archiveIssueAddress.ClearedPosters>0;
+        bool IPeelGameUIState.PaperCollectionActive => PaperCollectionActive;
+        int IPeelGameUIState.CollectedStrips => progression.CollectedStrips;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
         float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
@@ -246,13 +250,13 @@ namespace JustOneMorePeel
                     Release();activeTool=0;
                     if(archiveIssueSlice)toolLevel=0;
                 }
-                if(keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
+                if(!PaperCollectionActive && keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
                 {
                     Release();
                     if(archiveIssueSlice){activeTool=0;toolLevel=1;}
                     else activeTool=1;
                 }
-                if(archiveIssueSlice && keyboard.digit3Key.wasPressedThisFrame)
+                if(archiveIssueSlice && !PaperCollectionActive && keyboard.digit3Key.wasPressedThisFrame)
                 {
                     Release();activeTool=1;toolLevel=1;
                 }
@@ -281,6 +285,12 @@ namespace JustOneMorePeel
                 if(routePrototype)furthestAnnouncedArea=routePrototype.CurrentArea;
                 worldSession=true;nextWorldSave=Time.unscaledTime+5f;
             }
+            SetScreen(PeelScreen.Playing);
+        }
+        public void BeginPaperCollection()
+        {
+            if(CurrentScreen!=PeelScreen.Intro || !archiveIssueSlice)return;
+            PaperCollectionActive=true;
             SetScreen(PeelScreen.Playing);
         }
         public void OpenSettings()
@@ -387,11 +397,11 @@ namespace JustOneMorePeel
             if(restorePitch && controller)controller.RestoreLookPitch(pitch);
             Physics.SyncTransforms();
         }
-        PeelWorkbench WorkbenchInReach() => view && player && Physics.Raycast(view.transform.position,view.transform.forward,out var hit,2.5f)
+        PeelWorkbench WorkbenchInReach() => !PaperCollectionActive && view && player && Physics.Raycast(view.transform.position,view.transform.forward,out var hit,2.5f)
             ? hit.collider.GetComponentInParent<PeelWorkbench>() : null;
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
-            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,ref removed);
+            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,CanPeelPaper,ref removed);
         public bool NeedsStripScrap(PeelStrip strip) => interaction.NeedsStripScrap(strip);
         public static float PeelAmount(Vector2 delta,float seconds,int level,bool steam) =>
             PeelInteractionController.PeelAmount(delta,seconds,level,steam);
@@ -403,7 +413,8 @@ namespace JustOneMorePeel
         public bool TryUpgrade() => progression.TryUpgrade(ref money,ref toolLevel);
         public bool TryBuySteam() => progression.TryBuySteam(ref money,toolLevel,ref activeTool,ref steamUnlocked);
         public bool TryExpandSteam() => progression.TryExpandSteam(ref money,steamUnlocked,ref steamExpanded);
-        public void Pay(PeelStrip strip) => progression.Pay(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded);
+        internal void RecordStripDetached() =>
+            progression.RecordStripDetached(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded,PaperCollectionActive);
         void NotifyProgression(PeelText notice)
         {
             if(archiveIssueSlice && (notice==PeelText.ScraperAvailable || notice==PeelText.Finished))return;

@@ -63,7 +63,7 @@ namespace JustOneMorePeel
         }
 
         internal void StepPeeling(bool pressed,Vector2 delta,float seconds, Camera view,float reach,
-            int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,ref int removed)
+            int toolLevel,int activeTool,bool steamUnlocked,bool steamExpanded,bool canStartGrip,ref int removed)
         {
             target=null;
             if(Physics.Raycast(view.transform.position,view.transform.forward,out var hit,reach))
@@ -74,7 +74,7 @@ namespace JustOneMorePeel
             }
             previewStacks.Clear();
             if(workingStrips.Count>0)previewStacks.AddRange(workingStacks);
-            else if(target && target.IsExposed)
+            else if(canStartGrip && target && target.IsExposed)
             {
                 if(toolLevel>0 && activeTool==1 && steamUnlocked)SelectSteamTargets(target.Stack,previewStacks,view,reach,steamExpanded);
                 else previewStacks.Add(target.Stack);
@@ -82,6 +82,7 @@ namespace JustOneMorePeel
             if(Outline)Outline.SetTargets(previewStacks,toolLevel>0);
             if(!pressed){Release();setLookFrozen(false);AwaitingRelease=false;return;}
             if(AwaitingRelease)return;
+            if(!canStartGrip && !IsPeeling){setLookFrozen(false);return;}
             if(workingStrips.Count>0 && !GripReachable(view,reach))
             {
                 CancelGrip();

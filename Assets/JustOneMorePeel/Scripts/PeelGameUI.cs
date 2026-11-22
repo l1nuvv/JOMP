@@ -20,10 +20,13 @@ namespace JustOneMorePeel
         bool WorldSession { get; }
         bool ArchiveIssueSlice { get; }
         bool ArchiveIssueAddressFound { get; }
+        bool PaperCollectionActive { get; }
+        int CollectedStrips { get; }
         PeelScreen RestartReturn { get; }
         bool ResetFailed { get; }
         float CompletionNoticeUntil { get; }
         void BeginShift();
+        void BeginPaperCollection();
         void OpenSettings();
         void Back();
         void RequestRestart();
@@ -68,6 +71,7 @@ namespace JustOneMorePeel
         bool steamExpanded => session.SteamExpanded;
         bool worldSession => session.WorldSession;
         bool archiveIssueSlice => session.ArchiveIssueSlice;
+        bool paperCollection => session.PaperCollectionActive;
         bool hasSavedShift => archiveIssueSlice || routePrototype;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
@@ -96,6 +100,7 @@ namespace JustOneMorePeel
         string PauseSaveStatus()
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
+            if(paperCollection)return T(PeelText.PaperCollectionUnsaved);
             if(routePrototype && routePrototype.ReviewMode)return ru ? "Осмотр не сохраняется" : "Route review is not saved";
             if(!worldSession)return "";
             if(save.Failed)return ru ? "Не удалось сохранить прогресс" : "Progress could not be saved";
@@ -104,7 +109,7 @@ namespace JustOneMorePeel
         }
         internal void NavigateMenu(Keyboard keyboard)
         {
-            int count=CurrentScreen==PeelScreen.Intro?(routePrototype?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings || CurrentScreen==PeelScreen.Shop?4:3;
+            int count=CurrentScreen==PeelScreen.Intro?(hasSavedShift?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings || CurrentScreen==PeelScreen.Shop?4:3;
             if(CurrentScreen==PeelScreen.ReadingArchiveNote)count=1;
             if (CurrentScreen == PeelScreen.Paused && hasSavedShift) count = 4;
             bool reverseTab=keyboard.tabKey.wasPressedThisFrame && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
@@ -127,6 +132,7 @@ namespace JustOneMorePeel
                 if(menuSelection==0)session.BeginShift();
                 else if(menuSelection==1)session.OpenSettings();
                 else if(menuSelection==2 && routePrototype){routePrototype.OpenForReview();session.BeginShift();}
+                else if(menuSelection==2 && archiveIssueSlice)session.BeginPaperCollection();
             }
             else if(CurrentScreen==PeelScreen.Paused){if(menuSelection==0)session.Back();else if(menuSelection==1)session.OpenSettings();else if(menuSelection==2)session.RequestRestart();else session.ReturnToMainMenu();}
             else if(CurrentScreen==PeelScreen.ReadingArchiveNote)session.Back();
@@ -263,11 +269,16 @@ namespace JustOneMorePeel
                     }
                     GUI.Label(new Rect(60,h-140,580,30),status,small);
                 }
-                if(routePrototype)
+                if(hasSavedShift)
                 {
                     if(MenuButton(new Rect(60,h-102,180,42),startLabel,0))session.BeginShift();
                     if(MenuButton(new Rect(250,h-102,180,42),T(PeelText.Settings),1))session.OpenSettings();
-                    if(MenuButton(new Rect(440,h-102,195,42),Settings.Language==PeelLanguage.Russian?"Осмотр маршрута":"Review route",2)){routePrototype.OpenForReview();session.BeginShift();}
+                    string alternate=routePrototype ? (ru?"Осмотр маршрута":"Review route") : T(PeelText.PaperCollection);
+                    if(MenuButton(new Rect(440,h-102,195,42),alternate,2))
+                    {
+                        if(routePrototype){routePrototype.OpenForReview();session.BeginShift();}
+                        else session.BeginPaperCollection();
+                    }
                 }
                 else
                 {
@@ -280,7 +291,7 @@ namespace JustOneMorePeel
             bool hasObjective = playing && (areaExperiment || hasSavedShift);
             float noticeY = hasObjective ? 106f : 22f;
             bool saveWarning = save.Failed;
-            if (playing && (saveWarning || save.PurchaseBackupPending || Time.unscaledTime < save.RecoveryNoticeUntil))
+            if (playing && !paperCollection && (saveWarning || save.PurchaseBackupPending || Time.unscaledTime < save.RecoveryNoticeUntil))
             {
                 bool russian = Settings.Language == PeelLanguage.Russian;
                 string message = saveWarning
@@ -368,6 +379,8 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(x+25,y+18,450,45),heading,title);
                 string explanation=review
                     ? (ru ? "Осмотр завершится, и откроется главное меню. Сохранённая смена останется." : "The review will end and return to the main menu. Your saved shift will remain.")
+                    : paperCollection
+                        ? (ru ? "Пачка и зачистка этой пробы будут сброшены." : "The trial bundle and cleanup progress will be reset.")
                     : fromIntro
                         ? (ru?"Текущее сохранение и его резервная копия будут удалены.":"The current save and its backup will be deleted.")
                         : (ru?"Прогресс, деньги и инструменты этой смены будут сброшены.":"Progress, money and tools from this shift will be reset.");
@@ -417,7 +430,11 @@ namespace JustOneMorePeel
             int remaining=routePrototype ? routePrototype.RemainingHere
                 : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
             string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
-            if(archiveIssueSlice)
+            bool bundleFull=paperCollection && session.CollectedStrips>=PaperCapacity;
+            if(paperCollection)
+                objective=bundleFull ? (ru ? "Esc — открыть меню" : "Esc — open the menu")
+                    : (ru ? "Собери пять полос картой" : "Collect five strips with the card");
+            else if(archiveIssueSlice)
             {
                 objective=session.ArchiveIssueAddressFound
                     ? (ru ? "Полка Б за столом" : "Shelf B is past the desk")
@@ -429,7 +446,8 @@ namespace JustOneMorePeel
                     : (ru ? "Найди выключатель слева от входа" : "Find the switch left of the entrance");
             if(objective.Length>0)
             {
-                string label=archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
+                string label=paperCollection ? T(PeelText.PaperCollection)
+                    : archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
                     : complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
                     : (door ? (ru ? "На двери" : "On the door") : T(PeelText.RemainingPosters))+"  "+remaining;
@@ -445,7 +463,14 @@ namespace JustOneMorePeel
             {
                 Panel(new Rect(w-140,22,118,50));
                 GUI.Label(new Rect(w-128,28,94,35),"$"+money,hudValue);
-                if(Time.unscaledTime<payoutUntil)
+                if(paperCollection)
+                {
+                    string bundle=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
+                        session.CollectedStrips,PaperCapacity);
+                    float width=center.CalcSize(new GUIContent(bundle)).x+24f;
+                    DrawHint(new Rect(w-22f-width,80f,width,29f),bundle);
+                }
+                else if(Time.unscaledTime<payoutUntil)
                     DrawHint(new Rect(w-140,80,118,29),"+$"+payoutAmount);
                 if(toolLevel==0 && !review && !archiveIssueSlice)
                 {
@@ -455,23 +480,24 @@ namespace JustOneMorePeel
                     DrawHint(new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29),offer);
                 }
 
-                bool hasSecondary=archiveIssueSlice || steamUnlocked;
+                bool archiveTools=archiveIssueSlice && !paperCollection;
+                bool hasSecondary=archiveTools || steamUnlocked;
                 bool secondarySelected=archiveIssueSlice ? toolLevel>0 && activeTool==0 : activeTool==1;
                 string primary=T(toolLevel>0 && !archiveIssueSlice ? PeelText.Scraper : PeelText.Card);
                 string secondary=T(archiveIssueSlice ? PeelText.Scraper : PeelText.Steamer);
                 float primaryWidth=hudObjective.CalcSize(new GUIContent(primary)).x+(hasSecondary ? 65f : 34f);
                 float secondaryWidth=hasSecondary ? hudObjective.CalcSize(new GUIContent(secondary)).x+65f : 0f;
                 string steam=T(PeelText.Steamer);
-                float steamWidth=archiveIssueSlice ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
+                float steamWidth=archiveTools ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
                 float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f)
-                    -(archiveIssueSlice ? steamWidth+6f : 0f);
+                    -(archiveTools ? steamWidth+6f : 0f);
                 DrawToolSlot(new Rect(toolX,h-72,primaryWidth,50),primary,
                     hasSecondary ? "1" : "",archiveIssueSlice ? toolLevel==0 : !secondarySelected);
                 if(hasSecondary)DrawToolSlot(new Rect(toolX+primaryWidth+6f,h-72,secondaryWidth,50),secondary,"2",secondarySelected);
-                if(archiveIssueSlice)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
+                if(archiveTools)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
             }
             DrawReticle(w,h);
-            if(IsPeeling)return;
+            if(IsPeeling || bundleFull)return;
 
             string hint=AwaitingRelease ? (complete ? "" : T(PeelText.ReleaseGrip)) : TargetHint();
             if(!AwaitingRelease && target && routePrototype && door && routePrototype.IsOptionalCourtyardNotice(target.Stack))
@@ -577,7 +603,8 @@ namespace JustOneMorePeel
             float sensitivity=SettingsSlider(new Rect(x+28,y+267,510,20),Settings.LookSensitivity,.25f,2,2);
             if(!Mathf.Approximately(sensitivity,Settings.LookSensitivity))Settings.SetLookSensitivity(sensitivity);
             string controls=T(PeelText.SettingsHelp);
-            if(archiveIssueSlice)
+            if(paperCollection)controls=T(PeelText.PaperCollectionControls);
+            else if(archiveIssueSlice)
                 controls=Settings.Language==PeelLanguage.Russian
                     ? "WASD — движение · Мышь — обзор · ЛКМ — снять лист\n1 — карта · 2 — шпатель · 3 — пар · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"
                     : "WASD — move · Mouse — look · LMB — peel\n1 — Card · 2 — Scraper · 3 — Steam · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select";

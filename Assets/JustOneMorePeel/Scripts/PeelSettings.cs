@@ -14,7 +14,8 @@ namespace JustOneMorePeel
         BuySteamExpansion, SteamExpandedOwned, SteamExpanded, SteamExpandedHint, HoldSteam, HoldExpandedSteam,
         ShopScraperEffect, ShopSharpenEffect, ShopWiderSteamEffect, ShopRequiresSteam, ShopCashShortfall,
         ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable,
-        PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool
+        PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool,
+        PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperCollectionUnsaved, PaperCollectionControls
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -84,7 +85,13 @@ namespace JustOneMorePeel
             {"Steam targets — {0} · 1 to switch to the faster scraper","Цели пара — {0} · 1 — перейти на шпатель, здесь он быстрее"},
             {"E — read the note","E — прочитать записку"},
             {"Basement","Подвал"},{"Archive","Архив"},
-            {"Equipped — {0}","В руке — {0}"}
+            {"Equipped — {0}","В руке — {0}"},
+            {"Paper collection trial","Проба сбора бумаги"},
+            {"Paper bundle · {0}/{1}","Пачка · {0}/{1}"},
+            {"Bundle full · {0}/{1}","Пачка полна · {0}/{1}"},
+            {"Trial progress is not saved","Проба проходит без сохранения"},
+            {"WASD — move · Mouse — look · Hold LMB to peel with the card\nEsc — pause/back · Tab / ↑↓ — navigate · Enter — select",
+             "WASD — движение · Мышь — обзор · Держи ЛКМ, чтобы снять полосу картой\nEsc — пауза/назад · Tab / ↑↓ — выбор · Enter — подтвердить"}
         };
 
         void Awake() { Load(); }

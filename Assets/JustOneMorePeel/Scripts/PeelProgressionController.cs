@@ -6,6 +6,8 @@ namespace JustOneMorePeel
     {
         internal const int SteamCost=480;
         internal const int SteamExpansionCost=800;
+        internal const int PaperCapacity=5;
+        internal int CollectedStrips { get; private set; }
         internal static int UpgradeCost(int toolLevel) => toolLevel==0?25:toolLevel==1?160:640;
         internal static bool CanUpgrade(int money,int toolLevel) => toolLevel<3 && money>=UpgradeCost(toolLevel);
         internal static bool CanBuySteam(int money,int toolLevel,bool steamUnlocked) => toolLevel>0 && !steamUnlocked && money>=SteamCost;
@@ -67,10 +69,17 @@ namespace JustOneMorePeel
             return true;
         }
 
-        internal void Pay(ref int money,ref int removed,int total,int toolLevel,bool steamUnlocked,bool steamExpanded)
+        internal void RecordStripDetached(ref int money,ref int removed,int total,int toolLevel,bool steamUnlocked,bool steamExpanded,bool collectPaper)
         {
+            removed++;
+            if(collectPaper)
+            {
+                CollectedStrips++;
+                return;
+            }
+
             int previousMoney=money;
-            removed++;money+=2;
+            money+=2;
             ShowPayout();
             if(removed==total)Notify(PeelText.Finished);
             else if(CanUpgrade(money,toolLevel) && !CanUpgrade(previousMoney,toolLevel))Notify(toolLevel==0?PeelText.ScraperAvailable:PeelText.SharpenAvailable);
