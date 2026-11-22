@@ -1,0 +1,15 @@
+### component_remove_batch
+Remove components from several GameObjects in one call.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `items` | json string | Yes | - | JSON array of per-item objects |
+
+**Item properties**: `name`, `entityId`, `instanceId`, `path`, `componentType`, `componentIndex?`. With `componentIndex` only that instance is removed (as in `component_remove`); without it every component of that type on the object is removed. A component another one still requires is refused before anything is removed (`requiredBy`, as in `component_remove`); items run in order, so removing the dependent in an earlier item frees it.
+
+**Returns**: `{success, totalItems, successCount, failCount, results: [{target, success, removed, count, remainingOfType}]}` (`count` = components removed, `remainingOfType` = that type still on the object). All-or-nothing. NeverInSemi.
+
+```bash
+# Each item names the object by entityId; the batch is all-or-nothing
+curl -s "http://localhost:<port>/skill/component_remove_batch?expectProject=<project>" -d '{"items":"[{\"entityId\":\"<wall_a_entityId>\",\"componentType\":\"BoxCollider\"},{\"entityId\":\"<wall_b_entityId>\",\"componentType\":\"BoxCollider\"}]"}'
+```

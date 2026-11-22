@@ -2,6 +2,8 @@
 
 When the owner asks to complete a stage in one pass, or two to three at most, carry the implementation and verification through within that limit. Keep working across subtasks without waiting for repeated instructions to continue. Separate owner acceptance from work the agent can finish independently.
 
+Prioritize developing the game. On routine «далее» requests, pick an actionable implementation item that changes the player experience or adds game content. After a change, use the smallest relevant compile check and one focused smoke check when needed. Avoid repeating verification already recorded for unchanged behavior. Run broader sweeps, benchmarks, or builds only when explicitly requested, required for the current deliverable, or warranted by a concrete regression.
+
 ## Purpose and authority
 3D first-person incremental game about removing layered street notices. One developer; free assets and tools only. Target: a compact playable release for itch.io. The owner likes the current overlapping-paper direction; models and poster variety remain unaccepted.
 Use [docs/ROADMAP.md](docs/ROADMAP.md) for the next task. Explicit owner decisions and observed project state govern implementation. Automated checks do not constitute human acceptance.
@@ -14,7 +16,15 @@ Use [docs/ROADMAP.md](docs/ROADMAP.md) for the next task. Explicit owner decisio
 - Engineering and structure: [ENGINEERING_STANDARD](docs/ENGINEERING_STANDARD.md).
 Load only the relevant route. Project skills are in .agents/skills; their local context and this file override generic examples.
 
+## Unity skills
+
+- Use [unity-mcp-skill](.agents/skills/unity-mcp-skill/SKILL.md) for Editor operations and the existing task-specific project skills for implementation.
+- Consult [unity-skills](.agents/skills/unity-skills/SKILL.md) for relevant Unity design and package references. [unity-skills-eval](.agents/skills/unity-skills-eval/SKILL.md) documents the upstream benchmark and is relevant only when the owner explicitly asks about that benchmark.
+- Both references are sourced from [Unity-Skills at c07ee7f](https://github.com/Besty0728/Unity-Skills/tree/c07ee7f74660def88533278f09ec611bb36e0cbe). Their REST client and benchmark runner require a separate UnitySkills integration. Keep Editor operations on Unity MCP under the current project workflow.
+
 ## Plan status maintenance
+
+- Start the user-facing final update with the plan item ID and an explicit status. For a closed item, state the next item and whether it can start. For an open item, state what remains, who needs to act, and which next item can already proceed.
 - When a plan item is completed or explicitly closed by the owner, update its status in `docs/MASTER_DEVELOPMENT_PLAN.md` and the current summary in `docs/ROADMAP.md` in the same task. Record owner-closed items as such and do not restart them without a new issue or an explicit request.
 - Mark partially completed work as in progress, distinguish implementation, verification and owner acceptance, and preserve relevant failures and remaining checks. Do not mark an entire milestone complete because one subtask is done. Keep the next actionable item current.
 
