@@ -16,7 +16,8 @@ namespace JustOneMorePeel
         ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable,
         PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool,
         PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperCollectionUnsaved, PaperCollectionControls,
-        PaperDropOffSign, PaperDropOffObjective, PaperDropOffOptional, PaperDropOffInteract, PaperDropOffEmpty, PaperDropOffReceipt
+        PaperDropOffSign, PaperDropOffObjective, PaperDropOffOptional, PaperDropOffInteract, PaperDropOffEmpty, PaperDropOffReceipt,
+        PaperShop, PaperShopScraperOwned, PaperShopScraperEffect, PaperCapacityOffer, PaperCapacityMax
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -91,14 +92,19 @@ namespace JustOneMorePeel
             {"Paper bundle · {0}/{1}","Пачка · {0}/{1}"},
             {"Bundle full · {0}/{1}","Пачка полна · {0}/{1}"},
             {"Trial progress is not saved","Проба проходит без сохранения"},
-            {"WASD — move · Mouse — look · Hold LMB to peel\n1 — Card · 2 — Scraper · 3 — Steam\nE — drop off paper · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
-             "WASD — движение · Мышь — обзор · ЛКМ — снять бумагу\n1 — карта · 2 — шпатель · 3 — пар\nE — сдать бумагу · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
+            {"WASD — move · Mouse — look · Hold LMB to peel\n1 — Card · 2/3 — Scraper/Steam after purchase\nE — drop off paper · F — shop · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
+             "WASD — движение · Мышь — обзор · ЛКМ — снять бумагу\n1 — карта · 2/3 — шпатель/пар после покупки\nE — сдача · F — магазин · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
             {"PAPER DROP-OFF","МАКУЛАТУРА"},
             {"Drop off the bundle at the cart","Сдай пачку у тележки"},
             {"Collect more paper or drop off at the cart","Продолжай сбор или сдай пачку у тележки"},
-            {"E — Drop off paper","E — Сдать бумагу"},
-            {"Paper drop-off · bundle empty","Приём бумаги · пачка пуста"},
-            {"Items accepted · {0} · +${1}","Сдано {0} шт. · +${1}"}
+            {"E — Drop off paper · F — Shop","E — Сдать бумагу · F — Магазин"},
+            {"Bundle empty · F — Shop","Пачка пуста · F — Магазин"},
+            {"Items accepted · {0} · +${1}","Сдано {0} шт. · +${1}"},
+            {"Cart shop","Магазин"},
+            {"Scraper owned","Шпатель куплен"},
+            {"Whole sheets · Steam included","Целые листы · пар в комплекте"},
+            {"Bundle capacity {0} · ${1}","Вместимость {0} · ${1}"},
+            {"Bundle capacity {0} · maximum","Вместимость {0} · максимум"}
         };
 
         void Awake() { Load(); }

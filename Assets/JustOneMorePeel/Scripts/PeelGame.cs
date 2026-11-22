@@ -50,9 +50,10 @@ namespace JustOneMorePeel
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
-        internal bool SteamAvailable => archiveIssueSlice || steamUnlocked;
+        internal bool SteamAvailable => PaperCollectionActive ? trialScraperOwned : archiveIssueSlice || steamUnlocked;
         internal bool CanPeelPaper => !PaperCollectionActive || progression.FreePaperSlots>0;
         bool PaperCollectionActive { get; set; }
+        bool trialScraperOwned;
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
         readonly PeelAudioController audio=new PeelAudioController();
@@ -108,6 +109,10 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.ArchiveIssueAddressFound => archiveIssueAddress && archiveIssueAddress.ClearedPosters>0;
         bool IPeelGameUIState.PaperCollectionActive => PaperCollectionActive;
         int IPeelGameUIState.CollectedItems => progression.CollectedItems;
+        int IPeelGameUIState.PaperCapacity => progression.PaperCapacity;
+        int IPeelGameUIState.NextPaperCapacity => progression.NextPaperCapacity;
+        int IPeelGameUIState.PaperCapacityPrice => progression.PaperCapacityPrice;
+        bool IPeelGameUIState.TrialScraperOwned => trialScraperOwned;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
         float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
@@ -236,18 +241,20 @@ namespace JustOneMorePeel
                 if(CurrentScreen!=PeelScreen.Playing)
                 {
                     if((CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingArchiveNote) && keyboard.eKey.wasPressedThisFrame){Back();return;}
+                    if(PaperCollectionActive && CurrentScreen==PeelScreen.Shop && keyboard.fKey.wasPressedThisFrame){Back();return;}
                     ui.NavigateMenu(keyboard);return;
                 }
                 if(keyboard.eKey.wasPressedThisFrame && routePrototype && routePrototype.CanReadArchiveNote())
                 {SetScreen(PeelScreen.ReadingArchiveNote);return;}
                 if(keyboard.eKey.wasPressedThisFrame && routePrototype && routePrototype.TryOpenDoor())return;
                 if(keyboard.eKey.wasPressedThisFrame && basementLight && basementLight.TryToggle())return;
-                if(keyboard.eKey.wasPressedThisFrame)
+                bool openPaperShop=PaperCollectionActive && keyboard.fKey.wasPressedThisFrame;
+                if(keyboard.eKey.wasPressedThisFrame || openPaperShop)
                 {
                     var workbench=WorkbenchInReach();
                     if(workbench)
                     {
-                        if(PaperCollectionActive)DeliverPaper();
+                        if(PaperCollectionActive && !openPaperShop)DeliverPaper();
                         else {shopWorkbench=workbench;SetScreen(PeelScreen.Shop);}
                         return;
                     }
@@ -257,13 +264,13 @@ namespace JustOneMorePeel
                     Release();activeTool=0;
                     if(archiveIssueSlice)toolLevel=0;
                 }
-                if(keyboard.digit2Key.wasPressedThisFrame && (archiveIssueSlice || steamUnlocked))
+                if(keyboard.digit2Key.wasPressedThisFrame && SteamAvailable)
                 {
                     Release();
                     if(archiveIssueSlice){activeTool=0;toolLevel=1;}
                     else activeTool=1;
                 }
-                if(archiveIssueSlice && keyboard.digit3Key.wasPressedThisFrame)
+                if(archiveIssueSlice && SteamAvailable && keyboard.digit3Key.wasPressedThisFrame)
                 {
                     Release();activeTool=1;toolLevel=1;
                 }
@@ -430,7 +437,15 @@ namespace JustOneMorePeel
             interaction.Release();screenController.SetLookFrozen(false);
         }
 
-        public bool TryUpgrade() => progression.TryUpgrade(ref money,ref toolLevel);
+        public bool TryUpgrade()
+        {
+            if(PaperCollectionActive && (CurrentScreen!=PeelScreen.Shop || trialScraperOwned))return false;
+            if(!progression.TryUpgrade(ref money,ref toolLevel))return false;
+            if(PaperCollectionActive)trialScraperOwned=true;
+            return true;
+        }
+        public bool TryUpgradePaperCapacity() =>
+            PaperCollectionActive && CurrentScreen==PeelScreen.Shop && progression.TryUpgradePaperCapacity(ref money);
         public bool TryBuySteam() => progression.TryBuySteam(ref money,toolLevel,ref activeTool,ref steamUnlocked);
         public bool TryExpandSteam() => progression.TryExpandSteam(ref money,steamUnlocked,ref steamExpanded);
         internal void RecordStripDetached(bool partOfSheet) =>

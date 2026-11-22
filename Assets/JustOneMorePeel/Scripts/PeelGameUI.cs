@@ -22,6 +22,10 @@ namespace JustOneMorePeel
         bool ArchiveIssueAddressFound { get; }
         bool PaperCollectionActive { get; }
         int CollectedItems { get; }
+        int PaperCapacity { get; }
+        int NextPaperCapacity { get; }
+        int PaperCapacityPrice { get; }
+        bool TrialScraperOwned { get; }
         PeelScreen RestartReturn { get; }
         bool ResetFailed { get; }
         float CompletionNoticeUntil { get; }
@@ -33,6 +37,7 @@ namespace JustOneMorePeel
         void RestartShift();
         void ReturnToMainMenu();
         bool TryUpgrade();
+        bool TryUpgradePaperCapacity();
         bool TryBuySteam();
         bool TryExpandSteam();
         bool CanUseWorkbench();
@@ -73,6 +78,7 @@ namespace JustOneMorePeel
         bool worldSession => session.WorldSession;
         bool archiveIssueSlice => session.ArchiveIssueSlice;
         bool paperCollection => session.PaperCollectionActive;
+        int ShopOptionCount => paperCollection?3:4;
         bool hasSavedShift => archiveIssueSlice || routePrototype;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
@@ -114,7 +120,8 @@ namespace JustOneMorePeel
         }
         internal void NavigateMenu(Keyboard keyboard)
         {
-            int count=CurrentScreen==PeelScreen.Intro?(hasSavedShift?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings || CurrentScreen==PeelScreen.Shop?4:3;
+            int count=CurrentScreen==PeelScreen.Intro?(hasSavedShift?3:2):CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings?4:3;
+            if(CurrentScreen==PeelScreen.Shop)count=ShopOptionCount;
             if(CurrentScreen==PeelScreen.ReadingArchiveNote)count=1;
             if (CurrentScreen == PeelScreen.Paused && hasSavedShift) count = 4;
             bool reverseTab=keyboard.tabKey.wasPressedThisFrame && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
@@ -144,7 +151,14 @@ namespace JustOneMorePeel
             else if(CurrentScreen==PeelScreen.ConfirmRestart){if(menuSelection==0)session.Back();else session.RestartShift();}
             else if(CurrentScreen==PeelScreen.Settings)
             {if(menuSelection==0)Settings.SetLanguage(Settings.Language==PeelLanguage.English?PeelLanguage.Russian:PeelLanguage.English);else if(menuSelection==3)session.Back();}
-            else if(CurrentScreen==PeelScreen.Shop){if(menuSelection==0)session.TryUpgrade();else if(menuSelection==1)session.TryBuySteam();else if(menuSelection==2)session.TryExpandSteam();else session.Back();}
+            else if(CurrentScreen==PeelScreen.Shop)
+            {
+                if(menuSelection==0)session.TryUpgrade();
+                else if(menuSelection==ShopOptionCount-1)session.Back();
+                else if(paperCollection)session.TryUpgradePaperCapacity();
+                else if(menuSelection==1)session.TryBuySteam();
+                else session.TryExpandSteam();
+            }
         }
 
         string T(PeelText key) => Settings.Text(key);
@@ -316,22 +330,37 @@ namespace JustOneMorePeel
             {
                 string tool=activeTool==1 ? T(PeelText.Steamer) : toolLevel>0 ? T(PeelText.Scraper) : T(PeelText.Card);
                 bool showPurchase=Time.time<noticeUntil && IsPurchaseNotice(notice);
-                bool showSaveStatus=saveWarning || save.PurchaseBackupPending;
-                float statusY=showPurchase ? 531 : 493;
-                float bottom=showSaveStatus ? statusY+40 : showPurchase ? 545 : 505;
+                bool showSaveStatus=!paperCollection && (saveWarning || save.PurchaseBackupPending);
+                float purchaseY=paperCollection?389:493;
+                float statusY=showPurchase ? purchaseY+38 : purchaseY;
+                float bottom=showSaveStatus ? statusY+40 : purchaseY+(showPurchase?52:12);
                 Panel(new Rect(38,70,500,bottom-70));
-                GUI.Label(new Rect(58,77,290,42),T(PeelText.Tools),title);
+                GUI.Label(new Rect(58,77,290,42),T(paperCollection?PeelText.PaperShop:PeelText.Tools),title);
                 GUI.Label(new Rect(350,94,155,30),"$"+money,shopBalance);
                 GUI.Label(new Rect(58,116,460,22),string.Format(T(PeelText.EquippedTool),tool),small);
-                string upgrade=toolLevel>=3?T(PeelText.MaxUpgrade):string.Format(T(toolLevel==0?PeelText.BuyScraper:PeelText.Upgrade),UpgradeCost);
-                string scraperEffect=toolLevel==0?T(PeelText.ShopScraperEffect):SharpeningPreview();
-                if(ShopOffer(145,0,upgrade,scraperEffect,toolLevel>=3,UpgradeCost))session.TryUpgrade();
-                string steam=steamUnlocked?T(PeelText.SteamOwned):string.Format(T(PeelText.BuySteam),SteamCost);
-                if(ShopOffer(240,1,steam,T(PeelText.SteamDescription),steamUnlocked,SteamCost,toolLevel==0?T(PeelText.SteamLocked):null))session.TryBuySteam();
-                string expansion=steamExpanded?T(PeelText.SteamExpandedOwned):string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost);
-                if(ShopOffer(335,2,expansion,T(PeelText.ShopWiderSteamEffect),steamExpanded,SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null))session.TryExpandSteam();
-                if(MenuButton(new Rect(58,448,460,40),T(PeelText.Close),3))session.Back();
-                if(showPurchase)GUI.Label(new Rect(58,493,460,38),T(notice),small);
+                bool scraperOwned=paperCollection ? session.TrialScraperOwned : toolLevel>=3;
+                string upgrade=scraperOwned ? T(paperCollection?PeelText.PaperShopScraperOwned:PeelText.MaxUpgrade)
+                    : string.Format(T(toolLevel==0?PeelText.BuyScraper:PeelText.Upgrade),UpgradeCost);
+                string scraperEffect=paperCollection ? T(PeelText.PaperShopScraperEffect)
+                    : toolLevel==0 ? T(PeelText.ShopScraperEffect) : SharpeningPreview();
+                if(ShopOffer(145,0,upgrade,scraperEffect,scraperOwned,UpgradeCost))session.TryUpgrade();
+                if(paperCollection)
+                {
+                    bool max=session.PaperCapacityPrice==0;
+                    string label=max ? string.Format(T(PeelText.PaperCapacityMax),session.PaperCapacity)
+                        : string.Format(T(PeelText.PaperCapacityOffer),session.NextPaperCapacity,session.PaperCapacityPrice);
+                    string bundle=string.Format(T(PeelText.PaperCollectionCount),session.CollectedItems,session.PaperCapacity);
+                    if(ShopOffer(240,1,label,bundle,max,session.PaperCapacityPrice))session.TryUpgradePaperCapacity();
+                }
+                else
+                {
+                    string steam=steamUnlocked?T(PeelText.SteamOwned):string.Format(T(PeelText.BuySteam),SteamCost);
+                    if(ShopOffer(240,1,steam,T(PeelText.SteamDescription),steamUnlocked,SteamCost,toolLevel==0?T(PeelText.SteamLocked):null))session.TryBuySteam();
+                    string expansion=steamExpanded?T(PeelText.SteamExpandedOwned):string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost);
+                    if(ShopOffer(335,2,expansion,T(PeelText.ShopWiderSteamEffect),steamExpanded,SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null))session.TryExpandSteam();
+                }
+                if(MenuButton(new Rect(58,paperCollection?344:448,460,40),T(PeelText.Close),ShopOptionCount-1))session.Back();
+                if(showPurchase)GUI.Label(new Rect(58,purchaseY,460,38),T(notice),small);
                 if(showSaveStatus)
                 {
                     string status=purchaseSaveFailed && saveWarning
@@ -435,7 +464,7 @@ namespace JustOneMorePeel
             int remaining=routePrototype ? routePrototype.RemainingHere
                 : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
             string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
-            bool bundleFull=paperCollection && session.CollectedItems>=PaperCapacity;
+            bool bundleFull=paperCollection && session.CollectedItems>=session.PaperCapacity;
             if(paperCollection)
                 objective=bundleFull ? T(PeelText.PaperDropOffObjective)
                     : session.CollectedItems>0 ? T(PeelText.PaperDropOffOptional)
@@ -472,7 +501,7 @@ namespace JustOneMorePeel
                 if(paperCollection)
                 {
                     string bundle=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
-                        session.CollectedItems,PaperCapacity);
+                        session.CollectedItems,session.PaperCapacity);
                     float width=center.CalcSize(new GUIContent(bundle)).x+24f;
                     DrawHint(new Rect(w-22f-width,80f,width,29f),bundle);
                     if(Time.unscaledTime<payoutUntil)
@@ -492,20 +521,21 @@ namespace JustOneMorePeel
                     DrawHint(new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29),offer);
                 }
 
-                bool hasSecondary=archiveIssueSlice || steamUnlocked;
+                bool hasSecondary=steamUnlocked;
+                bool archiveTools=archiveIssueSlice && hasSecondary;
                 bool secondarySelected=archiveIssueSlice ? toolLevel>0 && activeTool==0 : activeTool==1;
                 string primary=T(toolLevel>0 && !archiveIssueSlice ? PeelText.Scraper : PeelText.Card);
                 string secondary=T(archiveIssueSlice ? PeelText.Scraper : PeelText.Steamer);
                 float primaryWidth=hudObjective.CalcSize(new GUIContent(primary)).x+(hasSecondary ? 65f : 34f);
                 float secondaryWidth=hasSecondary ? hudObjective.CalcSize(new GUIContent(secondary)).x+65f : 0f;
                 string steam=T(PeelText.Steamer);
-                float steamWidth=archiveIssueSlice ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
+                float steamWidth=archiveTools ? hudObjective.CalcSize(new GUIContent(steam)).x+65f : 0f;
                 float toolX=w-22f-primaryWidth-(hasSecondary ? secondaryWidth+6f : 0f)
-                    -(archiveIssueSlice ? steamWidth+6f : 0f);
+                    -(archiveTools ? steamWidth+6f : 0f);
                 DrawToolSlot(new Rect(toolX,h-72,primaryWidth,50),primary,
                     hasSecondary ? "1" : "",archiveIssueSlice ? toolLevel==0 : !secondarySelected);
                 if(hasSecondary)DrawToolSlot(new Rect(toolX+primaryWidth+6f,h-72,secondaryWidth,50),secondary,"2",secondarySelected);
-                if(archiveIssueSlice)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
+                if(archiveTools)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
             }
             DrawReticle(w,h);
             if(IsPeeling)return;

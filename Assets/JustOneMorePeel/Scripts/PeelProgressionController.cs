@@ -6,8 +6,10 @@ namespace JustOneMorePeel
     {
         internal const int SteamCost=480;
         internal const int SteamExpansionCost=800;
-        internal const int PaperCapacity=5;
         internal const int StripValue=2;
+        internal int PaperCapacity { get; private set; }=5;
+        internal int NextPaperCapacity => Math.Min(PaperCapacity+5,20);
+        internal int PaperCapacityPrice => PaperCapacity switch { 5=>10, 10=>20, 15=>30, _=>0 };
         internal int CollectedItems { get; private set; }
         internal int FreePaperSlots => PaperCapacity-CollectedItems;
         int collectedPaperValue;
@@ -95,6 +97,15 @@ namespace JustOneMorePeel
         {
             CollectedItems++;
             collectedPaperValue+=stripCount*StripValue;
+        }
+
+        internal bool TryUpgradePaperCapacity(ref int money)
+        {
+            int price=PaperCapacityPrice;
+            if(price==0 || money<price)return false;
+            money-=price;
+            PaperCapacity=NextPaperCapacity;
+            return true;
         }
 
         internal (int Items,int Payout) DeliverPaper(ref int money)
