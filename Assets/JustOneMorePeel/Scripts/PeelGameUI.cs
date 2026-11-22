@@ -59,8 +59,10 @@ namespace JustOneMorePeel
         int paperReceiptItems;
         float payoutUntil;
         PeelText notice=PeelText.Welcome;
+        PeelText? shopPurchase;
+        bool capacityPurchased;
         bool purchaseSaveFailed;
-        GUIStyle title, text, small, center, button, primaryButton, shopBalance, hudLabel, hudPrimary, hudHint;
+        GUIStyle title, text, small, center, button, primaryButton, shopBalance, shopMutedBalance, hudLabel, hudPrimary, hudHint;
         static readonly Color Ink=new Color(.070f,.094f,.088f,.97f);
         static readonly Color Paper=new Color(.95f,.91f,.80f);
         static readonly Color Amber=new Color(.96f,.75f,.42f);
@@ -104,10 +106,26 @@ namespace JustOneMorePeel
             routePrototype=route;areaExperiment=area;basementLight=light;
         }
 
-        internal void FocusFirst() { menuSelection=0;focusMenu=true; }
+        internal void FocusFirst()
+        {
+            menuSelection=0;focusMenu=true;
+            shopPurchase=null;capacityPurchased=false;purchaseSaveFailed=false;
+        }
         internal void ShowWelcome() { noticeUntil=Time.time+5; }
-        internal void Notify(PeelText key) { notice=key;noticeUntil=Time.time+4;purchaseSaveFailed=false; }
-        internal void NotifyPurchaseFailed() { noticeUntil=0;purchaseSaveFailed=true; }
+        internal void Notify(PeelText key)
+        {
+            notice=key;noticeUntil=Time.time+4;
+            if(CurrentScreen==PeelScreen.Shop && IsPurchaseNotice(key))
+            {shopPurchase=key;capacityPurchased=false;purchaseSaveFailed=false;}
+        }
+        internal void NotifyPurchaseFailed()
+        {noticeUntil=0;shopPurchase=null;capacityPurchased=false;purchaseSaveFailed=true;}
+
+        void BuyPaperCapacity()
+        {
+            if(!session.TryUpgradePaperCapacity())return;
+            capacityPurchased=true;shopPurchase=null;purchaseSaveFailed=false;
+        }
         internal void ShowPayout()
         {
             if(payoutFrame!=Time.frameCount)payoutAmount=0;
@@ -167,7 +185,7 @@ namespace JustOneMorePeel
             {
                 if(menuSelection==0)session.TryUpgrade();
                 else if(menuSelection==ShopOptionCount-1)session.Back();
-                else if(paperCollection)session.TryUpgradePaperCapacity();
+                else if(paperCollection)BuyPaperCapacity();
                 else if(menuSelection==1)session.TryBuySteam();
                 else session.TryExpandSteam();
             }
@@ -183,6 +201,8 @@ namespace JustOneMorePeel
             center=new GUIStyle(text){alignment=TextAnchor.MiddleCenter};
             shopBalance=new GUIStyle(text){alignment=TextAnchor.MiddleRight,fontStyle=FontStyle.Bold};
             shopBalance.normal.textColor=new Color(.97f,.87f,.63f);
+            shopMutedBalance=new GUIStyle(shopBalance);
+            shopMutedBalance.normal.textColor=small.normal.textColor;
             button=new GUIStyle(GUI.skin.label){fontSize=18,wordWrap=true,alignment=TextAnchor.MiddleCenter};
             button.normal.textColor=button.hover.textColor=button.active.textColor=button.focused.textColor=Paper;
             hudLabel=new GUIStyle(small){padding=new RectOffset()};
@@ -228,25 +248,30 @@ namespace JustOneMorePeel
             float next=step/PeelInteractionController.PeelAmount(Vector2.zero,step,toolLevel+1,false);
             return string.Format(T(PeelText.ShopSharpenEffect),current,next);
         }
-        bool ShopOffer(float y,int index,string label,string effect,bool owned,int cost,string requirement=null)
+        bool ShopOffer(float y,int index,string label,string effect,int cost,string unavailable=null,bool owned=false)
         {
-            var oldColor=GUI.color;
-            GUI.color=menuSelection==index?new Color(.20f,.27f,.24f,.98f):new Color(.10f,.15f,.15f,.98f);
-            GUI.DrawTexture(new Rect(48,y-5,480,90),Texture2D.whiteTexture);
-            if(menuSelection==index)
-            {
-                GUI.color=new Color(.97f,.78f,.42f);
-                GUI.DrawTexture(new Rect(48,y-5,4,90),Texture2D.whiteTexture);
-            }
-            GUI.color=oldColor;
-            var wasEnabled=GUI.enabled;
-            GUI.enabled=wasEnabled && !owned && requirement==null && money>=cost;
-            bool clicked=MenuButton(new Rect(58,y,460,37),label,index);
+            bool ru=Settings.Language==PeelLanguage.Russian;
+            string status=unavailable;
+            if(owned)status=ru ? "Уже куплено" : "Owned";
+            else if(status==null && money<cost)status=string.Format(T(PeelText.ShopCashShortfall),cost-money);
+            bool available=status==null;
+            var rect=new Rect(58,y,474,87);
+            bool selected=menuSelection==index;
+            bool hovered=available && rect.Contains(Event.current.mousePosition);
+            if(selected || hovered)Fill(rect,selected ? Amber : Paper,8f);
+            Fill(new Rect(rect.x+1f,y+1f,rect.width-2f,rect.height-2f),
+                selected || hovered ? new Color(.20f,.27f,.24f) : new Color(.10f,.15f,.15f),7f);
+            GUI.SetNextControlName("peel-menu-"+index);
+            bool wasEnabled=GUI.enabled;
+            GUI.enabled=wasEnabled && available;
+            bool clicked=GUI.Button(rect,GUIContent.none,button);
             GUI.enabled=wasEnabled;
-            GUI.Label(new Rect(66,y+39,444,22),effect,small);
-            string status=requirement;
-            if(status==null && !owned && money<cost)status=string.Format(T(PeelText.ShopCashShortfall),cost-money);
-            if(status!=null)GUI.Label(new Rect(66,y+60,444,22),status,small);
+            if(clicked)menuSelection=index;
+
+            GUI.Label(new Rect(72,y+9,345,24),label,hudPrimary);
+            if(!owned)GUI.Label(new Rect(408,y+7,111,25),"$"+cost,available ? shopBalance : shopMutedBalance);
+            GUI.Label(new Rect(72,y+35,446,22),effect,hudLabel);
+            GUI.Label(new Rect(72,y+59,446,22),status ?? (ru ? "Можно купить" : "Available to buy"),hudLabel);
             return clicked;
         }
         internal void Draw()
@@ -317,48 +342,40 @@ namespace JustOneMorePeel
             }
             if(CurrentScreen==PeelScreen.Shop)
             {
-                string tool=activeTool==1 ? T(PeelText.Steamer) : toolLevel>0 ? T(PeelText.Scraper) : T(PeelText.Card);
-                bool saveWarning=save.Failed;
-                bool showPurchase=Time.time<noticeUntil && IsPurchaseNotice(notice);
-                bool showSaveStatus=saveWarning || save.CheckpointBackupPending;
-                float purchaseY=paperCollection?389:493;
-                float statusY=showPurchase ? purchaseY+38 : purchaseY;
-                float bottom=showSaveStatus ? statusY+40 : purchaseY+(showPurchase?52:12);
-                Panel(new Rect(38,70,500,bottom-70));
-                GUI.Label(new Rect(58,77,290,42),T(paperCollection?PeelText.PaperShop:PeelText.Tools),title);
-                GUI.Label(new Rect(350,94,155,30),"$"+money,shopBalance);
-                GUI.Label(new Rect(58,116,460,22),string.Format(T(PeelText.EquippedTool),tool),small);
+                bool ru=Settings.Language==PeelLanguage.Russian;
+                float resultY=paperCollection?332:427;
+                float closeY=resultY+72;
+                Panel(new Rect(38,61,514,closeY+58-61));
+                GUI.Label(new Rect(58,71,330,42),T(paperCollection?PeelText.PaperShop:PeelText.Tools),title);
+                GUI.Label(new Rect(365,77,157,32),"$"+money,shopBalance);
+                GUI.Label(new Rect(58,111,474,24),string.Format(T(PeelText.EquippedTool),EquippedTool()),hudPrimary);
                 bool scraperOwned=paperCollection ? session.TrialScraperOwned : toolLevel>=3;
                 string upgrade=scraperOwned ? T(paperCollection?PeelText.PaperShopScraperOwned:PeelText.MaxUpgrade)
-                    : string.Format(T(toolLevel==0?PeelText.BuyScraper:PeelText.Upgrade),UpgradeCost);
+                    : toolLevel==0 ? T(PeelText.Scraper) : (ru ? "Заточка шпателя" : "Sharpen scraper");
                 string scraperEffect=paperCollection ? T(PeelText.PaperShopScraperEffect)
                     : toolLevel==0 ? T(PeelText.ShopScraperEffect) : SharpeningPreview();
-                if(ShopOffer(145,0,upgrade,scraperEffect,scraperOwned,UpgradeCost))session.TryUpgrade();
+                if(ShopOffer(140,0,upgrade,scraperEffect,UpgradeCost,owned:scraperOwned))session.TryUpgrade();
                 if(paperCollection)
                 {
                     bool max=session.PaperCapacityPrice==0;
                     string label=max ? string.Format(T(PeelText.PaperCapacityMax),session.PaperCapacity)
-                        : string.Format(T(PeelText.PaperCapacityOffer),session.NextPaperCapacity,session.PaperCapacityPrice);
+                        : (ru ? "Вместимость до " : "Capacity to ")+session.NextPaperCapacity;
                     string bundle=string.Format(T(PeelText.PaperCollectionCount),session.CollectedItems,session.PaperCapacity);
-                    if(ShopOffer(240,1,label,bundle,max,session.PaperCapacityPrice))session.TryUpgradePaperCapacity();
+                    if(ShopOffer(235,1,label,bundle,session.PaperCapacityPrice,owned:max))BuyPaperCapacity();
                 }
                 else
                 {
-                    string steam=steamUnlocked?T(PeelText.SteamOwned):string.Format(T(PeelText.BuySteam),session.SteamPrice);
-                    if(ShopOffer(240,1,steam,T(PeelText.SteamDescription),steamUnlocked,session.SteamPrice,toolLevel==0?T(PeelText.SteamLocked):null))session.TryBuySteam();
-                    string expansion=steamExpanded?T(PeelText.SteamExpandedOwned):string.Format(T(PeelText.BuySteamExpansion),SteamExpansionCost);
-                    if(ShopOffer(335,2,expansion,T(PeelText.ShopWiderSteamEffect),steamExpanded,SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null))session.TryExpandSteam();
+                    if(ShopOffer(235,1,T(PeelText.Steamer),T(PeelText.SteamDescription),session.SteamPrice,toolLevel==0?T(PeelText.SteamLocked):null,steamUnlocked))session.TryBuySteam();
+                    string expansion=ru ? "Широкий пар" : "Wider steam";
+                    if(ShopOffer(330,2,expansion,T(PeelText.ShopWiderSteamEffect),SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null,steamExpanded))session.TryExpandSteam();
                 }
-                if(MenuButton(new Rect(58,paperCollection?344:448,460,40),T(PeelText.Close),ShopOptionCount-1))session.Back();
-                if(showPurchase)GUI.Label(new Rect(58,purchaseY,460,38),T(notice),small);
-                if(showSaveStatus)
+                string result=ShopPurchaseResult(ru);
+                if(result.Length>0)
                 {
-                    string status=purchaseSaveFailed && saveWarning
-                        ? (Settings.Language==PeelLanguage.Russian ? "Покупка отменена. Проверь доступ к папке сохранений."
-                            : "Purchase cancelled. Check access to the save folder.")
-                        : PauseSaveStatus();
-                    GUI.Label(new Rect(58,statusY,460,38),status,small);
+                    Fill(new Rect(58,resultY,474,62),new Color(.16f,.22f,.18f),7f);
+                    GUI.Label(new Rect(70,resultY+8,450,45),result,hudPrimary);
                 }
+                if(MenuButton(new Rect(58,closeY,474,40),T(PeelText.Close),ShopOptionCount-1))session.Back();
                 FocusMenu();
             }
             if(CurrentScreen==PeelScreen.Paused)
@@ -542,10 +559,29 @@ namespace JustOneMorePeel
             GUI.Label(new Rect(HudInset+HudPadding,y+10f,width-2*HudPadding,height),content,hudLabel);
         }
 
+        string EquippedTool() => T(activeTool==1 && steamUnlocked ? PeelText.Steamer : toolLevel>0 ? PeelText.Scraper : PeelText.Card);
+
+        string ShopPurchaseResult(bool ru)
+        {
+            if(purchaseSaveFailed)
+                return ru ? "Покупка отменена. Проверь доступ к папке сохранений."
+                    : "Purchase cancelled. Check access to the save folder.";
+            string result=shopPurchase switch
+            {
+                PeelText.Upgraded => ru ? "Шпатель куплен" : "Scraper purchased",
+                PeelText.ScraperSharpened => ru ? "Шпатель заточен" : "Scraper sharpened",
+                PeelText.SteamBought => ru ? "Отпариватель куплен" : "Steamer purchased",
+                PeelText.SteamExpanded => ru ? "Широкий пар куплен" : "Wider steam purchased",
+                _ => capacityPurchased ? (ru ? "Вместимость увеличена" : "Capacity upgraded") : ""
+            };
+            if(!save.Failed && !save.CheckpointBackupPending)return result;
+            return result.Length>0 ? result+"\n"+PauseSaveStatus() : PauseSaveStatus();
+        }
+
         string SelectedToolLabel()
         {
             bool steam=activeTool==1 && steamUnlocked;
-            string tool=T(steam ? PeelText.Steamer : toolLevel>0 ? PeelText.Scraper : PeelText.Card);
+            string tool=EquippedTool();
             if(!steamUnlocked)return tool;
             int key=steam ? (archiveIssueSlice ? 3 : 2) : archiveIssueSlice && toolLevel>0 ? 2 : 1;
             return key+"  ·  "+tool;
