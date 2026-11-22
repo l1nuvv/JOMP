@@ -2484,12 +2484,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JustOneMorePeel.PeelPosterStack
   posterCount: 2
   firstDesign: 26
-  secondDesign: 11
+  secondDesign: 29
   sequenceOffset: 0
   deeperDesigns: 
   maximumPaperSize: 0.46
   firstLayerScale: 1
-  deeperLayerScale: 0.96
+  deeperLayerScale: 0.86
   firstLayerOffset: 0.018
   scatteredLayers: 0
   precisionWork: 0
