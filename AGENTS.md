@@ -33,9 +33,16 @@ Load only the relevant route. Project skills are in .agents/skills; their local 
 - Inspect relevant source, scene and prefab state before edits. Preserve unrelated changes and Unity GUIDs/.meta. Do not mass-edit scene YAML.
 - Keep changes narrow; preserve the imported FirstPerson controller and current URP/Input System packages. No automatic engine/package migrations.
 - No paid assets, APIs, subscriptions or generation credits. No new integration or global installation without authorization.
-- Do not push, merge, rewrite history or modify remotes without explicit instruction. Do not force a commit just to complete a task.
+- Do not push, merge, rewrite history or modify remotes without explicit instruction.
 - Run focused checks. Do not create ZIPs, release builds or standalone candidates unless directly requested.
 - Use the existing Unity MCP setup and task-specific skills. Separate reference research, implementation and verification, with evidence appropriate to each step. For isolated experiments, follow [DEVELOPMENT](docs/DEVELOPMENT.md#isolated-experiments-and-local-history).
+
+## Commits
+
+- Complete each task with one or more local commits after the relevant verification. Split independent logical changes into separate, coherent commits; keep a single commit when the task is one logical change. Do not create empty commits.
+- Follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[optional scope][!]: <description>`. Use `feat` for features, `fix` for bug fixes, and appropriate types such as `docs`, `refactor`, `test`, `perf`, `build`, `ci`, `style`, or `chore` for other changes. Mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
+- Write a specific subject describing what the commit changes; add a body after a blank line when needed to explain why, important behavior, or limitations. Avoid vague messages such as `update` or `fix stuff`.
+- Inspect the working tree and staged diff. Commit only changes attributable to the task; preserve pre-existing or unrelated work, including changes in shared files, and never stage everything blindly. Report commit IDs and any changes that could not be committed. If verification fails or a commit is blocked, report the failure and leave the affected work intact rather than claiming completion.
 
 ## Asset quality and sourcing
 - Inspect suitable assets already in this project and authorized source projects before making assets.
