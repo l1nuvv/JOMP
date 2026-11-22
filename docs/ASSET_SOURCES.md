@@ -1,5 +1,7 @@
 # Asset sourcing and reuse
 
+**ECO-102, пробный приём макулатуры.** В `MainArchiveBlockout` повторно использованы модель Tool Cart от Savva Zakharov (Poly Haven, CC0) и её существующий матовый материал URP. Двуязычная табличка использует `Interior muted wood.mat` и штатный шрифт Unity. Приём поставлен рядом с левым планшетом и проверен с игровой камеры. [Кадры](development/JOMP_NEXT_TASKS.md#eco-102)
+
 **M7-LV-001, потёк под муфтой.** Из скачанного набора `Leaking009_1K-JPG` взяты фрагменты карт Color и Opacity. Они объединены в `Art/Integrated/Basement pipe seepage.png` и развёрнуты по направлению стока. В MainRoute материал URP Lit нанесён на участок стены 0,54 × 1,75 м. Лицензия CC0 допускает изменение и коммерческое использование без обязательной атрибуции. [Leaking 009 на ambientCG](https://ambientcg.com/view?id=Leaking009)
 
 **MAIN-008, служебный путь.** В `MainCourtyardBlockout` поставлены существующий шкаф `BasementStorageCandidate` из Kenney Furniture Kit, выключатель и створка из `ThreeAreaPrototype`, корпус светильника из `MainArchiveBlockout` и пробный отпечаток `31_RoundsLog`. Объём трубы и креплений временный. Доступ к планшету и проход у шкафа проверены со штатной капсулой. [Кадры и проверка](development/JOMP_NEXT_TASKS.md#main-008)

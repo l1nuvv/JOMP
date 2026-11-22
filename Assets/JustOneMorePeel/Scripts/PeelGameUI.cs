@@ -49,6 +49,7 @@ namespace JustOneMorePeel
         bool focusMenu=true;
         int menuSelection;
         int payoutAmount, payoutFrame=-1;
+        int paperReceiptStrips;
         float payoutUntil;
         PeelText notice=PeelText.Welcome;
         bool purchaseSaveFailed;
@@ -94,7 +95,11 @@ namespace JustOneMorePeel
         internal void ShowPayout()
         {
             if(payoutFrame!=Time.frameCount)payoutAmount=0;
-            payoutAmount+=2;payoutFrame=Time.frameCount;payoutUntil=Time.unscaledTime+1.25f;
+            payoutAmount+=StripValue;payoutFrame=Time.frameCount;payoutUntil=Time.unscaledTime+1.25f;
+        }
+        internal void ShowPaperReceipt(int strips,int payout)
+        {
+            paperReceiptStrips=strips;payoutAmount=payout;payoutUntil=Time.unscaledTime+3f;
         }
 
         string PauseSaveStatus()
@@ -432,8 +437,9 @@ namespace JustOneMorePeel
             string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
             bool bundleFull=paperCollection && session.CollectedStrips>=PaperCapacity;
             if(paperCollection)
-                objective=bundleFull ? (ru ? "Esc — открыть меню" : "Esc — open the menu")
-                    : (ru ? "Собери пять полос картой" : "Collect five strips with the card");
+                objective=bundleFull ? T(PeelText.PaperDropOffObjective)
+                    : session.CollectedStrips>0 ? T(PeelText.PaperDropOffOptional)
+                    : (ru ? "Собери полосы картой" : "Collect strips with the card");
             else if(archiveIssueSlice)
             {
                 objective=session.ArchiveIssueAddressFound
@@ -469,6 +475,12 @@ namespace JustOneMorePeel
                         session.CollectedStrips,PaperCapacity);
                     float width=center.CalcSize(new GUIContent(bundle)).x+24f;
                     DrawHint(new Rect(w-22f-width,80f,width,29f),bundle);
+                    if(Time.unscaledTime<payoutUntil)
+                    {
+                        string receipt=string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptStrips,payoutAmount);
+                        float receiptWidth=center.CalcSize(new GUIContent(receipt)).x+24f;
+                        DrawHint(new Rect(w-22f-receiptWidth,117f,receiptWidth,29f),receipt);
+                    }
                 }
                 else if(Time.unscaledTime<payoutUntil)
                     DrawHint(new Rect(w-140,80,118,29),"+$"+payoutAmount);
@@ -497,12 +509,15 @@ namespace JustOneMorePeel
                 if(archiveTools)DrawToolSlot(new Rect(w-22f-steamWidth,h-72,steamWidth,50),steam,"3",activeTool==1);
             }
             DrawReticle(w,h);
-            if(IsPeeling || bundleFull)return;
+            if(IsPeeling)return;
 
-            string hint=AwaitingRelease ? (complete ? "" : T(PeelText.ReleaseGrip)) : TargetHint();
+            string hint=bundleFull ? "" : AwaitingRelease ? (complete ? "" : T(PeelText.ReleaseGrip)) : TargetHint();
             if(!AwaitingRelease && target && routePrototype && door && routePrototype.IsOptionalCourtyardNotice(target.Stack))
                 hint=(ru ? "Дополнительно" : "Optional")+" · "+hint;
-            if(session.CanUseWorkbench())hint=WorkbenchHint();
+            if(session.CanUseWorkbench())
+                hint=paperCollection
+                    ? T(session.CollectedStrips>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
+                    : WorkbenchHint();
             if(routePrototype && routePrototype.CanOpenDoor())hint=ru ? "E   Открыть дверь" : "E   Open door";
             if(basementLight && basementLight.CanInteract())
                 hint=basementLight.SwitchIsOn ? (ru ? "E   Выключить свет" : "E   Switch off light")

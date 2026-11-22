@@ -15,7 +15,8 @@ namespace JustOneMorePeel
         ShopScraperEffect, ShopSharpenEffect, ShopWiderSteamEffect, ShopRequiresSteam, ShopCashShortfall,
         ShopSharpenMaxTime, ScraperSharpened, ScraperAvailable, SharpenAvailable, SteamAvailable, WiderSteamAvailable,
         PrecisionScraper, PrecisionSwitchToScraper, ReadArchiveNote, EnterBasement, EnterArchive, EquippedTool,
-        PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperCollectionUnsaved, PaperCollectionControls
+        PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperCollectionUnsaved, PaperCollectionControls,
+        PaperDropOffSign, PaperDropOffObjective, PaperDropOffOptional, PaperDropOffInteract, PaperDropOffEmpty, PaperDropOffReceipt
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -90,8 +91,14 @@ namespace JustOneMorePeel
             {"Paper bundle · {0}/{1}","Пачка · {0}/{1}"},
             {"Bundle full · {0}/{1}","Пачка полна · {0}/{1}"},
             {"Trial progress is not saved","Проба проходит без сохранения"},
-            {"WASD — move · Mouse — look · Hold LMB to peel with the card\nEsc — pause/back · Tab / ↑↓ — navigate · Enter — select",
-             "WASD — движение · Мышь — обзор · Держи ЛКМ, чтобы снять полосу картой\nEsc — пауза/назад · Tab / ↑↓ — выбор · Enter — подтвердить"}
+            {"WASD — move · Mouse — look · Hold LMB to peel\nE — drop off paper · Esc — pause/back\nMenus: Tab / ↑↓ — navigate · ←→ — adjust · Enter — select",
+             "WASD — движение · Мышь — обзор · ЛКМ — снять полосу\nE — сдать бумагу · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"},
+            {"PAPER DROP-OFF","МАКУЛАТУРА"},
+            {"Drop off the bundle at the cart","Сдай пачку у тележки"},
+            {"Collect more strips or drop off at the cart","Собирай полосы или сдай пачку у тележки"},
+            {"E — Drop off paper","E — Сдать бумагу"},
+            {"Paper drop-off · bundle empty","Приём бумаги · пачка пуста"},
+            {"Strips accepted · {0} · +${1}","Сдано {0} шт. · +${1}"}
         };
 
         void Awake() { Load(); }

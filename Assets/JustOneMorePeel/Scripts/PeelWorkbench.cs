@@ -4,6 +4,7 @@ namespace JustOneMorePeel
 {
     public class PeelWorkbench : MonoBehaviour
     {
+        [SerializeField] private TextMesh paperDropOffLabel;
         PeelGame game;
         PeelRoutePrototype route;
         sealed class ToolHighlight
@@ -18,6 +19,7 @@ namespace JustOneMorePeel
 
         void Start()
         {
+            if(paperDropOffLabel)return;
             game=FindAnyObjectByType<PeelGame>();
             if(game)route=game.GetComponent<PeelRoutePrototype>();
             markerMaterial=new Material(Shader.Find("Universal Render Pipeline/Unlit"));
@@ -26,6 +28,11 @@ namespace JustOneMorePeel
             purchaseMaterial.SetColor("_BaseColor",new Color(.64f,.95f,.78f));
             scraper=FindTool("Scraper on tray");
             steamer=FindTool("Steamer on tray");
+        }
+
+        internal void RefreshPaperDropOffLabel(PeelSettings settings)
+        {
+            if(paperDropOffLabel)paperDropOffLabel.text=settings.Text(PeelText.PaperDropOffSign);
         }
 
         ToolHighlight FindTool(string childName)

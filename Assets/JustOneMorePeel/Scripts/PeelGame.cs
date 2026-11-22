@@ -22,6 +22,7 @@ namespace JustOneMorePeel
         [SerializeField] private bool archiveIssueSlice;
         [SerializeField] private PeelPosterStack archiveIssueAddress;
         [SerializeField] private TextMesh archiveIssueShelfLabel;
+        [SerializeField] private PeelWorkbench paperDropOff;
         public int money, removed, total, toolLevel;
         public bool steamUnlocked;
         public bool steamExpanded;
@@ -167,6 +168,7 @@ namespace JustOneMorePeel
                 foreach(var stack in stacks)stack.RefreshMaterials();
                 if(archiveIssueShelfLabel)
                     archiveIssueShelfLabel.text=Settings.Language==PeelLanguage.Russian ? "Полка Б" : "Shelf B";
+                if(paperDropOff)paperDropOff.RefreshPaperDropOffLabel(Settings);
                 Settings.ApplyWorldText();appliedLanguage=Settings.Language;appliedSettings=true;
             }
         }
@@ -243,7 +245,12 @@ namespace JustOneMorePeel
                 if(keyboard.eKey.wasPressedThisFrame)
                 {
                     var workbench=WorkbenchInReach();
-                    if(workbench){shopWorkbench=workbench;SetScreen(PeelScreen.Shop);return;}
+                    if(workbench)
+                    {
+                        if(PaperCollectionActive)DeliverPaper();
+                        else {shopWorkbench=workbench;SetScreen(PeelScreen.Shop);}
+                        return;
+                    }
                 }
                 if(keyboard.digit1Key.wasPressedThisFrame)
                 {
@@ -289,8 +296,9 @@ namespace JustOneMorePeel
         }
         public void BeginPaperCollection()
         {
-            if(CurrentScreen!=PeelScreen.Intro || !archiveIssueSlice)return;
+            if(CurrentScreen!=PeelScreen.Intro || !archiveIssueSlice || !paperDropOff)return;
             PaperCollectionActive=true;
+            paperDropOff.gameObject.SetActive(true);
             SetScreen(PeelScreen.Playing);
         }
         public void OpenSettings()
@@ -397,9 +405,20 @@ namespace JustOneMorePeel
             if(restorePitch && controller)controller.RestoreLookPitch(pitch);
             Physics.SyncTransforms();
         }
-        PeelWorkbench WorkbenchInReach() => !PaperCollectionActive && view && player && Physics.Raycast(view.transform.position,view.transform.forward,out var hit,2.5f)
-            ? hit.collider.GetComponentInParent<PeelWorkbench>() : null;
+        PeelWorkbench WorkbenchInReach()
+        {
+            if(!view || !player || !Physics.Raycast(view.transform.position,view.transform.forward,out var hit,2.5f))return null;
+            var workbench=hit.collider.GetComponentInParent<PeelWorkbench>();
+            return workbench && (workbench==paperDropOff)==PaperCollectionActive ? workbench : null;
+        }
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
+        void DeliverPaper()
+        {
+            var (strips,payout)=progression.DeliverPaper(ref money);
+            if(strips==0)return;
+            Release();
+            ui.ShowPaperReceipt(strips,payout);
+        }
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
             interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,CanPeelPaper,ref removed);
         public bool NeedsStripScrap(PeelStrip strip) => interaction.NeedsStripScrap(strip);
