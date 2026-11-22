@@ -4,6 +4,7 @@ namespace JustOneMorePeel
 {
     public sealed class PeelArchiveClue : MonoBehaviour
     {
+        [SerializeField] PeelSettings placedNoteSettings;
         PeelSettings settings;
         Material material;
         Texture2D russian, english;
@@ -15,7 +16,15 @@ namespace JustOneMorePeel
 
         internal Texture2D CurrentTexture => settings && settings.Language==PeelLanguage.Russian ? russian : english;
 
-        public void Initialize(PeelSettings owner,Light lamp)
+        void Start()
+        {
+            if (placedNoteSettings)
+                Initialize(placedNoteSettings, null, GetComponent<Renderer>());
+        }
+
+        public void Initialize(PeelSettings owner, Light lamp) => Initialize(owner, lamp, null);
+
+        void Initialize(PeelSettings owner, Light lamp, Renderer placedPage)
         {
             settings=owner;
             russian=Resources.Load<Texture2D>("ArchiveClue_ru");
@@ -24,18 +33,22 @@ namespace JustOneMorePeel
             if(!settings || !russian || !english || !shader)
             { Debug.LogError("Archive clue: missing settings, texture or shader",this);return; }
 
-            var placeholder=GetComponent<Renderer>();
-            if(placeholder)placeholder.enabled=false;
-            var note=GameObject.CreatePrimitive(PrimitiveType.Quad);
-            note.name="Archive note";
-            note.transform.SetParent(transform,false);
-            note.transform.localPosition=new Vector3(0,0,-.6f);
-            note.transform.localScale=new Vector3(.47f,.625f,1f);
-            Destroy(note.GetComponent<Collider>());
-            page=note.transform;
+            if (!placedPage)
+            {
+                var placeholder=GetComponent<Renderer>();
+                if(placeholder)placeholder.enabled=false;
+                var note=GameObject.CreatePrimitive(PrimitiveType.Quad);
+                note.name="Archive note";
+                note.transform.SetParent(transform,false);
+                note.transform.localPosition=new Vector3(0,0,-.6f);
+                note.transform.localScale=new Vector3(.47f,.625f,1f);
+                Destroy(note.GetComponent<Collider>());
+                placedPage=note.GetComponent<Renderer>();
+            }
+            page=placedPage.transform;
             material=new Material(shader);
             material.SetFloat("_Smoothness",0f);
-            note.GetComponent<Renderer>().sharedMaterial=material;
+            placedPage.sharedMaterial=material;
             settings.Changed+=RefreshLanguage;
             RefreshLanguage();
             revealLamp=lamp;
