@@ -91,6 +91,9 @@ namespace JustOneMorePeel
         bool IsPeeling => interaction.IsPeeling;
         bool AwaitingRelease => interaction.AwaitingRelease;
         PeelStrip target => interaction.Target;
+        bool ShowsFirstScraperOffer => toolLevel==0 && !archiveIssueSlice && !(routePrototype && routePrototype.ReviewMode);
+        bool FirstScraperSignalActive => ShowsFirstScraperOffer && !paperCollection && CanUpgrade(money,toolLevel)
+            && notice==PeelText.ScraperAvailable && Time.time<noticeUntil;
 
         internal PeelGameUI(IPeelGameUIState session,PeelInteractionController interaction,PeelSaveCoordinator save,
             PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light)
@@ -462,7 +465,8 @@ namespace JustOneMorePeel
                 GUI.Label(new Rect(w/2-360,noticeY,720,50),T(PeelText.Finished),center);
                 noticeY += 55f;
             }
-            else if(Time.time<noticeUntil && notice!=PeelText.PaperDropOffSaveFailed && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
+            else if(Time.time<noticeUntil && notice!=PeelText.PaperDropOffSaveFailed && !FirstScraperSignalActive
+                && (notice!=PeelText.Welcome || (!routePrototype && !archiveIssueSlice)))
             {
                 bool upgradeNotice=notice==PeelText.ScraperAvailable || notice==PeelText.SharpenAvailable;
                 bool steamNotice=notice==PeelText.SteamAvailable || notice==PeelText.WiderSteamAvailable;
@@ -532,12 +536,15 @@ namespace JustOneMorePeel
                 }
                 else if(Time.unscaledTime<payoutUntil)
                     DrawHint(new Rect(w-140,80,118,29),"+$"+payoutAmount);
-                if(toolLevel==0 && !review && !archiveIssueSlice)
+                if(ShowsFirstScraperOffer)
                 {
-                    string offer=money>=UpgradeCost ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
+                    string offer=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
                         : T(PeelText.Scraper)+"  $"+money+" / $"+UpgradeCost;
-                    float width=center.CalcSize(new GUIContent(offer)).x+24f;
-                    DrawHint(new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29),offer);
+                    bool highlight=FirstScraperSignalActive;
+                    float width=center.CalcSize(new GUIContent(offer)).x+(highlight ? 38f : 24f);
+                    var offerRect=new Rect(w-22f-width,Time.unscaledTime<payoutUntil ? 117f : 80f,width,29);
+                    DrawHint(offerRect,offer);
+                    if(highlight)Fill(new Rect(offerRect.x+7f,offerRect.y+7f,3f,15f),Amber,1.5f);
                 }
 
                 bool hasSecondary=steamUnlocked;
