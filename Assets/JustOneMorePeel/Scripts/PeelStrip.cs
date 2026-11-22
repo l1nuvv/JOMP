@@ -116,6 +116,8 @@ namespace JustOneMorePeel
             // Start at the attached seam. Each row advances by its original
             // length while the free edge winds into a progressively tighter roll.
             float radius=Mathf.Max(.001f,Mathf.Min(height*.19f,.105f));
+            // Keep the first lift soft and build tension as the last of the glue gives.
+            radius *= 1f - .22f * progress * progress;
             radius*=1f+.025f*Mathf.Sin(Time.time*8f);
             float previousLoose=0f, offset=0f, depth=0f;
             for(int row=0;row<=rows;row++)

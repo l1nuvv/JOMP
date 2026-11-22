@@ -27,6 +27,9 @@ namespace JustOneMorePeel
         float wallSteamBudget;
         float gripBlend;
         Vector3 contactInView;
+        bool wasWorkingWithCard;
+        float cardContactStarted = float.NegativeInfinity;
+        const float CardContactDuration = .09f;
         float detachTime=float.NegativeInfinity, detachStrength;
         const float DetachRise=.035f, DetachSettle=.16f;
         public void Initialize(PeelGame owner, GameObject cardPrefab, GameObject scraperPrefab, GameObject steamerPrefab)
@@ -183,16 +186,17 @@ namespace JustOneMorePeel
             wrist.localRotation=wristRestRotation;
         }
 
-        void AlignForearm()
+        void AlignForearm(bool usingScraper)
         {
             if(!hand)return;
             ResetForearm();
             Vector3 wristPoint=wrist.position;
             Quaternion wristRotation=wrist.rotation;
             // Guide the sleeve back toward the player's elbow while keeping the grip fixed.
-            Vector3 elbow=transform.TransformPoint(new Vector3(.48f,-.40f,.16f));
+            Vector3 elbowInView = usingScraper ? new Vector3(.28f, -.50f, .07f) : new Vector3(.48f, -.40f, .16f);
+            Vector3 elbow=transform.TransformPoint(elbowInView);
             Quaternion bend=Quaternion.FromToRotation(wristPoint-forearm.position,wristPoint-elbow);
-            forearm.rotation=Quaternion.RotateTowards(Quaternion.identity,bend,24f)*forearm.rotation;
+            forearm.rotation=Quaternion.RotateTowards(Quaternion.identity,bend,usingScraper ? 55f : 24f)*forearm.rotation;
             forearm.position+=wristPoint-wrist.position;
             wrist.rotation=wristRotation;
         }
@@ -303,6 +307,13 @@ namespace JustOneMorePeel
             if(steamer.activeSelf!=useSteam)steamer.SetActive(useSteam);
             if(scraper.activeSelf!=(!useSteam && !useCard))scraper.SetActive(!useSteam && !useCard);
             if(card.activeSelf!=useCard)card.SetActive(useCard);
+            bool workingWithCard = working && useCard;
+            if (workingWithCard && !wasWorkingWithCard)
+            {
+                gripBlend = 1f;
+                cardContactStarted = Time.time;
+            }
+            wasWorkingWithCard = workingWithCard;
             gripBlend=Mathf.MoveTowards(gripBlend,working?1f:0f,Time.deltaTime/.12f);
             float eased=gripBlend*gripBlend*(3f-2f*gripBlend);
             if(working)
@@ -319,6 +330,7 @@ namespace JustOneMorePeel
             }
             SetHandGrip(selectedTool);
             float drawOffset=1f-Mathf.SmoothStep(0f,1f,(Time.time-toolDrawStarted)/ToolDrawDuration);
+            if (useCard) drawOffset *= 1f - eased;
             float tremble=working?Mathf.Sin(Time.time*19)*.0012f:0f;
             float age=Time.time-detachTime;
             float recoil=age<DetachRise ? Mathf.SmoothStep(0f,1f,age/DetachRise)
@@ -330,6 +342,11 @@ namespace JustOneMorePeel
             var pressRotation=useSteam
                 ? Quaternion.Euler(63f,-3f,19f)*Quaternion.AngleAxis(123f,Vector3.up)
                 : Quaternion.Euler(useCard ? 36f : 22f,12f,24f);
+            if (useCard)
+            {
+                float contactRoll = Mathf.SmoothStep(20f, 0f, (Time.time - cardContactStarted) / CardContactDuration);
+                pressRotation = Quaternion.AngleAxis(contactRoll, Vector3.forward) * pressRotation;
+            }
             var position=rest;
             if(eased>0f && contactInView.z>.01f)
             {
@@ -339,12 +356,15 @@ namespace JustOneMorePeel
                 float depth=Mathf.Min(useCard ? .41f : useSteam ? .82f : .72f,contactInView.z-.012f);
                 var contactPose=contactInView*(depth/contactInView.z)-pressRotation*tip;
                 position=Vector3.Lerp(rest,contactPose,eased);
+                // Clear the curled edge on the way between contact and rest.
+                float clearance = 4f * eased * (1f - eased);
+                position += new Vector3(0f, -.04f, -.03f) * clearance;
             }
             position+=new Vector3(0,tremble*eased-.012f*recoil-.105f*drawOffset,-.026f*recoil);
             tool.localPosition=position;
             tool.localRotation=Quaternion.Slerp(idleRotation,pressRotation,eased)
                 *Quaternion.Euler(-7f*recoil,0,3f*recoil);
-            AlignForearm();
+            AlignForearm(!useCard && !useSteam);
 
             bool spraying=working&&useSteam;
             if(spraying&&!steam.isPlaying)steam.Play();
