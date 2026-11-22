@@ -87,7 +87,7 @@ namespace JustOneMorePeel
                     SelectSteamTargets(target.Stack,previewStacks,view,reach,steamExpanded,Mathf.Min(steamExpanded?5:3,freePaperSlots??5));
                 else previewStacks.Add(target.Stack);
             }
-            if(Outline)Outline.SetTargets(previewStacks,toolLevel>0);
+            if(Outline)Outline.SetTargets(previewStacks,toolLevel>0,usingSteam);
             if(!pressed){Release();setLookFrozen(false);AwaitingRelease=false;return;}
             if(AwaitingRelease)return;
             if(!canStartGrip && !IsPeeling){setLookFrozen(false);return;}
@@ -144,7 +144,7 @@ namespace JustOneMorePeel
                 if(completedSheet)
                 {
                     previewStacks.RemoveAll(stack=>stack.NeedsAdvance);
-                    if(Outline)Outline.SetTargets(previewStacks,true);
+                    if(Outline)Outline.SetTargets(previewStacks,true,usingSteam);
                 }
             }
             else

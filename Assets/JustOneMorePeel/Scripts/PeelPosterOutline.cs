@@ -10,7 +10,8 @@ namespace JustOneMorePeel
         LineRenderer line;
         readonly List<LineRenderer> lines=new List<LineRenderer>();
         readonly List<PeelPosterStack> targets=new List<PeelPosterStack>();
-        Material material, precisionMaterial;
+        Material material, precisionMaterial, steamMaterial;
+        const float OutlineWidth=.009f, SteamOutlineWidth=.013f;
         readonly Vector3[] corners=new Vector3[4];
         void Awake()
         {
@@ -19,23 +20,25 @@ namespace JustOneMorePeel
             material.SetColor("_BaseColor",new Color(.96f,.79f,.43f));line.sharedMaterial=material;
             precisionMaterial=new Material(material);
             precisionMaterial.SetColor("_BaseColor",new Color(.58f,.88f,.74f));
-            line.useWorldSpace=true;line.loop=true;line.positionCount=4;line.widthMultiplier=.009f;
+            steamMaterial=new Material(material);
+            steamMaterial.SetColor("_BaseColor",new Color(.24f,.79f,1f));
+            line.useWorldSpace=true;line.loop=true;line.positionCount=4;
             line.numCornerVertices=3;line.numCapVertices=2;
             line.shadowCastingMode=ShadowCastingMode.Off;line.receiveShadows=false;line.enabled=false;
             lines.Add(line);
         }
         public void SetTarget(PeelPosterStack stack)
         { targets.Clear();if(stack)targets.Add(stack);RefreshLines(); }
-        public void SetTargets(List<PeelPosterStack> stacks, bool showPrecision=false)
-        { targets.Clear();targets.AddRange(stacks);RefreshLines(showPrecision); }
-        void RefreshLines(bool showPrecision=false)
+        public void SetTargets(List<PeelPosterStack> stacks, bool showPrecision=false, bool steam=false)
+        { targets.Clear();targets.AddRange(stacks);RefreshLines(showPrecision,steam); }
+        void RefreshLines(bool showPrecision=false, bool steam=false)
         {
             Selected=targets.Count>0?targets[0]:null;
             while(lines.Count<targets.Count)
             {
                 var child=new GameObject("Additional poster outline");child.transform.SetParent(transform,false);
                 var extra=child.AddComponent<LineRenderer>();extra.sharedMaterial=material;extra.useWorldSpace=true;extra.loop=true;
-                extra.positionCount=4;extra.widthMultiplier=line.widthMultiplier;extra.numCornerVertices=3;extra.numCapVertices=2;
+                extra.positionCount=4;extra.numCornerVertices=3;extra.numCapVertices=2;
                 extra.shadowCastingMode=ShadowCastingMode.Off;extra.receiveShadows=false;lines.Add(extra);
             }
             for(int i=0;i<lines.Count;i++)
@@ -43,8 +46,10 @@ namespace JustOneMorePeel
                 var current=lines[i];
                 current.enabled=i<targets.Count && targets[i] && targets[i].RemainingPosters>0;
                 if(!current.enabled)continue;
-                var outlineMaterial=showPrecision && targets[i].PrecisionWork ? precisionMaterial : material;
+                var outlineMaterial=steam ? steamMaterial : material;
+                if(showPrecision && targets[i].PrecisionWork)outlineMaterial=precisionMaterial;
                 if(current.sharedMaterial!=outlineMaterial)current.sharedMaterial=outlineMaterial;
+                current.widthMultiplier=steam ? SteamOutlineWidth : OutlineWidth;
             }
             UpdateCorners();
         }
@@ -68,6 +73,7 @@ namespace JustOneMorePeel
         {
             if(material)Destroy(material);
             if(precisionMaterial)Destroy(precisionMaterial);
+            if(steamMaterial)Destroy(steamMaterial);
         }
     }
 }
