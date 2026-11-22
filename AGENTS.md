@@ -16,6 +16,8 @@ Use [docs/ROADMAP.md](docs/ROADMAP.md) for the next task. Explicit owner decisio
 - Engineering and structure: [ENGINEERING_STANDARD](docs/ENGINEERING_STANDARD.md).
 Load only the relevant route. Project skills are in .agents/skills; their local context and this file override generic examples.
 
+For Codex plugin skill selection and model guidance, see [Development](docs/DEVELOPMENT.md#codex-skills-and-models). Use project Unity skills first and add a plugin skill when its workflow contributes to the task.
+
 ## Unity skills
 
 - Use [unity-mcp-skill](.agents/skills/unity-mcp-skill/SKILL.md) for Editor operations and the existing task-specific project skills for implementation.
@@ -62,3 +64,8 @@ Load only the relevant route. Project skills are in .agents/skills; their local 
 - Test continuous held input across layer transitions and workbench range, facing and occlusion.
 - Preserve evidence of failures and state what remains unverified. Do not promise optimization from draw-call counts or Editor screenshots alone.
 - Report the result, checks and limits concisely. Source-project gate labels, city economy, release history and approvals do not apply here.
+
+## Local code graph
+
+- Use Graphify for dependency and impact questions when `graphify-out/graph.json` is available. Start with `graphify query`, `graphify path`, or `graphify explain`, then verify relevant links in source. Check Unity serialization in the actual scenes and prefabs through the existing Unity workflow.
+- To build or refresh the local graph, run `$env:GRAPHIFY_BACKEND = 'none'` and `graphify extract Assets --out . --code-only` from the repository root. Refresh when a change makes the graph stale for the task at hand. Keep the existing Unity skills and focused verification workflow.

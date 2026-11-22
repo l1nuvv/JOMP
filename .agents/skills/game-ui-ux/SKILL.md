@@ -66,7 +66,7 @@ func _ready() -> void:
     # An HBoxContainer auto-lays-out children left-to-right; never position hearts by hand.
     for i in lives:
         $Hearts.add_child(make_heart())                   # HBoxContainer spaces them for you
-# Unity 6.3 LTS uGUI: set RectTransform anchors to the corner; use a HorizontalLayoutGroup.
+# Unity 6 uGUI: set RectTransform anchors to the corner; use a HorizontalLayoutGroup.
 # RIGHT: anchors + layout groups. WRONG: rect.anchoredPosition = new Vector2(640, 360) (1080p-only).
 ```
 
@@ -76,7 +76,7 @@ func _ready() -> void:
 # Godot 4.7 — Project Settings > Display > Window > Stretch:
 #   Mode = "canvas_items", Aspect = "expand", reference size e.g. 1920x1080.
 #   UI scales to the window; "expand" reveals extra space you anchor HUD corners into.
-# Unity 6.3 LTS — Canvas > CanvasScaler:
+# Unity 6 — Canvas > CanvasScaler:
 #   UI Scale Mode = "Scale With Screen Size", Reference Resolution = 1920x1080,
 #   Match = 0.5 (blend width/height) — pick 1.0 if your HUD is height-critical.
 ```
@@ -92,7 +92,7 @@ func _apply_safe_area() -> void:
     $Margin.add_theme_constant_override("margin_top",  safe.position.y)
     $Margin.add_theme_constant_override("margin_right", win.x - safe.end.x)
     $Margin.add_theme_constant_override("margin_bottom", win.y - safe.end.y)
-# Unity 6.3 LTS: read Screen.safeArea (Rect in pixels) and set a panel's anchorMin/anchorMax to
+# Unity 6: read Screen.safeArea (Rect in pixels) and set a panel's anchorMin/anchorMax to
 # safeArea.position / (position+size) normalized by Screen.width/height.
 ```
 
@@ -104,7 +104,7 @@ func _on_screen_shown() -> void:
     $PlayButton.grab_focus()                               # always focus SOMETHING on open
 $PlayButton.focus_neighbor_bottom = $SettingsButton.get_path()
 $SettingsButton.focus_neighbor_top = $PlayButton.get_path()
-# Unity 6.3 LTS: EventSystem.SetSelectedGameObject(playButton) on enable; set each Selectable's
+# Unity 6: EventSystem.SetSelectedGameObject(playButton) on enable; set each Selectable's
 # Navigation (Explicit or Automatic). RIGHT: a control is focused on open. WRONG: nothing
 # selected → the gamepad does nothing and the player is stuck.
 ```

@@ -1,7 +1,7 @@
 ---
 name: unity-input-system
 description: >
-  Wire player input in Unity 6.3 LTS with the Input System package: Input Actions, action maps,
+  Wire player input in Unity 6 with the Input System package: Input Actions, action maps,
   the PlayerInput component, and reading values via callbacks or polling. Use when the
   project has a .inputactions asset or com.unity.inputsystem, or when the user mentions the
   Unity Input System, InputAction, action maps, PlayerInput, control schemes, or rebinding.
@@ -14,7 +14,7 @@ Read ../../../AGENTS.md and the applicable docs route before using generic examp
 # Unity Input System (new)
 
 Read input through Unity's **Input System package** (`com.unity.inputsystem`, 1.x) —
-action-based, device-agnostic, rebindable. Targets **Unity 6.3 LTS**. This is the modern
+action-based, device-agnostic, rebindable. Use the Input System version in Packages/packages-lock.json. This is the modern
 replacement for the legacy `Input.GetAxis`/`Input.GetKey` Input Manager.
 
 ## When to use

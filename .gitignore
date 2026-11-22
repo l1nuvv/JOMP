@@ -13,6 +13,7 @@
 /.idea/
 /.plastic/
 /.codex-remote-attachments/
+/graphify-out/
 
 # Generated IDE and debugging files
 *.csproj

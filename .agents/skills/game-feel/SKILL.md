@@ -88,7 +88,7 @@ func _process(dt: float) -> void:
     offset = Vector2(max_offset.x * shake * sin(_t * 1.7),
                      max_offset.y * shake * sin(_t * 2.3))
     rotation = max_roll * shake * sin(_t * 1.1)
-# Unity 6.3 LTS: identical model on a CinemachineCamera via CinemachineBasicMultiChannelPerlin
+# Unity 6: identical model on a CinemachineCamera via CinemachineBasicMultiChannelPerlin
 # (set AmplitudeGain/FrequencyGain from trauma^2) — see camera-systems.
 ```
 
@@ -104,7 +104,7 @@ func hit_stop(duration := 0.08, scale := 0.05) -> void:
 ```
 
 ```csharp
-// Unity 6.3 LTS (C#). WaitForSecondsRealtime ignores Time.timeScale, so the timer still elapses.
+// Unity 6 (C#). WaitForSecondsRealtime ignores Time.timeScale, so the timer still elapses.
 IEnumerator HitStop(float duration = 0.08f, float scale = 0.05f) {
     Time.timeScale = scale;
     yield return new WaitForSecondsRealtime(duration);
