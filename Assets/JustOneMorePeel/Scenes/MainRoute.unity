@@ -26745,9 +26745,9 @@ MonoBehaviour:
   sequenceOffset: 0
   deeperDesigns: 
   maximumPaperSize: 0.74
-  firstLayerScale: 1
+  firstLayerScale: 1.1
   deeperLayerScale: 0.96
-  firstLayerOffset: 0.018
+  firstLayerOffset: -0.05
   scatteredLayers: 0
   precisionWork: 0
   front:
