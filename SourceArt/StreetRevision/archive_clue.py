@@ -15,9 +15,10 @@ def make(language):
     small = ImageFont.truetype(str(FONT), 49)
     heading = 'ДОМОВОЙ АРХИВ  /  17' if language == 'ru' else 'HOUSE ARCHIVE  /  17'
     draw.text((76, 88), heading, font=typeface, fill='#665c4d')
-    lines = (['Стук снова слышен', 'за закрытой дверью.', 'Я проверил — там никого.', '', 'Но кто-то оставил', 'объявления из нашего двора.'] if language == 'ru' else
-             ['The knocking came again', 'from behind the closed door.', 'I checked — no one was there.', '', 'But someone left notices', 'from our courtyard.'])
+    lines = (['По заявке №17', 'У двери люфтит защёлка.', 'Чуть сквозняк — и дверь', 'стучит о косяк.', 'Сложил афишу вчетверо,', 'подложил. Пока тихо.'] if language == 'ru' else
+             ['Re: job 17', 'The archive latch is loose.', 'Every draft knocks the door', 'against the frame.', 'I folded a gig flyer twice', 'and wedged it in. Quiet now.'])
     for i, line in enumerate(lines):
+        assert draw.textbbox((83, 230 + i * 83), line, font=hand)[2] <= 720, line
         draw.text((83, 230 + i * 83), line, font=hand, fill='#393e3a', stroke_width=0)
     draw.text((505, 816), '— М.' if language == 'ru' else '— M.', font=small, fill='#393e3a')
     draw.line((75, 919, 340, 919), fill='#b7a98e', width=2)
