@@ -392,7 +392,12 @@ namespace JustOneMorePeel
                 RefreshCourtyardLever();
             }
             if(!basementOpen && Left(basement)==0)SetBasementDoorOpen(true,true);
-            if(!Completed && Left(hall)==0){Completed=true;finalReveal.SetActive(true);}
+            if(!Completed && Left(hall)==0)
+            {
+                Completed=true;
+                finalReveal.SetActive(true);
+                if(!ReviewMode)game.PlayArchiveReveal();
+            }
         }
     }
 }

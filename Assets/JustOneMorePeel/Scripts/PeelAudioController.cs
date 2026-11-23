@@ -22,8 +22,9 @@ namespace JustOneMorePeel
         float ambienceGain=1f;
         const float KnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
         AudioClip rip, steamHiss, detachClip;
-        AudioSource detachSource, sheetDetachSource, purchaseSource;
+        AudioSource detachSource, sheetDetachSource, purchaseSource, archiveRevealSource;
         const float PurchaseGain=.23f;
+        const float ArchiveRevealGain=.30f, ArchiveRevealDelay=.22f;
         AudioLowPassFilter peelFilter;
         float soundEnvelope;
         bool soundFadingOut;
@@ -56,6 +57,10 @@ namespace JustOneMorePeel
             purchaseSource.spatialBlend=0f;
             purchaseSource.pitch=.78f;
             purchaseSource.clip=Resources.Load<AudioClip>("BasementSwitchClick");
+            archiveRevealSource=gameObject.AddComponent<AudioSource>();
+            archiveRevealSource.playOnAwake=false;
+            archiveRevealSource.spatialBlend=0f;
+            archiveRevealSource.clip=Resources.Load<AudioClip>("ArchiveRevealRustle");
             var ambience=new GameObject("Chapter ambience");
             ambience.transform.SetParent(transform,false);
             areaSources[0]=CreateAreaLoop(ambience,"ForgetMeNotCandidate");
@@ -138,6 +143,7 @@ namespace JustOneMorePeel
             ApplyPeelVolume();
             detachSource.volume=sheetDetachSource.volume=Settings.SoundVolume;
             purchaseSource.volume=Settings.SoundVolume*PurchaseGain;
+            archiveRevealSource.volume=Settings.SoundVolume*ArchiveRevealGain;
             if(footsteps)footsteps.volume=Settings.SoundVolume;
             UpdateAreaVolumes();
         }
@@ -151,6 +157,12 @@ namespace JustOneMorePeel
         internal void PlayPurchaseConfirmation()
         {
             if(purchaseSource.clip && purchaseSource.volume>0f)purchaseSource.Play();
+        }
+
+        internal void PlayArchiveReveal()
+        {
+            // Keep the rustle separate from the last sheet's detach accent.
+            if(archiveRevealSource.clip && archiveRevealSource.volume>0f)archiveRevealSource.PlayDelayed(ArchiveRevealDelay);
         }
 
         internal void UpdateAreaAmbience(float dt,int area,bool knockActive)

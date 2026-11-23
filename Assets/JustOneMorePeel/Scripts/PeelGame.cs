@@ -501,6 +501,7 @@ namespace JustOneMorePeel
         internal void RecordStripDetached(bool partOfSheet) =>
             progression.RecordStripDetached(ref money,ref removed,total,toolLevel,steamUnlocked,steamExpanded,PaperCollectionActive,partOfSheet);
         internal void CollectSheet(int stripCount) => progression.CollectPaper(stripCount);
+        internal void PlayArchiveReveal() => audio.PlayArchiveReveal();
         void NotifyProgression(PeelText notice)
         {
             if(archiveIssueSlice && (notice==PeelText.ScraperAvailable || notice==PeelText.Finished))return;
