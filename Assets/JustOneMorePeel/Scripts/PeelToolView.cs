@@ -339,7 +339,7 @@ namespace JustOneMorePeel
         {
             if(!game||!tool)return;
             bool working=game.IsPeeling;
-            tool.gameObject.SetActive(Cursor.lockState==CursorLockMode.Locked);
+            tool.gameObject.SetActive(Cursor.lockState==CursorLockMode.Locked && !game.PavilionFinished);
             if(!tool.gameObject.activeSelf)detachTime=float.NegativeInfinity;
             bool useSteam=game.toolLevel>0 && game.activeTool==1 && game.SteamAvailable;
             bool useCard=game.EquippedToolLevel==0;

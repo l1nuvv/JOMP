@@ -34,6 +34,7 @@ namespace JustOneMorePeel
         const string ArchiveIssueSaveFile="main-archive-issue-v1.json";
         const string PaperCollectionSaveFile="main-archive-paper-v1.json";
         const string MainRouteSaveFile="main-route-save-v1.json";
+        const string PavilionSaveFile="pavilion-save-v1.json";
         public PeelSettings Settings { get; private set; }
         public PeelScrapPool Scraps { get; private set; }
         public PeelPosterOutline Outline { get; private set; }
@@ -44,6 +45,7 @@ namespace JustOneMorePeel
         public float GripProgress => interaction.GripProgress;
         internal Vector3 ToolContactPoint => interaction.ToolContactPoint;
         public bool InDarkness => basementLight && basementLight.IsDark;
+        internal bool PavilionFinished => pavilion && pavilion.IsLit;
         public int TotalPosters { get; private set; }
         public int ClearedPosters { get; private set; }
         public event System.Action<PeelPosterStack> PosterWasCleared;
@@ -75,6 +77,7 @@ namespace JustOneMorePeel
         CharacterController playerCapsule;
         PeelRoutePrototype routePrototype;
         PeelBasementLight basementLight;
+        PeelPavilion pavilion;
         PeelWorkbench shopWorkbench;
         PeelScreen settingsReturn=PeelScreen.Intro, restartReturn;
         float originalRotationSpeed=1;
@@ -82,7 +85,7 @@ namespace JustOneMorePeel
         PeelLanguage appliedLanguage;
         bool worldSession, restarting, resetFailed;
         float nextWorldSave, completionSummaryUntil;
-        bool HasSavedShift => archiveIssueSlice || routePrototype;
+        bool HasSavedShift => archiveIssueSlice || routePrototype || pavilion;
         bool CanSaveShift => HasSavedShift && (!routePrototype || !routePrototype.ReviewMode);
         int furthestAnnouncedArea;
         Vector3 spawnPosition;
@@ -104,6 +107,7 @@ namespace JustOneMorePeel
                 return Path.Combine(Application.dataPath,"..","Library",paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
 #endif
             if(archiveIssueSlice)return Path.Combine(Application.persistentDataPath,paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
+            if(pavilion)return Path.Combine(Application.persistentDataPath,PavilionSaveFile);
             if(routePrototype && routePrototype.IsMainRoute)return Path.Combine(Application.persistentDataPath,MainRouteSaveFile);
             return PeelWorldSave.DefaultPath;
         }
@@ -156,15 +160,16 @@ namespace JustOneMorePeel
             routePrototype=GetComponent<PeelRoutePrototype>();
             if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
+            pavilion=GetComponent<PeelPavilion>();
             total=TotalPosters*4;removed=0;ClearedPosters=0;
-            string saveScene=archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
+            string saveScene=pavilion ? PeelWorldSave.PavilionScene : archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
                 routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
-            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight);
+            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight,pavilion);
             if(archiveIssueSlice && paperDropOff)
                 paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
-            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view);
+            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view,pavilion);
             progression=new PeelProgressionController(SteamPrice,Release,SavePurchase,NotifyProgression,ui.ShowPayout
 #if UNITY_EDITOR
                 ,LogRoutePlaytest
@@ -185,6 +190,7 @@ namespace JustOneMorePeel
                 if(archiveIssueShelfLabel)
                     archiveIssueShelfLabel.text=Settings.Language==PeelLanguage.Russian ? "Полка Б" : "Shelf B";
                 if(paperDropOff)paperDropOff.RefreshPaperDropOffLabel(Settings);
+                if(pavilion)pavilion.ApplyLanguage(Settings.Language);
                 Settings.ApplyWorldText();appliedLanguage=Settings.Language;appliedSettings=true;
             }
         }
@@ -210,7 +216,8 @@ namespace JustOneMorePeel
                 LogRoutePlaytest("Shift complete");
             }
 #endif
-            if(CurrentScreen==PeelScreen.Playing && (!routePrototype || !routePrototype.Completed))ElapsedPlayTime+=Time.unscaledDeltaTime;
+            if(CurrentScreen==PeelScreen.Playing && (!routePrototype || !routePrototype.Completed) && !PavilionFinished)
+                ElapsedPlayTime+=Time.unscaledDeltaTime;
             if(CurrentScreen==PeelScreen.Playing && routePrototype && !routePrototype.Completed && !routePrototype.ReviewMode)
             {
                 int area=routePrototype.CurrentArea;
@@ -259,6 +266,7 @@ namespace JustOneMorePeel
                 {SetScreen(PeelScreen.ReadingArchiveNote);return;}
                 if(keyboard.eKey.wasPressedThisFrame && routePrototype && routePrototype.TryOpenDoor())return;
                 if(keyboard.eKey.wasPressedThisFrame && basementLight && basementLight.TryToggle())return;
+                if(keyboard.eKey.wasPressedThisFrame && TryLightPavilion())return;
                 bool openPaperShop=PaperCollectionActive && keyboard.fKey.wasPressedThisFrame;
                 if(keyboard.eKey.wasPressedThisFrame || openPaperShop)
                 {
@@ -285,7 +293,7 @@ namespace JustOneMorePeel
                 {
                     Release();activeTool=1;toolLevel=1;
                 }
-                if(routePrototype && routePrototype.IsMainRoute && toolLevel>0 && keyboard.digit3Key.wasPressedThisFrame)
+                if((pavilion || (routePrototype && routePrototype.IsMainRoute)) && toolLevel>0 && keyboard.digit3Key.wasPressedThisFrame)
                 {
                     Release();activeTool=CardToolSlot;
                 }
@@ -421,6 +429,13 @@ namespace JustOneMorePeel
         bool WriteWorld(bool checkpointBackup) =>
             ActiveSave.Write(money,toolLevel,activeTool,steamUnlocked,steamExpanded,ElapsedPlayTime,player,controller,checkpointBackup,
                 PaperCollectionActive ? progression.CapturePaper(trialScraperOwned) : default);
+        bool TryLightPavilion()
+        {
+            if(!pavilion || !pavilion.CanTurnOn(view,TotalPosters-ClearedPosters))return false;
+            pavilion.SetLight(true);
+            if(!WriteWorld(true))pavilion.SetLight(false);
+            return true;
+        }
         bool LoadWorld() => ActiveSave.Load(RequestRestart,ApplySavedProgress,RestorePlayer);
         void ApplySavedProgress(PeelWorldSave data,int savedRemoved,int savedCleared)
         {
@@ -512,6 +527,7 @@ namespace JustOneMorePeel
         void NotifyProgression(PeelText notice)
         {
             if(archiveIssueSlice && (notice==PeelText.ScraperAvailable || notice==PeelText.Finished))return;
+            if(pavilion && notice==PeelText.Finished)return;
             ui.Notify(notice);
             if(CurrentScreen!=PeelScreen.Shop || !PeelProgressionController.IsPurchaseNotice(notice))return;
 

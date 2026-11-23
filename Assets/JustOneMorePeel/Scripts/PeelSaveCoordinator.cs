@@ -16,6 +16,7 @@ namespace JustOneMorePeel
         readonly List<PeelPosterStack> stacks;
         readonly PeelRoutePrototype routePrototype;
         readonly PeelBasementLight basementLight;
+        readonly PeelPavilion pavilion;
         readonly int TotalPosters;
         string WorldSavePath => path();
         string inspectedSavePath;
@@ -30,10 +31,10 @@ namespace JustOneMorePeel
         internal bool InspectedShiftFinished { get; private set; }
 
         internal PeelSaveCoordinator(UnityEngine.Object context, Func<string> path, string sceneId, List<PeelPosterStack> stacks,
-            int totalPosters, PeelRoutePrototype route, PeelBasementLight light)
+            int totalPosters, PeelRoutePrototype route, PeelBasementLight light, PeelPavilion pavilion=null)
         {
             this.context=context;this.path=path;this.sceneId=sceneId;this.stacks=stacks;TotalPosters=totalPosters;
-            routePrototype=route;basementLight=light;
+            routePrototype=route;basementLight=light;this.pavilion=pavilion;
         }
 
         internal SaveEntry InspectIfPathChanged()
@@ -43,12 +44,14 @@ namespace JustOneMorePeel
                 inspectedSavePath=WorldSavePath;
                 saveEntry=InspectWorld(out var data,out _);
                 InspectedSave=data;
-                InspectedShiftFinished=data!=null && routePrototype && routePrototype.IsSavedArchiveCleared(data);
+                InspectedShiftFinished=IsFinished(data);
             }
             return saveEntry;
         }
 
         internal void Reset() => PeelWorldSave.Reset(WorldSavePath);
+        bool IsFinished(PeelWorldSave data) => data!=null &&
+            (pavilion ? data.lightOn : routePrototype && routePrototype.IsSavedArchiveCleared(data));
 
         bool SaveIndex(out Dictionary<string,PeelPosterStack> index)
         {
@@ -68,7 +71,8 @@ namespace JustOneMorePeel
             saveSucceeded=false;
             var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
-                rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,lightOn=basementLight && basementLight.SwitchIsOn,
+                rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,
+                lightOn=pavilion ? pavilion.IsLit : basementLight && basementLight.SwitchIsOn,
                 stacks=new PeelStackSave[index.Count],paper=paper};
             if(controller && controller.CinemachineCameraTarget)
             {
@@ -136,7 +140,7 @@ namespace JustOneMorePeel
             inspectedSavePath=WorldSavePath;
             saveEntry=InspectWorld(out var data,out var index);
             InspectedSave=data;
-            InspectedShiftFinished=data!=null && routePrototype && routePrototype.IsSavedArchiveCleared(data);
+            InspectedShiftFinished=IsFinished(data);
             if(saveEntry==SaveEntry.New)return true;
             if(saveEntry==SaveEntry.Unreadable || saveEntry==SaveEntry.Incompatible){requestRestart();return false;}
             if(saveEntry==SaveEntry.Backup)
@@ -174,6 +178,7 @@ namespace JustOneMorePeel
                 applyProgress(data,savedRemoved,savedCleared);
                 if(routePrototype)routePrototype.RestoreProgress(data.firstDoorOpen);
                 if(basementLight)basementLight.RestoreProgress(data.lightOn);
+                if(pavilion)pavilion.SetLight(data.lightOn);
                 Physics.SyncTransforms();
                 restorePlayer(data);
                 return true;

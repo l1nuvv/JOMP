@@ -14,6 +14,7 @@ namespace JustOneMorePeel
         [SerializeField] private int sequenceOffset;
         [SerializeField] private int[] deeperDesigns;
         [SerializeField] private float maximumPaperSize;
+        [SerializeField, Min(0)] private float paperAspectOverride;
         [SerializeField, Min(.1f)] private float firstLayerScale=1f;
         [SerializeField, Min(.1f)] private float deeperLayerScale=1f;
         [SerializeField] private float firstLayerOffset;
@@ -124,6 +125,7 @@ namespace JustOneMorePeel
             if(!scatteredLayers || layer==0)return 1f;
             return .85f+((sequenceOffset*13+layer*23)%31)/100f;
         }
+        float PaperAspect(int design) => paperAspectOverride>0 ? paperAspectOverride : game.Settings.PaperAspect(design);
         void ShowBuffers()
         {
             Setup(front,ClearedPosters,LayerDepth(ClearedPosters),true);
@@ -200,7 +202,7 @@ namespace JustOneMorePeel
         {
             bool visible=layer<posterCount;
             Material material=visible ? game.Settings.Paper(Design(layer)) : null;
-            float aspect=visible ? game.Settings.PaperAspect(Design(layer)) : 1;
+            float aspect=visible ? PaperAspect(Design(layer)) : 1;
             float paperWidth=width/Mathf.Max(1,aspect),height=paperWidth*aspect;
             float layerScale=layer==0?firstLayerScale:deeperLayerScale;
             paperWidth*=layerScale*LayerSize(layer);height*=layerScale*LayerSize(layer);
@@ -259,7 +261,7 @@ namespace JustOneMorePeel
                 int design=Design(layer);var material=materials[design];
                 if(materialGroups[design]<0)
                 {materialGroups[design]=materialCount;materialOrder[materialCount++]=design;}
-                float aspect=game.Settings.PaperAspect(design),w=width/Mathf.Max(1,aspect),h=w*aspect;
+                float aspect=PaperAspect(design),w=width/Mathf.Max(1,aspect),h=w*aspect;
                 w*=deeperLayerScale*LayerSize(layer);h*=deeperLayerScale*LayerSize(layer);
                 deepDesigns[layer-ClearedPosters-2]=design;deepHeights[layer-ClearedPosters-2]=h;deepWidths[layer-ClearedPosters-2]=w;
                 float z=LayerDepth(layer);int v=baseVertices.Count;

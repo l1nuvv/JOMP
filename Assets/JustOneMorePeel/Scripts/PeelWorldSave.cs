@@ -26,6 +26,7 @@ namespace JustOneMorePeel
         public const string ArchiveIssueScene = "main-archive-issue";
         public const string PaperCollectionScene = "main-archive-paper";
         public const string MainRouteScene = "main-route";
+        public const string PavilionScene = "pavilion";
         public const string LegacyRouteScene = "Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity";
         public int version;
         public string scene;
@@ -49,7 +50,7 @@ namespace JustOneMorePeel
             bool archive=scene==ArchiveIssueScene || paperTrial;
             if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>PeelGame.CardToolSlot ||
-                (save.activeTool==PeelGame.CardToolSlot && (scene!=MainRouteScene || save.toolLevel==0)) ||
+                (save.activeTool==PeelGame.CardToolSlot && ((scene!=MainRouteScene && scene!=PavilionScene) || save.toolLevel==0)) ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
                 (archive && (save.toolLevel>1 || save.steamUnlocked)) ||
                 (save.activeTool==1 && (archive ? save.toolLevel!=1 : !save.steamUnlocked)) ||
@@ -66,6 +67,8 @@ namespace JustOneMorePeel
             {
                 if(item==null || string.IsNullOrEmpty(item.id) || !seen.Add(item.id) || !index.TryGetValue(item.id,out var stack) ||
                     item.cleared<0 || item.cleared>stack.PosterCount || !ValidStrips(item.strips,item.cleared==stack.PosterCount))return false;
+                if(scene==PavilionScene && save.lightOn && item.cleared!=stack.PosterCount)
+                {error="Pavilion light is on with paper still attached";return false;}
                 if(paperTrial)
                 {
                     removed+=item.cleared*4;

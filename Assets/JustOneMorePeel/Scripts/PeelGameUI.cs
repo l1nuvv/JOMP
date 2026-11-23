@@ -53,6 +53,7 @@ namespace JustOneMorePeel
         readonly PeelRoutePrototype routePrototype;
         readonly PeelAreaExperiment areaExperiment;
         readonly PeelBasementLight basementLight;
+        readonly PeelPavilion pavilion;
         readonly Camera view;
         bool focusMenu=true;
         int menuSelection;
@@ -91,7 +92,7 @@ namespace JustOneMorePeel
         bool CanCopyArchive => paperSave!=null && paperSave.InspectIfPathChanged()==SaveEntry.New
             && shiftSave.InspectIfPathChanged() is SaveEntry.Continue or SaveEntry.Backup;
         int ShopOptionCount => paperCollection?3:4;
-        bool hasSavedShift => archiveIssueSlice || routePrototype;
+        bool hasSavedShift => archiveIssueSlice || routePrototype || pavilion;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
         bool IsPeeling => interaction.IsPeeling;
@@ -102,11 +103,12 @@ namespace JustOneMorePeel
             && notice==PeelText.ScraperAvailable && Time.time<noticeUntil;
 
         internal PeelGameUI(IPeelGameUIState session,PeelInteractionController interaction,PeelSaveCoordinator save,
-            PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light,Camera view)
+            PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light,Camera view,
+            PeelPavilion pavilion)
         {
             this.session=session;this.interaction=interaction;shiftSave=save;this.paperSave=paperSave;
             routePrototype=route;areaExperiment=area;basementLight=light;
-            this.view=view;
+            this.view=view;this.pavilion=pavilion;
         }
 
         internal void ResetMenu(int selection=0)
@@ -117,7 +119,8 @@ namespace JustOneMorePeel
         internal void ShowWelcome() { noticeUntil=Time.time+5; }
         internal void Notify(PeelText key)
         {
-            if(routePrototype && routePrototype.IsMainRoute && key is (PeelText.ScraperAvailable or PeelText.SharpenAvailable or PeelText.SteamAvailable or PeelText.WiderSteamAvailable))
+            if((pavilion || (routePrototype && routePrototype.IsMainRoute)) &&
+                key is (PeelText.ScraperAvailable or PeelText.SharpenAvailable or PeelText.SteamAvailable or PeelText.WiderSteamAvailable))
             {
                 purchaseOffer=key;purchaseOfferUntil=Time.time+6f;
                 return;
@@ -295,7 +298,10 @@ namespace JustOneMorePeel
             if(CurrentScreen==PeelScreen.Intro)
             {
                 bool ru=Settings.Language==PeelLanguage.Russian;
-                string details=archiveIssueSlice
+                string details=pavilion
+                    ? (ru ? "Очисти витрину и включи подсветку росписи.\nWASD — ходьба, ЛКМ — снять бумагу.\nПодойди к тележке и нажми E для покупки."
+                          : "Clear the display and turn on the mural lights.\nWASD to move, LMB to peel.\nLook at the cart up close and press E to shop.")
+                    : archiveIssueSlice
                     ? (ru ? "Домовой архив. Найди адрес дела №17 о стуке.\nОн под старым листом на левом планшете.\nWASD — ходьба, ЛКМ — снять лист.\n1 — карта, 2 — шпатель, 3 — пар."
                           : "Building records. File 17 is about the knocking.\nPeel the top sheet on the left board to find its shelf.\nWASD to move, LMB to peel.\n1 — Card, 2 — Scraper, 3 — Steam.")
                     : routePrototype ? (ru
@@ -313,7 +319,7 @@ namespace JustOneMorePeel
                             var saved=save.InspectedSave;
                             if(saved!=null)
                             {
-                                string location=ru ? "Выдача" : "Issue counter";
+                                string location=pavilion ? (ru ? "Павильон" : "Pavilion") : (ru ? "Выдача" : "Issue counter");
                                 if(routePrototype)
                                 {
                                     int chapter=routePrototype.AreaAt(saved.position.z);
@@ -493,13 +499,17 @@ namespace JustOneMorePeel
         void DrawPlayingHud(float w,float h)
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
-            bool complete=routePrototype && routePrototype.Completed && !routePrototype.ReviewMode;
+            bool complete=(pavilion && pavilion.IsLit) || (routePrototype && routePrototype.Completed && !routePrototype.ReviewMode);
             bool showSummary=complete && Time.unscaledTime<session.CompletionSummaryUntil;
             bool review=routePrototype && routePrototype.ReviewMode;
             bool door=routePrototype && routePrototype.UsesLocalCourtyardGate && routePrototype.CurrentArea==0;
             int remaining=routePrototype ? routePrototype.RemainingHere
                 : areaExperiment ? areaExperiment.RemainingHere : TotalPosters-ClearedPosters;
             string objective=routePrototype ? routePrototype.Objective : areaExperiment ? areaExperiment.Objective : "";
+            if(pavilion)
+                objective=complete ? T(PeelText.ShiftComplete) : remaining>0
+                    ? (ru ? "Очисти витрину" : "Clear the display")
+                    : (ru ? "Включи подсветку слева" : "Turn on the lights at the left end");
             bool bundleFull=paperCollection && session.CollectedItems>=session.PaperCapacity;
             if(paperCollection)
                 objective=bundleFull ? T(PeelText.PaperDropOffObjective)
@@ -522,7 +532,7 @@ namespace JustOneMorePeel
                 string label=showSummary ? ShiftSummaryDetails()
                     : paperCollection ? T(PeelText.PaperCollection)
                     : archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
-                    : complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
+                    : complete && !pavilion ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
                     : (door ? (ru ? "На двери" : "On the door") : T(PeelText.RemainingPosters))+"  "+remaining;
                 float contentWidth=hudPrimary.CalcSize(new GUIContent(objective)).x;
@@ -541,9 +551,9 @@ namespace JustOneMorePeel
             }
 
             DrawSaveWarning(warningY,ru);
-            DrawToolStatus(w,ru,bundleFull);
-            DrawMainRouteGuidance(w,h,ru);
-            DrawReticle(w,h);
+            if(!pavilion || !complete)DrawToolStatus(w,ru,bundleFull);
+            DrawRouteGuidance(w,h,ru);
+            if(!pavilion || !complete)DrawReticle(w,h);
             if(IsPeeling)return;
 
             string hint=PlayingHint(ru,complete,door,bundleFull);
@@ -557,9 +567,10 @@ namespace JustOneMorePeel
             GUI.Label(new Rect(hintX+HudPadding,hintY+10f,widthWithPadding-2*HudPadding,hintHeight),content,hudHint);
         }
 
-        void DrawMainRouteGuidance(float w,float h,bool ru)
+        void DrawRouteGuidance(float w,float h,bool ru)
         {
-            if(!routePrototype || !routePrototype.IsMainRoute || routePrototype.ReviewMode || routePrototype.Completed)return;
+            bool mainRoute=routePrototype && routePrototype.IsMainRoute && !routePrototype.ReviewMode && !routePrototype.Completed;
+            if(!mainRoute && (!pavilion || pavilion.IsLit))return;
 
             string offer=Time.time<purchaseOfferUntil ? purchaseOffer switch
             {
@@ -570,7 +581,7 @@ namespace JustOneMorePeel
                 _ => ""
             } : "";
             if(offer.Length>0)DrawGuidanceLabel(offer,w*.5f,h*.18f,w*.6f);
-            if(IsPeeling)return;
+            if(!mainRoute || IsPeeling)return;
 
             if(basementLight && basementLight.IsDark && !basementLight.SwitchIsOn)
                 DrawGoalMarker(basementLight.SwitchPosition+Vector3.up*.3f,ru ? "Включи свет" : "Switch on the light",w,h);
@@ -677,7 +688,7 @@ namespace JustOneMorePeel
             else if(ShowsFirstScraperOffer)
                 detail=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
                     : T(PeelText.Scraper)+"  $"+UpgradeCost;
-            else if(routePrototype && routePrototype.IsMainRoute && toolLevel>0)
+            else if((pavilion || (routePrototype && routePrototype.IsMainRoute)) && toolLevel>0)
                 detail=ru ? "1 — Шпатель   3 — Карта" : "1 — Scraper   3 — Card";
 
             float statusWidth=Mathf.Max(hudLabel.CalcSize(new GUIContent(balance)).x,hudLabel.CalcSize(new GUIContent(detail)).x);
@@ -705,6 +716,8 @@ namespace JustOneMorePeel
             if(basementLight && basementLight.CanInteract())
                 return basementLight.SwitchIsOn ? (ru ? "E — Выключить свет" : "E — Switch off light")
                     : (ru ? "E — Включить свет" : "E — Switch on light");
+            if(pavilion && pavilion.CanTurnOn(view,TotalPosters-ClearedPosters))
+                return ru ? "E — Включить подсветку" : "E — Turn on the lights";
             if(session.CanUseWorkbench())
                 return paperCollection ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
                     : T(PeelText.Workbench);
@@ -716,7 +729,7 @@ namespace JustOneMorePeel
                     ? (ru ? "Дополнительно" : "Optional")+" · "+hint : hint;
 
             if(complete)return "";
-            if(!archiveIssueSlice && !routePrototype && ClearedPosters==TotalPosters)return T(PeelText.Finished);
+            if(!pavilion && !archiveIssueSlice && !routePrototype && ClearedPosters==TotalPosters)return T(PeelText.Finished);
             if(Time.time>=noticeUntil || notice==PeelText.PaperDropOffSaveFailed || FirstScraperSignalActive
                 || (notice==PeelText.Welcome && (routePrototype || archiveIssueSlice)))return "";
 

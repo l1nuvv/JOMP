@@ -34,4 +34,6 @@ UI remains IMGUI prototype. `ThreeAreaPrototype` has a versioned world autosave 
 
 `MainRoute` has a separate `main-route` save key and `main-route-save-v1.json` file. Its serialized route boundaries drive both gameplay and the Continue location label. The scene keeps its placed furniture and activates the placed final note and spotlight when the required archive stacks are clear. Legacy route migrations apply to the `three-area` slot.
 
+`PavilionMural` uses route key `pavilion` and file `pavilion-save-v1.json`. Stable `pavilion.bay*` stack IDs restore completed sheets and the current strip progress. The HUD derives remaining sheets from restored stack counts. In this slot `lightOn` records the final switch. Save validation requires all sheets clear when the light is on. Activating the switch checkpoints both copies through the existing save coordinator.
+
 Load restores route geometry and lighting before checking the saved player capsule. Blocked or unsupported positions fall back to the scene spawn while keeping the loaded progress. Player build persistence, gamepad verification, human mouse feel, final pacing and artistic acceptance remain separate from method-level checks.
