@@ -23,9 +23,11 @@ namespace JustOneMorePeel
         const float CourtyardKnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
         AudioClip rip, steamHiss, detachClip;
         AudioSource detachSource, sheetDetachSource;
+        AudioLowPassFilter peelFilter;
         float soundEnvelope;
         bool soundFadingOut;
-        const float SoundFadeIn=.04f, SoundFadeOut=.12f;
+        float loopGain, loopAttack, loopRelease, detachDuckGain, detachTail;
+        const float DetachDuckHold=.05f, DetachDuckRecovery=.12f;
         PeelStrip soundStrip;
         PeelSettings Settings;
 
@@ -34,7 +36,10 @@ namespace JustOneMorePeel
             Settings=settings;
             var gameObject=context.gameObject;
             var transform=context.transform;
-            audioSource=gameObject.AddComponent<AudioSource>();audioSource.spatialBlend=0;audioSource.playOnAwake=false;
+            var peelLoop=new GameObject("Tool peel loop");
+            peelLoop.transform.SetParent(transform,false);
+            audioSource=peelLoop.AddComponent<AudioSource>();audioSource.spatialBlend=0;audioSource.playOnAwake=false;
+            peelFilter=peelLoop.AddComponent<AudioLowPassFilter>();
             rip=Resources.Load<AudioClip>("PaperRustleCandidate");
             if(!rip)Debug.LogWarning("PeelGame: paper sound candidate missing",context);
             steamHiss=Resources.Load<AudioClip>("SteamHiss");
@@ -45,7 +50,6 @@ namespace JustOneMorePeel
             detachSource.playOnAwake=false;
             sheetDetachSource=gameObject.AddComponent<AudioSource>();
             sheetDetachSource.playOnAwake=false;
-            var paperFilter=gameObject.AddComponent<AudioLowPassFilter>();paperFilter.cutoffFrequency=7000f;
             var ambience=new GameObject("Chapter ambience");
             ambience.transform.SetParent(transform,false);
             areaSources[0]=CreateAreaLoop(ambience,"ForgetMeNotCandidate");
@@ -126,13 +130,14 @@ namespace JustOneMorePeel
         internal void ApplySettings()
         {
             ApplyPeelVolume();
+            detachSource.volume=sheetDetachSource.volume=Settings.SoundVolume;
             UpdateAreaVolumes();
         }
 
         void ApplyPeelVolume()
         {
-            if(audioSource)
-                audioSource.volume=Settings.SoundVolume*(steamHiss && audioSource.clip==steamHiss ? .28f : .55f)*soundEnvelope;
+            float detachDuck=Mathf.Lerp(1f,detachDuckGain,Mathf.Clamp01(detachTail/DetachDuckRecovery));
+            audioSource.volume=Settings.SoundVolume*loopGain*soundEnvelope*detachDuck;
         }
 
         internal void UpdateAreaAmbience(float dt,int area,bool courtyardKnock)
@@ -157,13 +162,19 @@ namespace JustOneMorePeel
         }
         internal void BeginPeel(PeelStrip target, int toolLevel, int activeTool, bool steamUnlocked)
         {
-            soundStrip=target;
-            bool usingSteam=toolLevel>0 && activeTool==1 && steamUnlocked;
+            bool usingCard=toolLevel==0;
+            bool usingSteam=!usingCard && activeTool==1 && steamUnlocked;
             var clip=usingSteam && steamHiss ? steamHiss : rip;
             if(!audioSource || !clip)return;
 
+            soundStrip=target;
+            loopGain=usingSteam && steamHiss ? .16f : usingCard ? .55f : .48f;
+            loopAttack=usingSteam ? .065f : usingCard ? .025f : .035f;
+            loopRelease=usingSteam ? .145f : usingCard ? .075f : .10f;
+            detachDuckGain=usingSteam ? .28f : .55f;
+            peelFilter.cutoffFrequency=usingSteam ? 6200f : usingCard ? 7000f : 4500f;
             soundFadingOut=false;
-            audioSource.pitch=toolLevel==0 ? 1.12f : usingSteam ? .88f : 1f;
+            audioSource.pitch=usingCard ? 1.12f : usingSteam ? .88f : 1f;
             // The steam valve can stay open as the held input moves to a new sheet.
             if(clip==steamHiss && audioSource.clip==clip && audioSource.isPlaying)return;
 
@@ -175,23 +186,30 @@ namespace JustOneMorePeel
 
         internal void PlayDetach(int detached, bool completedSheet)
         {
-            if(detached>0 && detachClip && Settings.SoundVolume>0f)
-            {
-                // One accent for this pull, even if several strips pay together.
-                var source=completedSheet ? sheetDetachSource : detachSource;
-                source.pitch=audioSource.pitch*(completedSheet ? .78f : 1f);
-                float minimumGain=completedSheet ? .34f : .2f;
-                float strength=Mathf.Lerp(minimumGain,.42f,Mathf.Clamp01((detached-1)/7f));
-                source.PlayOneShot(detachClip,Settings.SoundVolume*strength);
-            }
+            if(detached<=0 || !detachClip || Settings.SoundVolume<=0f)return;
+            // Duck before starting the accent, including when steam continues to the next layer.
+            detachTail=DetachDuckHold+DetachDuckRecovery;
+            ApplyPeelVolume();
+
+            // One accent for this pull, even if several strips pay together.
+            var source=completedSheet ? sheetDetachSource : detachSource;
+            source.pitch=audioSource.pitch*(completedSheet ? .78f : 1f);
+            float minimumGain=completedSheet ? .34f : .2f;
+            float strength=Mathf.Lerp(minimumGain,.42f,Mathf.Clamp01((detached-1)/7f));
+            source.PlayOneShot(detachClip,strength);
         }
 
         internal void UpdatePeelSound(float seconds)
         {
             if(!audioSource || !Settings)return;
+            float dt=Mathf.Max(0,seconds);
+            detachTail=Mathf.Max(0,detachTail-dt);
             float targetVolume=soundFadingOut?0f:(soundStrip?1f:0f);
-            float fade=targetVolume>soundEnvelope?SoundFadeIn:SoundFadeOut;
-            soundEnvelope=Mathf.MoveTowards(soundEnvelope,targetVolume,Mathf.Max(0,seconds)/fade);
+            if(soundEnvelope!=targetVolume)
+            {
+                float fade=targetVolume>soundEnvelope ? loopAttack : loopRelease;
+                soundEnvelope=Mathf.MoveTowards(soundEnvelope,targetVolume,dt/fade);
+            }
             ApplyPeelVolume();
             if(soundFadingOut && soundEnvelope<=0f){audioSource.Stop();soundFadingOut=false;}
         }
