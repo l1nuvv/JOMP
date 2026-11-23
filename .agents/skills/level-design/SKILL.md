@@ -12,6 +12,14 @@ description: >
 Read ../../../AGENTS.md and the applicable docs route before using generic examples below. Use Unity MCP only for Editor work; no OS window/mouse/keyboard automation. Preserve the current Unity 6000.6.0f1, URP and Starter Assets controller. Only free/owned compatible assets. Models, poster variety, and final art require owner review; consult the current roadmap and art direction. Do not import Hustle & Scale city economy, gates or approvals. Only load supporting references relevant to the task; related skills not installed here are optional suggestions.
 
 
+### Vitrine route checks
+
+- Use the live Starter Assets controller and interaction settings. Check clearance in each working bay, reach and line of sight to required edges, and the time to walk between the work surface and tool or paper hand-in points when those are in scope.
+- Write the sequence of working positions and access conditions in the existing task card. Through Unity MCP, check that each required interaction is reachable with the tools and paper capacity available at that point. If a gate or one-way transition is in scope, test from both sides as applicable and confirm the player can continue the shift with a full bundle where paper carrying is enabled.
+- For MAIN-010, compare the initial view of the whole vitrine, the first revealed fragment from the working position and the fully cleared view from the start. Recheck affected camera views and reachability after geometry changes. See the [production roadmap](../../../docs/development/JOMP_DEVELOPMENT_ROADMAP.md).
+
+Adapted for Just One More Peel from the upstream [`level-design`](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/c6ca6c41c839b68319ffc08430b99ab768debc32/skills/disciplines/level-design/SKILL.md) under [Apache 2.0](../_licenses/awesome-gamedev-agent-skills/LICENSE). See the [upstream notice](../_licenses/awesome-gamedev-agent-skills/NOTICE).
+
 # Level design
 
 A level is a **sequence of intentional experiences** delivered through space.

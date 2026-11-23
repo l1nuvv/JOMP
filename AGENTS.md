@@ -12,9 +12,13 @@ Use [docs/ROADMAP.md](docs/ROADMAP.md) for the next task. Explicit owner decisio
 
 ## Task routes
 - Mechanics, tools and economy: [GDD](docs/GDD.md), then PeelGame.cs and PeelStrip.cs.
+- Level layouts, working positions and route reachability: [level-design](.agents/skills/level-design/SKILL.md).
 - Input, focus, interaction: [ARCHITECTURE](docs/ARCHITECTURE.md), then Starter Assets integration and PeelWorkbench.cs.
+- World saves, Continue, migrations and recovery: [save-systems](.agents/skills/save-systems/SKILL.md).
 - Models, posters, materials, sound: [ART_DIRECTION](docs/ART_DIRECTION.md) and [ASSET_SOURCES](docs/ASSET_SOURCES.md), then inspect existing assets.
 - Verification: [DEVELOPMENT](docs/DEVELOPMENT.md), [PLAYTEST](docs/PLAYTEST.md); performance claims also require [PERFORMANCE](docs/PERFORMANCE.md).
+- Windows build size and packed asset analysis: [unity-build-size](.agents/skills/unity-build-size/SKILL.md).
+- Windows release handoff and authorized uploads: [itch-publish](.agents/skills/itch-publish/SKILL.md).
 - Engineering and structure: [ENGINEERING_STANDARD](docs/ENGINEERING_STANDARD.md).
 Load only the relevant route. Project skills are in .agents/skills; their local context and this file override generic examples.
 
