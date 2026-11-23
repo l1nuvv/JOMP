@@ -397,10 +397,13 @@ namespace JustOneMorePeel
         }
         bool SavePurchase()
         {
-            if(!worldSession)return true;
-            if(WriteWorld(true))return true;
-            ui.NotifyPurchaseFailed();
-            return false;
+            if(worldSession && !WriteWorld(true))
+            {
+                ui.NotifyPurchaseFailed();
+                return false;
+            }
+            audio.PlayPurchaseConfirmation();
+            return true;
         }
         bool WriteWorld(bool checkpointBackup) =>
             ActiveSave.Write(money,toolLevel,activeTool,steamUnlocked,steamExpanded,ElapsedPlayTime,player,controller,checkpointBackup,

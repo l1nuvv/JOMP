@@ -22,7 +22,8 @@ namespace JustOneMorePeel
         float ambienceGain=1f;
         const float KnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
         AudioClip rip, steamHiss, detachClip;
-        AudioSource detachSource, sheetDetachSource;
+        AudioSource detachSource, sheetDetachSource, purchaseSource;
+        const float PurchaseGain=.23f;
         AudioLowPassFilter peelFilter;
         float soundEnvelope;
         bool soundFadingOut;
@@ -50,6 +51,11 @@ namespace JustOneMorePeel
             detachSource.playOnAwake=false;
             sheetDetachSource=gameObject.AddComponent<AudioSource>();
             sheetDetachSource.playOnAwake=false;
+            purchaseSource=gameObject.AddComponent<AudioSource>();
+            purchaseSource.playOnAwake=false;
+            purchaseSource.spatialBlend=0f;
+            purchaseSource.pitch=.78f;
+            purchaseSource.clip=Resources.Load<AudioClip>("BasementSwitchClick");
             var ambience=new GameObject("Chapter ambience");
             ambience.transform.SetParent(transform,false);
             areaSources[0]=CreateAreaLoop(ambience,"ForgetMeNotCandidate");
@@ -131,6 +137,7 @@ namespace JustOneMorePeel
         {
             ApplyPeelVolume();
             detachSource.volume=sheetDetachSource.volume=Settings.SoundVolume;
+            purchaseSource.volume=Settings.SoundVolume*PurchaseGain;
             if(footsteps)footsteps.volume=Settings.SoundVolume;
             UpdateAreaVolumes();
         }
@@ -139,6 +146,11 @@ namespace JustOneMorePeel
         {
             float detachDuck=Mathf.Lerp(1f,detachDuckGain,Mathf.Clamp01(detachTail/DetachDuckRecovery));
             audioSource.volume=Settings.SoundVolume*loopGain*soundEnvelope*detachDuck;
+        }
+
+        internal void PlayPurchaseConfirmation()
+        {
+            if(purchaseSource.clip && purchaseSource.volume>0f)purchaseSource.Play();
         }
 
         internal void UpdateAreaAmbience(float dt,int area,bool knockActive)
