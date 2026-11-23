@@ -16,9 +16,9 @@ namespace JustOneMorePeel
         Transform doorVisual;
         float nextEvent, nextBeat, shakeTime;
         int lastArea=-1, beatsLeft;
-        float courtyardTail;
+        float knockTail;
 
-        internal bool CourtyardKnockActive => lastArea==0 && (beatsLeft>0 || courtyardTail>0f);
+        internal bool KnockActive => beatsLeft>0 || knockTail>0f;
 
         public void Initialize(PeelGame owner,PeelRoutePrototype routeOwner,GameObject firstDoor,GameObject secondDoor)
         {
@@ -54,27 +54,27 @@ namespace JustOneMorePeel
             if(!active)
             {
                 if(sound.isPlaying)sound.Stop();
-                beatsLeft=0;lastArea=-1;shakeTime=0;courtyardTail=0;
+                beatsLeft=0;lastArea=-1;shakeTime=0;knockTail=0;
                 if(doorVisual)doorVisual.localPosition=Vector3.zero;
                 return;
             }
             if(area!=lastArea)
             {
-                sound.Stop();beatsLeft=0;shakeTime=0;courtyardTail=0;lastArea=area;
+                sound.Stop();beatsLeft=0;shakeTime=0;knockTail=0;lastArea=area;
                 nextEvent=Random.Range(firstDelayMin,firstDelayMax);
             }
             sound.transform.position=area==0 ? courtyardDoor.transform.position : basementDoor.transform.position;
             sound.volume=game.Settings.SoundVolume*(area==0 ? courtyardVolume : basementVolume);
             filter.cutoffFrequency=area==0 ? 900f : 4500f;
             float dt=Time.deltaTime;
-            courtyardTail=Mathf.Max(0f,courtyardTail-dt);
+            knockTail=Mathf.Max(0f,knockTail-dt);
             if(beatsLeft==0)
             {
                 nextEvent-=dt;
                 if(nextEvent<=0)
                 {
                     beatsLeft=Random.Range(2,4);
-                    nextBeat=area==0 ? .1f : 0f;
+                    nextBeat=.1f;
                 }
             }
             if(beatsLeft>0)
@@ -86,7 +86,7 @@ namespace JustOneMorePeel
                     beatsLeft--;
                     route.KnockPlayed(area);
                     if(area==1)shakeTime=.38f;
-                    else courtyardTail=.45f;
+                    knockTail=area==0 ? .45f : .24f;
                     nextBeat=Random.Range(.22f,.33f);
                     if(beatsLeft==0)nextEvent=Random.Range(repeatDelayMin,repeatDelayMax);
                 }

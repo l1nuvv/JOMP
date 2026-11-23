@@ -25,6 +25,7 @@ namespace JustOneMorePeel
         Renderer switchIndicator;
         MaterialPropertyBlock switchIndicatorProperties;
         Color switchOffColor;
+        const float SwitchClickGain=.48f;
         AudioSource switchClick;
         float fullLampIntensity;
         const float LampDelaySeconds=.55f, LampWarmupSeconds=.38f, LampStartLevel=.12f;
@@ -47,7 +48,7 @@ namespace JustOneMorePeel
             }
             fullLampIntensity=basementLamp.intensity;
             SetLight(false);
-            if(game.Settings)game.Settings.Changed+=RefreshMaterials;
+            if(game.Settings)game.Settings.Changed+=ApplySettings;
         }
         void InitializeSwitchFeedback()
         {
@@ -64,15 +65,16 @@ namespace JustOneMorePeel
             switchClick=lightSwitch.gameObject.AddComponent<AudioSource>();
             switchClick.playOnAwake=false;
             switchClick.clip=clip;
+            switchClick.volume=game.Settings.SoundVolume*SwitchClickGain;
             switchClick.spatialBlend=1f;
             switchClick.dopplerLevel=0f;
             switchClick.rolloffMode=AudioRolloffMode.Linear;
-            switchClick.minDistance=.65f;
+            switchClick.minDistance=.95f;
             switchClick.maxDistance=4f;
         }
         void OnDestroy()
         {
-            if(game && game.Settings)game.Settings.Changed-=RefreshMaterials;
+            if(game && game.Settings)game.Settings.Changed-=ApplySettings;
             foreach(var material in dimMaterials.Values)if(material)Destroy(material);
         }
         void Update()
@@ -120,7 +122,6 @@ namespace JustOneMorePeel
             if(switchClick && game.Settings.SoundVolume>0f)
             {
                 switchClick.pitch=SwitchIsOn ? 1f : .88f;
-                switchClick.volume=game.Settings.SoundVolume*.42f;
                 switchClick.Play();
             }
             return true;
@@ -159,8 +160,9 @@ namespace JustOneMorePeel
             for(int n=0;n<dim.Length;n++)dim[n]=DimMaterial(materials[n]);
             surfaces[i].sharedMaterials=dim;
         }
-        void RefreshMaterials()
+        void ApplySettings()
         {
+            if(switchClick)switchClick.volume=game.Settings.SoundVolume*SwitchClickGain;
             // PeelGame refreshes localized materials before this subscriber runs.
             for(int i=0;i<surfaces.Count;i++)
             {

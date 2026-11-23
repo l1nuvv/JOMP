@@ -188,7 +188,7 @@ namespace JustOneMorePeel
         {
             audio.UpdatePeelSound(Time.unscaledDeltaTime);
             audio.UpdateAreaAmbience(Time.unscaledDeltaTime,archiveIssueSlice ? 2 : routePrototype ? routePrototype.CurrentArea : 0,
-                routePrototype && CurrentScreen==PeelScreen.Playing && routePrototype.CourtyardKnockActive);
+                routePrototype && CurrentScreen==PeelScreen.Playing && routePrototype.KnockActive);
             if(!screenController.ApplicationFocused)return;
             if(routePrototype && CurrentScreen==PeelScreen.Playing && player.transform.position.y < -10f)
             {

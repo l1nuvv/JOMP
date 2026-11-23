@@ -16,11 +16,11 @@ namespace JustOneMorePeel
         float airbornePeak;
         const float StepSpacing=1.65f;
         readonly AudioSource[] areaSources=new AudioSource[3];
-        static readonly float[] AreaGains={.20f,.20f,.14f};
+        static readonly float[] AreaGains={.20f,.14f,.12f};
         static readonly float AreaFadeSpeed=Mathf.Sqrt(2f)/3f;
         Vector3 areaMix=Vector3.right;
-        float courtyardGain=1f;
-        const float CourtyardKnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
+        float ambienceGain=1f;
+        const float KnockGain=.42f, KnockAttack=.08f, KnockRelease=.75f;
         AudioClip rip, steamHiss, detachClip;
         AudioSource detachSource, sheetDetachSource;
         AudioLowPassFilter peelFilter;
@@ -110,9 +110,9 @@ namespace JustOneMorePeel
         void PlayMovementSound(AudioClip clip,bool indoors,float gain)
         {
             if(!clip || Settings.SoundVolume<=0f)return;
-            footstepFilter.cutoffFrequency=indoors ? 2700f : 7500f;
+            footstepFilter.cutoffFrequency=indoors ? 3200f : 7500f;
             footsteps.pitch=indoors ? .91f : 1f;
-            footsteps.PlayOneShot(clip,Settings.SoundVolume*gain);
+            footsteps.PlayOneShot(clip,gain);
         }
 
         static AudioSource CreateAreaLoop(GameObject parent,string clipName)
@@ -131,6 +131,7 @@ namespace JustOneMorePeel
         {
             ApplyPeelVolume();
             detachSource.volume=sheetDetachSource.volume=Settings.SoundVolume;
+            if(footsteps)footsteps.volume=Settings.SoundVolume;
             UpdateAreaVolumes();
         }
 
@@ -140,15 +141,14 @@ namespace JustOneMorePeel
             audioSource.volume=Settings.SoundVolume*loopGain*soundEnvelope*detachDuck;
         }
 
-        internal void UpdateAreaAmbience(float dt,int area,bool courtyardKnock)
+        internal void UpdateAreaAmbience(float dt,int area,bool knockActive)
         {
             while(area>0 && !areaSources[area].clip)area--;
             var target=Vector3.zero;
             target[area]=1f;
             areaMix=Vector3.MoveTowards(areaMix,target,dt*AreaFadeSpeed);
-            bool duckCourtyard=area==0 && courtyardKnock;
-            courtyardGain=Mathf.MoveTowards(courtyardGain,duckCourtyard ? CourtyardKnockGain : 1f,
-                dt*(1f-CourtyardKnockGain)/(duckCourtyard ? KnockAttack : KnockRelease));
+            ambienceGain=Mathf.MoveTowards(ambienceGain,knockActive ? KnockGain : 1f,
+                dt*(1f-KnockGain)/(knockActive ? KnockAttack : KnockRelease));
             UpdateAreaVolumes();
 
             foreach(var source in areaSources)
@@ -157,8 +157,9 @@ namespace JustOneMorePeel
         void UpdateAreaVolumes()
         {
             if(!Settings)return;
+            // Convert area power weights to amplitude for a constant-power crossfade.
             for(int i=0;i<areaSources.Length;i++)
-                areaSources[i].volume=Settings.SoundVolume*AreaGains[i]*areaMix[i]*(i==0 ? courtyardGain : 1f);
+                areaSources[i].volume=Settings.SoundVolume*AreaGains[i]*Mathf.Sqrt(areaMix[i])*ambienceGain;
         }
         internal void BeginPeel(PeelStrip target, int toolLevel, int activeTool, bool steamUnlocked)
         {

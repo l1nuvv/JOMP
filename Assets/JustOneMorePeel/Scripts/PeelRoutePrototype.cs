@@ -42,7 +42,7 @@ namespace JustOneMorePeel
         internal int AreaAt(float z) => z<basementEntryZ ? 0 : z<archiveEntryZ ? 1 : 2;
         internal bool IsMainRoute => mainRoute;
         public int CurrentArea => Area;
-        internal bool CourtyardKnockActive => knockCue && knockCue.CourtyardKnockActive;
+        internal bool KnockActive => knockCue && knockCue.KnockActive;
         static int Left(PeelPosterStack[] stacks)
         { int count=0; foreach(var s in stacks) if(s)count+=s.RemainingPosters; return count; }
         public int RemainingHere => RemainingInArea(Area);
