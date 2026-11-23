@@ -53,6 +53,7 @@ namespace JustOneMorePeel
         readonly PeelRoutePrototype routePrototype;
         readonly PeelAreaExperiment areaExperiment;
         readonly PeelBasementLight basementLight;
+        readonly Camera view;
         bool focusMenu=true;
         int menuSelection;
         int payoutAmount, payoutFrame=-1;
@@ -68,6 +69,8 @@ namespace JustOneMorePeel
         static readonly Color Amber=new Color(.96f,.75f,.42f);
         const float HudInset=22f, HudPadding=14f;
         float noticeUntil;
+        PeelText? purchaseOffer;
+        float purchaseOfferUntil;
 
         PeelSettings Settings => session.Settings;
         PeelScreen CurrentScreen => session.CurrentScreen;
@@ -99,10 +102,11 @@ namespace JustOneMorePeel
             && notice==PeelText.ScraperAvailable && Time.time<noticeUntil;
 
         internal PeelGameUI(IPeelGameUIState session,PeelInteractionController interaction,PeelSaveCoordinator save,
-            PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light)
+            PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light,Camera view)
         {
             this.session=session;this.interaction=interaction;shiftSave=save;this.paperSave=paperSave;
             routePrototype=route;areaExperiment=area;basementLight=light;
+            this.view=view;
         }
 
         internal void ResetMenu(int selection=0)
@@ -113,6 +117,11 @@ namespace JustOneMorePeel
         internal void ShowWelcome() { noticeUntil=Time.time+5; }
         internal void Notify(PeelText key)
         {
+            if(routePrototype && routePrototype.IsMainRoute && key is (PeelText.ScraperAvailable or PeelText.SharpenAvailable or PeelText.SteamAvailable or PeelText.WiderSteamAvailable))
+            {
+                purchaseOffer=key;purchaseOfferUntil=Time.time+6f;
+                return;
+            }
             notice=key;noticeUntil=Time.time+4;
             if(CurrentScreen==PeelScreen.Shop && IsPurchaseNotice(key))
             {shopPurchase=key;capacityPurchased=false;purchaseSaveFailed=false;}
@@ -533,6 +542,7 @@ namespace JustOneMorePeel
 
             DrawSaveWarning(warningY,ru);
             DrawToolStatus(w,ru,bundleFull);
+            DrawMainRouteGuidance(w,h,ru);
             DrawReticle(w,h);
             if(IsPeeling)return;
 
@@ -545,6 +555,57 @@ namespace JustOneMorePeel
             float hintX=(w-widthWithPadding)*.5f, hintY=h-HudInset-hintHeight-20f;
             Panel(new Rect(hintX,hintY,widthWithPadding,hintHeight+20f));
             GUI.Label(new Rect(hintX+HudPadding,hintY+10f,widthWithPadding-2*HudPadding,hintHeight),content,hudHint);
+        }
+
+        void DrawMainRouteGuidance(float w,float h,bool ru)
+        {
+            if(!routePrototype || !routePrototype.IsMainRoute || routePrototype.ReviewMode || routePrototype.Completed)return;
+
+            string offer=Time.time<purchaseOfferUntil ? purchaseOffer switch
+            {
+                PeelText.ScraperAvailable when toolLevel==0 && CanUpgrade(money,toolLevel) => string.Format(T(PeelText.ScraperAvailable),UpgradeCost),
+                PeelText.SharpenAvailable when toolLevel>0 && CanUpgrade(money,toolLevel) => string.Format(T(PeelText.SharpenAvailable),UpgradeCost),
+                PeelText.SteamAvailable when CanBuySteam(money,toolLevel,steamUnlocked,session.SteamPrice) => string.Format(T(PeelText.SteamAvailable),session.SteamPrice),
+                PeelText.WiderSteamAvailable when CanExpandSteam(money,steamUnlocked,steamExpanded) => string.Format(T(PeelText.WiderSteamAvailable),SteamExpansionCost),
+                _ => ""
+            } : "";
+            if(offer.Length>0)DrawGuidanceLabel(offer,w*.5f,h*.18f,w*.6f);
+            if(IsPeeling)return;
+
+            if(basementLight && basementLight.IsDark && !basementLight.SwitchIsOn)
+                DrawGoalMarker(basementLight.SwitchPosition+Vector3.up*.3f,ru ? "Включи свет" : "Switch on the light",w,h);
+            else if(routePrototype.CurrentArea==0)
+            {
+                if(!routePrototype.CourtyardDoorOpen)
+                {
+                    string action=routePrototype.RemainingHere>0 ? (ru ? "Сними листы с двери" : "Peel the notices off the door")
+                        : (ru ? "Открой дверь" : "Open the door");
+                    DrawGoalMarker(routePrototype.CourtyardEntry,action,w,h);
+                }
+                if(routePrototype.CourtyardCart && (CanUpgrade(money,toolLevel) || CanBuySteam(money,toolLevel,steamUnlocked,session.SteamPrice) ||
+                    CanExpandSteam(money,steamUnlocked,steamExpanded)))
+                    DrawGoalMarker(routePrototype.CourtyardCart.position+Vector3.up*1.25f,ru ? "Есть покупка" : "Upgrade available",w,h);
+            }
+        }
+
+        void DrawGoalMarker(Vector3 point,string label,float w,float h)
+        {
+            Vector3 screen=view.WorldToViewportPoint(point);
+            if(screen.z<=0f || screen.x<.08f || screen.x>.92f || screen.y<.15f || screen.y>.84f)return;
+            float x=screen.x*w,y=(1f-screen.y)*h;
+            DrawGuidanceLabel(label,x,y-15f,w*.6f);
+            Fill(new Rect(x-2f,y+3f,4f,9f),Amber,2f);
+        }
+
+        void DrawGuidanceLabel(string label,float x,float y,float maxWidth)
+        {
+            var content=new GUIContent(label);
+            float width=Mathf.Min(maxWidth,hudPrimary.CalcSize(content).x+2*HudPadding);
+            float height=hudPrimary.CalcHeight(content,width-2*HudPadding);
+            Rect box=new Rect(x-width*.5f,y-height*.5f-6f,width,height+12f);
+            Panel(box);
+            Fill(new Rect(box.x+4f,box.y+5f,3f,box.height-10f),Amber,1.5f);
+            GUI.Label(new Rect(box.x+HudPadding,box.y+6f,width-2*HudPadding,height),content,hudPrimary);
         }
 
         void DrawSaveWarning(float y,bool ru)
@@ -569,7 +630,8 @@ namespace JustOneMorePeel
             GUI.Label(new Rect(HudInset+HudPadding,y+10f,width-2*HudPadding,height),content,hudLabel);
         }
 
-        string EquippedTool() => T(activeTool==1 && steamUnlocked ? PeelText.Steamer : toolLevel>0 ? PeelText.Scraper : PeelText.Card);
+        bool CardEquipped => toolLevel==0 || activeTool==PeelGame.CardToolSlot;
+        string EquippedTool() => T(activeTool==1 && steamUnlocked ? PeelText.Steamer : CardEquipped ? PeelText.Card : PeelText.Scraper);
 
         string ShopPurchaseResult(bool ru)
         {
@@ -592,6 +654,7 @@ namespace JustOneMorePeel
         {
             bool steam=activeTool==1 && steamUnlocked;
             string tool=EquippedTool();
+            if(activeTool==PeelGame.CardToolSlot)return "3  ·  "+tool;
             if(!steamUnlocked)return tool;
             int key=steam ? (archiveIssueSlice ? 3 : 2) : archiveIssueSlice && toolLevel>0 ? 2 : 1;
             return key+"  ·  "+tool;
@@ -614,6 +677,8 @@ namespace JustOneMorePeel
             else if(ShowsFirstScraperOffer)
                 detail=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
                     : T(PeelText.Scraper)+"  $"+UpgradeCost;
+            else if(routePrototype && routePrototype.IsMainRoute && toolLevel>0)
+                detail=ru ? "1 — Шпатель   3 — Карта" : "1 — Scraper   3 — Card";
 
             float statusWidth=Mathf.Max(hudLabel.CalcSize(new GUIContent(balance)).x,hudLabel.CalcSize(new GUIContent(detail)).x);
             float contentWidth=Mathf.Max(hudPrimary.CalcSize(new GUIContent(label)).x,statusWidth);
@@ -699,7 +764,7 @@ namespace JustOneMorePeel
         string TargetHint()
         {
             if(!target || !target.IsExposed)return "";
-            if(toolLevel==0)return T(PeelText.HoldCard);
+            if(CardEquipped)return T(PeelText.HoldCard);
 
             bool usingSteam=activeTool==1 && steamUnlocked;
             bool precision=target.Stack && target.Stack.PrecisionWork;

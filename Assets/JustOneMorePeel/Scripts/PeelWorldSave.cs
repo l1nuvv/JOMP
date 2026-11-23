@@ -48,7 +48,8 @@ namespace JustOneMorePeel
             bool paperTrial=scene==PaperCollectionScene;
             bool archive=scene==ArchiveIssueScene || paperTrial;
             if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
-                save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>1 ||
+                save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>PeelGame.CardToolSlot ||
+                (save.activeTool==PeelGame.CardToolSlot && (scene!=MainRouteScene || save.toolLevel==0)) ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
                 (archive && (save.toolLevel>1 || save.steamUnlocked)) ||
                 (save.activeTool==1 && (archive ? save.toolLevel!=1 : !save.steamUnlocked)) ||

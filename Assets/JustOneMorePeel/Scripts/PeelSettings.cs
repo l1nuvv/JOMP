@@ -85,7 +85,7 @@ namespace JustOneMorePeel
             {"Scraper sharpening available at the cart · ${0}","Заточка шпателя доступна на тележке · ${0}"},
             {"Steamer available at the cart · ${0}","Отпариватель доступен на тележке · ${0}"},
             {"Wider steam available at the cart · ${0}","Широкий пар доступен на тележке · ${0}"},
-            {"Tough paper · hold LMB and drag sideways","Плотная бумага · держи ЛКМ и веди мышь вбок"},
+            {"Tough paper · hold LMB and drag sideways to peel faster","Плотная бумага · держи ЛКМ и веди мышь вбок для ускорения"},
             {"Tough paper · {0} — switch to scraper","Плотная бумага · {0} — сменить пар на шпатель"},
             {"E — read the note","E — прочитать записку"},
             {"Basement","Подвал"},{"Archive","Архив"},

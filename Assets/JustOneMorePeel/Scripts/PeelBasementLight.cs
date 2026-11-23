@@ -16,6 +16,7 @@ namespace JustOneMorePeel
         [SerializeField] float exitZ=14f;
         [SerializeField] float interactionReach=2.2f;
         public bool IsOn { get; private set; }
+        internal Vector3 SwitchPosition => lightSwitch.bounds.center;
         internal bool SwitchIsOn { get; private set; }
         readonly List<Renderer> surfaces=new List<Renderer>();
         readonly List<Material[]> originalMaterials=new List<Material[]>();

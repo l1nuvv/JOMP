@@ -54,6 +54,9 @@ namespace JustOneMorePeel
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
         internal bool SteamAvailable => PaperCollectionActive ? trialScraperOwned : archiveIssueSlice || steamUnlocked;
+        internal const int CardToolSlot=2;
+        internal int EquippedToolLevel => activeTool==CardToolSlot ? 0 : toolLevel;
+        internal bool CanOpenMainRouteDoor => routePrototype && routePrototype.IsMainRoute && routePrototype.CanOpenDoor();
         internal bool CanPeelPaper => !PaperCollectionActive || progression.FreePaperSlots>0;
         internal bool PaperCollectionActive { get; private set; }
         internal int CollectedItems => progression.CollectedItems;
@@ -161,7 +164,7 @@ namespace JustOneMorePeel
                 paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
-            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight);
+            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view);
             progression=new PeelProgressionController(SteamPrice,Release,SavePurchase,NotifyProgression,ui.ShowPayout
 #if UNITY_EDITOR
                 ,LogRoutePlaytest
@@ -282,16 +285,20 @@ namespace JustOneMorePeel
                 {
                     Release();activeTool=1;toolLevel=1;
                 }
+                if(routePrototype && routePrototype.IsMainRoute && toolLevel>0 && keyboard.digit3Key.wasPressedThisFrame)
+                {
+                    Release();activeTool=CardToolSlot;
+                }
             }
             if(CurrentScreen!=PeelScreen.Playing)return;
             var mouse=Mouse.current;
             if(mouse!=null)
             {
                 if(!archiveIssueSlice && steamUnlocked && Cursor.lockState==CursorLockMode.Locked && Mathf.Abs(mouse.scroll.ReadValue().y)>.01f &&
-                    (keyboard==null || (!keyboard.digit1Key.wasPressedThisFrame && !keyboard.digit2Key.wasPressedThisFrame)))
+                    (keyboard==null || (!keyboard.digit1Key.wasPressedThisFrame && !keyboard.digit2Key.wasPressedThisFrame && !keyboard.digit3Key.wasPressedThisFrame)))
                 {
                     Release();
-                    activeTool=1-activeTool;
+                    activeTool=activeTool==0 ? 1 : 0;
                 }
                 if(mouse.leftButton.wasPressedThisFrame && Cursor.lockState!=CursorLockMode.Locked){Release();return;}
                 StepPeeling(mouse.leftButton.isPressed,mouse.delta.ReadValue(),Time.deltaTime);
@@ -475,7 +482,7 @@ namespace JustOneMorePeel
             ui.ShowPaperReceipt(items,payout);
         }
         public void StepPeeling(bool pressed,Vector2 delta,float seconds) =>
-            interaction.StepPeeling(pressed,delta,seconds,view,reach,toolLevel,activeTool,SteamAvailable,steamExpanded,
+            interaction.StepPeeling(pressed,delta,seconds,view,reach,EquippedToolLevel,activeTool,SteamAvailable,steamExpanded,
                 PaperCollectionActive ? progression.FreePaperSlots : null,ref removed);
         public bool NeedsStripScrap(PeelStrip strip) => interaction.NeedsStripScrap(strip);
         public static float PeelAmount(Vector2 delta,float seconds,int level,bool steam) =>

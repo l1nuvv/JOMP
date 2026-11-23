@@ -27,7 +27,7 @@ namespace JustOneMorePeel
         Material steamMaterial;
         Texture2D steamTexture;
         float wallSteamBudget;
-        float gripBlend;
+        float gripBlend, doorLowering;
         Vector3 contactInView;
         bool wasWorkingWithCard;
         float cardContactStarted = float.NegativeInfinity;
@@ -330,7 +330,7 @@ namespace JustOneMorePeel
         void OnPaperDetached(int count)
         {
             bool useSteam=game.activeTool==1 && game.SteamAvailable;
-            detachStrength=useSteam ? .32f : game.toolLevel==0 ? .65f : 1f;
+            detachStrength=useSteam ? .32f : game.EquippedToolLevel==0 ? .65f : 1f;
             detachStrength*=Mathf.Lerp(1f,1.2f,Mathf.Clamp01((count-1)/7f));
             detachTime=Time.time;
         }
@@ -342,7 +342,7 @@ namespace JustOneMorePeel
             tool.gameObject.SetActive(Cursor.lockState==CursorLockMode.Locked);
             if(!tool.gameObject.activeSelf)detachTime=float.NegativeInfinity;
             bool useSteam=game.toolLevel>0 && game.activeTool==1 && game.SteamAvailable;
-            bool useCard=game.toolLevel==0;
+            bool useCard=game.EquippedToolLevel==0;
             if(steamer.activeSelf!=useSteam)steamer.SetActive(useSteam);
             if(scraper.activeSelf!=(!useSteam && !useCard))scraper.SetActive(!useSteam && !useCard);
             if(card.activeSelf!=useCard)card.SetActive(useCard);
@@ -360,6 +360,9 @@ namespace JustOneMorePeel
             var rest=useCard?new Vector3(.19f,-.163f,.49f):new Vector3(.30f,-.147f,.56f);
             if(useSteam)
                 rest+=new Vector3(-.02f,0f,.04f);
+            bool openingDoor=!working && !useCard && !useSteam && game.CanOpenMainRouteDoor;
+            doorLowering=Mathf.MoveTowards(doorLowering,openingDoor ? 1f : 0f,Time.deltaTime/.16f);
+            if(!useCard && !useSteam)rest+=new Vector3(.08f,-.16f,0f)*doorLowering;
             int selectedTool=useCard ? 0 : useSteam ? 2 : 1;
             if(tool.gameObject.activeSelf && shownTool!=selectedTool)
             {

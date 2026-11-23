@@ -41,6 +41,8 @@ namespace JustOneMorePeel
         int Area => AreaAt(game.player.transform.position.z);
         internal int AreaAt(float z) => z<basementEntryZ ? 0 : z<archiveEntryZ ? 1 : 2;
         internal bool IsMainRoute => mainRoute;
+        internal Vector3 CourtyardEntry { get; private set; }
+        internal Transform CourtyardCart { get; private set; }
         public int CurrentArea => Area;
         internal bool KnockActive => knockCue && knockCue.KnockActive;
         static int Left(PeelPosterStack[] stacks)
@@ -79,6 +81,8 @@ namespace JustOneMorePeel
                     if(courtyardOpen)return ru ? "Дверь открыта · спустись в подвал" : "Door open · go down to the basement";
                     if(courtyardUnlocked)return ru ? "Дверь готова · подойди, посмотри на неё и нажми E"
                         : "Door ready · walk up, look at it and press E";
+                    if(mainRoute)return ru ? "Заявка №17. Сними листы с двери, чтобы открыть спуск."
+                        : "Job 17. Clear the service door to open the way downstairs.";
                     if(courtyardKnockHeard)return ru ? "Опять стучит за дверью. Сними листы с двери, стены можно оставить."
                         : "There it is again, behind the door. Clear the door. The walls can wait.";
                     return ru ? "Заявка №17. Что стучит под двором? Сними объявления с двери."
@@ -286,6 +290,12 @@ namespace JustOneMorePeel
         }
         void Start()
         {
+            if(mainRoute)
+            {
+                CourtyardEntry=courtyardDoor.transform.position+Vector3.up*1.2f;
+                var cart=FindAnyObjectByType<PeelWorkbench>();
+                if(cart)CourtyardCart=cart.transform;
+            }
             if(!game || courtyard==null || doorPosters==null || basement==null || hall==null || !courtyardDoor || !basementDoor || !finalReveal)
             {Debug.LogError("Route prototype: missing scene references",this);enabled=false;return;}
             // The trial uses stacks centered within the doorway, including the overlapping edge sheets.

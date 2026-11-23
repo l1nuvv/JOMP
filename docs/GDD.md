@@ -7,6 +7,7 @@ A tactile first-person game about removing layered street notices. The owner's i
 ## Current loop
 Look at reachable paper → hold LMB → remove paper and continue on the next reachable visible target → earn money → look at the tool cart within 2.5m → E to buy tools → uncover deeper posters and eventually the wall.
 The HUD briefly shows the money awarded by a removal, combining payments made in the same frame. This feedback remains a candidate for owner playtest.
+In `MainRoute`, signs above the service door, cart and light switch point to the current action. A purchase notice appears at the affordability threshold. After buying the scraper, 1 selects it, 3 returns to the card, and 2 selects steam once purchased.
 Holding LMB can start another grip after the previous one finishes. The raycast is repeated for each grip; camera look is freed between grips. Menu transitions and tool changes still require releasing LMB before peeling resumes.
 ## Implemented progression
 - Start with an expired plastic membership card. One grip removes one of four strips. Rate .4/s (2.5 seconds per strip; provisional after owner feedback). Mouse motion gives no bonus.
