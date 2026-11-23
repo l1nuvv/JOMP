@@ -45,8 +45,12 @@ namespace JustOneMorePeel
         internal bool KnockActive => knockCue && knockCue.KnockActive;
         static int Left(PeelPosterStack[] stacks)
         { int count=0; foreach(var s in stacks) if(s)count+=s.RemainingPosters; return count; }
+        static int Total(PeelPosterStack[] stacks)
+        { int count=0; foreach(var s in stacks) if(s)count+=s.PosterCount; return count; }
         public int RemainingHere => RemainingInArea(Area);
         internal int RemainingInArea(int area) => Left(area==0 ? CourtyardGoal : area==1 ? basement : hall);
+        internal int RequiredNoticesTotal => Total(CourtyardGoal)+Total(basement)+Total(hall);
+        internal int RequiredNoticesLeft => Left(CourtyardGoal)+Left(basement)+Left(hall);
         public bool IsCourtyardGoal(PeelPosterStack stack) => Array.IndexOf(CourtyardGoal,stack)>=0;
         internal int OptionalCourtyardNoticesLeft => Left(optionalCourtyard);
         internal bool IsOptionalCourtyardNotice(PeelPosterStack stack) => Array.IndexOf(optionalCourtyard,stack)>=0;
@@ -63,11 +67,12 @@ namespace JustOneMorePeel
                     if(Area==0)
                     {
                         int optionalLeft=OptionalCourtyardNoticesLeft;
-                        if(optionalLeft==0)return ru ? "Смена завершена · двор полностью очищен" : "Shift complete · courtyard fully cleared";
-                        return ru ? $"Смена завершена · во дворе осталось необязательных листов — {optionalLeft}"
-                            : $"Shift complete · optional courtyard notices left — {optionalLeft}";
+                        if(optionalLeft==0)return ru ? "Двор полностью очищен" : "Courtyard fully cleared";
+                        return ru ? $"Основная работа выполнена · во дворе осталось необязательных листов — {optionalLeft}"
+                            : $"Required work complete · optional courtyard notices left — {optionalLeft}";
                     }
-                    return ru ? "Смена завершена · записка на дальней стене архива" : "Shift complete · the note is on the far archive wall";
+                    return ru ? "Обязательные листы сняты. Записка на дальней стене архива."
+                        : "Required notices cleared. The note is on the far archive wall.";
                 }
                 if(Area==0)
                 {
@@ -90,7 +95,6 @@ namespace JustOneMorePeel
                     : "Clear the archive notices. The reply to job 17 is on the far wall.";
             }
         }
-        public string FinishText(string time) => game.Settings.Language==PeelLanguage.Russian ? "Записка открыта. Смена завершена.\nВремя: "+time : "Note uncovered. Shift complete.\nTime: "+time;
         internal void KnockPlayed(int area)
         {
             if(area==0 && !ReviewMode && !courtyardUnlocked)courtyardKnockHeard=true;

@@ -18,7 +18,8 @@ namespace JustOneMorePeel
         PaperCollection, PaperCollectionCount, PaperCollectionFull, PaperDropOffSaveFailed, PaperCollectionControls,
         PaperDropOffSign, PaperDropOffObjective, PaperDropOffOptional, PaperDropOffInteract, PaperDropOffEmpty, PaperDropOffReceipt,
         PaperShop, PaperShopScraperOwned, PaperShopScraperEffect, PaperCapacityOffer, PaperCapacityMax,
-        PaperCollectionContinue, PaperCollectionBackup, PaperCollectionReset, PaperCollectionCopy
+        PaperCollectionContinue, PaperCollectionBackup, PaperCollectionReset, PaperCollectionCopy,
+        ShiftComplete, RequiredNoticesResult, OptionalCourtyardResult, CourtyardCleared
     }
 
     public sealed class PeelSettings : MonoBehaviour
@@ -109,7 +110,11 @@ namespace JustOneMorePeel
             {"Continue trial","Продолжить пробу"},
             {"Load trial backup","Проба из резерва"},
             {"Reset trial save…","Сбросить пробу…"},
-            {"Copy archive shift into trial","Скопировать архивную смену в пробу"}
+            {"Copy archive shift into trial","Скопировать архивную смену в пробу"},
+            {"Shift complete","Смена завершена"},
+            {"Required notices cleared · {0}/{1}","Снято обязательных листов · {0}/{1}"},
+            {"Optional notices left in the courtyard · {0}","Необязательные листы во дворе · осталось {0}"},
+            {"Courtyard fully cleared","Двор полностью очищен"}
         };
 
         void Awake() { Load(); }

@@ -29,7 +29,7 @@ namespace JustOneMorePeel
         bool TrialScraperOwned { get; }
         PeelScreen RestartReturn { get; }
         bool ResetFailed { get; }
-        float CompletionNoticeUntil { get; }
+        float CompletionSummaryUntil { get; }
         void BeginShift();
         void BeginPaperCollection();
         void CopyArchiveToPaperCollection();
@@ -91,7 +91,6 @@ namespace JustOneMorePeel
         bool hasSavedShift => archiveIssueSlice || routePrototype;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
-        float completionNoticeUntil => session.CompletionNoticeUntil;
         bool IsPeeling => interaction.IsPeeling;
         bool AwaitingRelease => interaction.AwaitingRelease;
         PeelStrip target => interaction.Target;
@@ -486,6 +485,7 @@ namespace JustOneMorePeel
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
             bool complete=routePrototype && routePrototype.Completed && !routePrototype.ReviewMode;
+            bool showSummary=complete && Time.unscaledTime<session.CompletionSummaryUntil;
             bool review=routePrototype && routePrototype.ReviewMode;
             bool door=routePrototype && routePrototype.UsesLocalCourtyardGate && routePrototype.CurrentArea==0;
             int remaining=routePrototype ? routePrototype.RemainingHere
@@ -506,20 +506,25 @@ namespace JustOneMorePeel
                 objective=basementLight.SwitchIsOn
                     ? (ru ? "Лампа зажигается…" : "Lamp warming up…")
                     : (ru ? "Найди выключатель слева от входа" : "Find the switch left of the entrance");
+            if(showSummary)objective=T(PeelText.ShiftComplete);
             float warningY=HudInset;
             if(objective.Length>0)
             {
-                string label=paperCollection ? T(PeelText.PaperCollection)
+                string label=showSummary ? ShiftSummaryDetails()
+                    : paperCollection ? T(PeelText.PaperCollection)
                     : archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
                     : complete ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
                     : (door ? (ru ? "На двери" : "On the door") : T(PeelText.RemainingPosters))+"  "+remaining;
-                float width=Mathf.Clamp(hudPrimary.CalcSize(new GUIContent(objective)).x+2*HudPadding,228f,464f);
+                float contentWidth=hudPrimary.CalcSize(new GUIContent(objective)).x;
+                if(showSummary)contentWidth=Mathf.Max(contentWidth,hudLabel.CalcSize(new GUIContent(label)).x);
+                float width=Mathf.Clamp(contentWidth+2*HudPadding,228f,464f);
                 float innerWidth=width-2*HudPadding;
                 float height=hudPrimary.CalcHeight(new GUIContent(objective),innerWidth);
                 float labelHeight=hudLabel.CalcHeight(new GUIContent(label),innerWidth);
                 Rect panel=new Rect(HudInset,HudInset,width,2*HudPadding+height+labelHeight+4f);
                 Panel(panel);
+                if(showSummary)Fill(new Rect(panel.x+6f,panel.y+HudPadding,3f,height),Amber,1.5f);
                 float x=panel.x+HudPadding, y=panel.y+HudPadding;
                 GUI.Label(new Rect(x,y,innerWidth,height),objective,hudPrimary);
                 GUI.Label(new Rect(x,y+height+4f,innerWidth,labelHeight),label,hudLabel);
@@ -639,7 +644,6 @@ namespace JustOneMorePeel
                 return paperCollection ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
                     : T(PeelText.Workbench);
 
-            if(complete && Time.unscaledTime<completionNoticeUntil)return routePrototype.FinishText(FormatPlayTime());
             if(AwaitingRelease && !bundleFull)return T(PeelText.ReleaseGrip);
             string hint=bundleFull ? "" : TargetHint();
             if(hint.Length>0)
@@ -681,7 +685,16 @@ namespace JustOneMorePeel
                 float pageWidth=pageHeight*note.width/note.height;
                 GUI.DrawTexture(new Rect((width-pageWidth)*.5f,(height-pageHeight-54f)*.5f,pageWidth,pageHeight),note);
             }
-            if(MenuButton(new Rect(width*.5f-90f,height-52f,180f,36f),T(PeelText.Back),0))session.Back();
+            if(MenuButton(new Rect(width*.5f-90f,height-52f,180f,36f),T(PeelText.Back),0,primary:true))session.Back();
+        }
+
+        string ShiftSummaryDetails()
+        {
+            int total=routePrototype.RequiredNoticesTotal;
+            int optionalLeft=routePrototype.OptionalCourtyardNoticesLeft;
+            string required=string.Format(T(PeelText.RequiredNoticesResult),total-routePrototype.RequiredNoticesLeft,total);
+            string courtyard=optionalLeft>0 ? string.Format(T(PeelText.OptionalCourtyardResult),optionalLeft) : T(PeelText.CourtyardCleared);
+            return required+"\n"+courtyard+"\n"+T(PeelText.PlayTime)+" "+FormatPlayTime();
         }
         string TargetHint()
         {

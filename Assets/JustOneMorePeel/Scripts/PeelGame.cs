@@ -77,8 +77,8 @@ namespace JustOneMorePeel
         float originalRotationSpeed=1;
         bool appliedSettings;
         PeelLanguage appliedLanguage;
-        bool worldSession, restarting, resetFailed, completionSeen;
-        float nextWorldSave, completionNoticeUntil;
+        bool worldSession, restarting, resetFailed;
+        float nextWorldSave, completionSummaryUntil;
         bool HasSavedShift => archiveIssueSlice || routePrototype;
         bool CanSaveShift => HasSavedShift && (!routePrototype || !routePrototype.ReviewMode);
         int furthestAnnouncedArea;
@@ -87,6 +87,7 @@ namespace JustOneMorePeel
         Vector3 recoveryPosition;
         Quaternion recoveryRotation;
 #if UNITY_EDITOR
+        bool completionSeen;
         int furthestPlaytestArea = -1;
         public static string WorldSavePathOverride;
         public static bool IsTimingPlaytest { get; set; }
@@ -120,7 +121,7 @@ namespace JustOneMorePeel
         bool IPeelGameUIState.TrialScraperOwned => trialScraperOwned;
         PeelScreen IPeelGameUIState.RestartReturn => restartReturn;
         bool IPeelGameUIState.ResetFailed => resetFailed;
-        float IPeelGameUIState.CompletionNoticeUntil => completionNoticeUntil;
+        float IPeelGameUIState.CompletionSummaryUntil => completionSummaryUntil;
 
         void Start()
         {
@@ -199,13 +200,13 @@ namespace JustOneMorePeel
                 if(controller)controller.RestoreLookPitch(0);
                 Physics.SyncTransforms();
             }
+#if UNITY_EDITOR
             if(routePrototype && routePrototype.Completed && !completionSeen)
             {
-                completionSeen=true;completionNoticeUntil=Time.unscaledTime+6f;
-#if UNITY_EDITOR
+                completionSeen=true;
                 LogRoutePlaytest("Shift complete");
-#endif
             }
+#endif
             if(CurrentScreen==PeelScreen.Playing && (!routePrototype || !routePrototype.Completed))ElapsedPlayTime+=Time.unscaledDeltaTime;
             if(CurrentScreen==PeelScreen.Playing && routePrototype && !routePrototype.Completed && !routePrototype.ReviewMode)
             {
@@ -339,7 +340,12 @@ namespace JustOneMorePeel
                 if(restartReturn==PeelScreen.Intro)PaperCollectionActive=false;
                 SetScreen(restartReturn);
             }
-            else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingArchiveNote)SetScreen(PeelScreen.Playing);
+            else if(CurrentScreen==PeelScreen.ReadingArchiveNote)
+            {
+                SetScreen(PeelScreen.Playing);
+                completionSummaryUntil=Time.unscaledTime+6f;
+            }
+            else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop)SetScreen(PeelScreen.Playing);
         }
         public void RequestRestart()
         {
