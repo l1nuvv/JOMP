@@ -34,6 +34,8 @@ UI remains IMGUI prototype. `ThreeAreaPrototype` has a versioned world autosave 
 
 `MainRoute` has a separate `main-route` save key and `main-route-save-v1.json` file. Its serialized route boundaries drive both gameplay and the Continue location label. The scene keeps its placed furniture and activates the placed final note and spotlight when the required archive stacks are clear. Legacy route migrations apply to the `three-area` slot.
 
+`MainRoute` persists the completed glass encounter as the optional boolean `basementGlassSeen`. Missing values in older slots leave the event eligible. After completion, Continue restores the sheet on the far side of the pane. The encounter checks the view ray and active basement light, then runs beside the normal player controls. The newer story prints are fixed in new shifts. Previously saved print assignments still resolve through their saved palette.
+
 `PavilionMural` uses route key `pavilion` and file `pavilion-save-v1.json`. Stable `pavilion.bay*` stack IDs restore completed sheets and the current strip progress. The HUD derives remaining sheets from restored stack counts. In this slot `lightOn` records the final switch. Save validation requires all sheets clear when the light is on. Activating the switch checkpoints both copies through the existing save coordinator.
 
 `PavilionHub` uses route key `pavilion-hub` and file `pavilion-hub-save-v1.json`. It reuses the pavilion stacks and switch. The existing `paper` payload holds bundle capacity, items and undelivered value, and a successful hand-in checkpoints bundle and balance together. The shop keeps the pavilion's paid tool progression. The archive paper trial uses its own slot and controls.

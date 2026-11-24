@@ -17,6 +17,7 @@ namespace JustOneMorePeel
         [SerializeField] GameObject finalReveal;
         [SerializeField] Light archiveRevealLamp;
         [SerializeField] Material passageLettering;
+        [SerializeField] PeelGlassEncounter basementGlass;
         [SerializeField] bool mainRoute;
         [SerializeField] float basementEntryZ=3.35f;
         [SerializeField] float archiveEntryZ=14f;
@@ -45,6 +46,11 @@ namespace JustOneMorePeel
         internal Transform CourtyardCart { get; private set; }
         public int CurrentArea => Area;
         internal bool KnockActive => knockCue && knockCue.KnockActive;
+        internal bool BasementGlassSeen => basementGlass && basementGlass.Seen;
+        internal void RestoreBasementGlass(bool seen)
+        {
+            if (basementGlass) basementGlass.Restore(seen);
+        }
         static int Left(PeelPosterStack[] stacks)
         { int count=0; foreach(var s in stacks) if(s)count+=s.RemainingPosters; return count; }
         static int Total(PeelPosterStack[] stacks)
@@ -91,6 +97,8 @@ namespace JustOneMorePeel
                 if(Area==1)
                 {
                     if(basementDoorOpening!=null)return ru ? "Дверь в архив открывается" : "The archive door is opening";
+                    if(!basementOpen && basementGlass)
+                        return ru ? "Заявка №17 · расчисти проход в архив" : "Job 17 · Clear the archive entrance";
                     return basementOpen ? (ru ? "Архив открыт · пройди через дальний проём" : "Archive open · go through the doorway ahead")
                         : (ru ? "Бирка на двери архива: «Проверить защёлку». Сними листы в подвале."
                             : "Archive door tag: “Check latch.” Clear the basement notices.");
@@ -379,8 +387,13 @@ namespace JustOneMorePeel
         }
         void RefreshRouteLanguage()
         {
-            if(passageNote)passageNote.text=game.Settings.Language==PeelLanguage.Russian
-                ? "АРХИВ · №17\nПроверить защёлку" : "ARCHIVE · 17\nCheck latch";
+            if(passageNote)
+            {
+                bool ru=game.Settings.Language==PeelLanguage.Russian;
+                passageNote.text=basementGlass
+                    ? (ru ? "АРХИВ · №17\nСм. запись М." : "ARCHIVE · 17\nSee M.’s note")
+                    : (ru ? "АРХИВ · №17\nПроверить защёлку" : "ARCHIVE · 17\nCheck latch");
+            }
             if(archiveSign)archiveSign.text=game.Settings.Language==PeelLanguage.Russian ? "АРХИВ" : "ARCHIVE";
             DisableBasementCollisions();
         }

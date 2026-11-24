@@ -35,8 +35,10 @@ namespace JustOneMorePeel
                 for (int layer = 0; layer < stack.PosterCount; layer++)
                 {
                     int design = stack.AuthoredDesignAt(layer, settings.PaperCount);
-                    if (keepPrints || plain[design])
+                    int story = stack.StoryPrintAt(layer);
+                    if (story >= 0 || keepPrints || plain[design])
                     {
+                        if (story >= 0) design = story;
                         stack.ShiftDesigns[layer] = design;
                         counts[design]++;
                         continue;
@@ -52,6 +54,7 @@ namespace JustOneMorePeel
             {
                 string variant = settings.PaperVariantId(i);
                 if (plain[i] ||
+                    (variant != null && variant.StartsWith("NW-", StringComparison.Ordinal)) ||
                     (!usedAsNotice[i] && (variant == "31_RoundsLog" || variant == "32_ArchiveLoan"))) continue;
                 pools[formats[i]].Add(i);
             }

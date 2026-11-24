@@ -78,6 +78,7 @@ namespace JustOneMorePeel
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
                 rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,
                 lightOn=pavilion ? pavilion.IsLit : basementLight && basementLight.SwitchIsOn,
+                basementGlassSeen=routePrototype && routePrototype.BasementGlassSeen,
                 stacks=new PeelStackSave[index.Count],paper=paper,
                 noticePalette=saveVersion==PeelWorldSave.CurrentVersion ? localPalette : null};
             if(controller && controller.CinemachineCameraTarget)
@@ -198,6 +199,7 @@ namespace JustOneMorePeel
                 applyProgress(data,savedRemoved,savedCleared);
                 if(routePrototype)routePrototype.RestoreProgress(data.firstDoorOpen);
                 if(basementLight)basementLight.RestoreProgress(data.lightOn);
+                if(routePrototype)routePrototype.RestoreBasementGlass(data.basementGlassSeen);
                 if(pavilion)pavilion.SetLight(data.lightOn);
                 Physics.SyncTransforms();
                 restorePlayer(data);

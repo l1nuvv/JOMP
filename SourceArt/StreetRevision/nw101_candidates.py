@@ -1,8 +1,8 @@
-"""Prepare the two bilingual trial prints from Story & World Bible §16."""
+"""Prepare the bilingual job 17 papers and the print behind the pane."""
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from chapter_prints import stock
 
@@ -42,9 +42,9 @@ def request(ru):
     write(d, (54, 70), "СЛУЖЕБНЫЙ ВХОД" if ru else "SERVICE ENTRANCE", FONTS / "arialbd.ttf", 52)
     d.line((56, 151, 664, 151), fill=INK, width=5)
     lines = (
-        ["Опять стучит снизу.", "Кто будет во дворе,", "помогите расчистить", "дверь. Ручка под", "бумагой."]
+        ["Снизу опять стучит.", "Расчистите ручку.", "В подвале включите", "свет."]
         if ru else
-        ["It’s knocking", "downstairs again.", "If you’re out in the yard,", "please help clear", "the door. The handle’s", "under the notices."]
+        ["It’s knocking", "downstairs again.", "Clear the door handle.", "Switch on the light", "in the basement."]
     )
     for i, words in enumerate(lines):
         write(d, (54, 210 + 97 * i), words, HAND, 76, stroke=2)
@@ -67,10 +67,58 @@ def flyer(ru, motif):
     return sheet
 
 
+def reverse(motif):
+    sheet = stock((720, 1018), "#d4c39f")
+    ghost = ImageOps.mirror(motif)
+    ghost.putalpha(ghost.getchannel("A").point(lambda value: int(value * .26)))
+    sheet.paste(ghost, (70, 317), ghost)
+    return sheet
+
+
+def reply(ru, motif):
+    sheet = stock((720, 1018), "#e4d8be")
+    d = ImageDraw.Draw(sheet)
+    write(d, (54, 64), "ДОМОВОЙ АРХИВ" if ru else "HOUSE ARCHIVE", FONTS / "arial.ttf", 37)
+    write(d, (54, 132), "По заявке №17" if ru else "Re: job 17", FONTS / "georgiab.ttf", 59)
+    d.line((54, 221, 666, 221), fill="#9e8e73", width=3)
+    lines = (
+        ["Включил свет.", "За стеклом кто-то", "клеил афишу.", "Утром лист был там же.", "С этой стороны", "я его не достал."]
+        if ru else
+        ["I turned on the light.", "Someone was pasting", "a flyer behind the glass.", "It was still there by morning.", "I couldn’t reach it", "from this side."]
+    )
+    for i, words in enumerate(lines):
+        write(d, (54, 256 + 74 * i), words, HAND, 61, stroke=1)
+    sketch = motif.resize((282, 134), Image.Resampling.LANCZOS)
+    sheet.paste(sketch, (82, 768), sketch)
+    write(d, (490, 827), "— М." if ru else "— M.", HAND, 68)
+    return sheet
+
+
+def rounds(ru):
+    sheet = stock((720, 1018), "#dedeca")
+    d = ImageDraw.Draw(sheet)
+    write(d, (54, 61), "ПОДВАЛ · ОБХОД" if ru else "BASEMENT · ROUNDS", FONTS / "arialbd.ttf", 42)
+    write(d, (54, 147), "Заявка №17" if ru else "Job 17", FONTS / "courbd.ttf", 52)
+    lines = (
+        ["Лампа исправна.", "Стекло целое.", "Вход за стекло", "в обход не входит."]
+        if ru else
+        ["The light works.", "The pane is intact.", "No access behind the", "glass on these rounds."]
+    )
+    for i, words in enumerate(lines):
+        y = 315 + 125 * i
+        d.line((55, y + 79, 663, y + 79), fill="#a19f8c", width=2)
+        write(d, (55, y), words, HAND, 65, stroke=1)
+    write(d, (512, 880), "— М." if ru else "— M.", HAND, 58)
+    return sheet
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     motif = accordion()
     motif.save(OUT / "NW-02_Accordion.png")
+    reverse(motif).save(OUT / "NW-02_Back.png")
     for language in ("RU", "EN"):
         request(language == "RU").save(OUT / f"NW-01_{language}.png")
         flyer(language == "RU", motif).save(OUT / f"NW-02_{language}.png")
+        rounds(language == "RU").save(OUT / f"NW-03_{language}.png")
+        reply(language == "RU", motif).save(OUT / f"NW-06_{language}.png")

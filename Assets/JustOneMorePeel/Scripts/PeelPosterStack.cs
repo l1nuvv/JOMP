@@ -13,6 +13,7 @@ namespace JustOneMorePeel
         [SerializeField] private int secondDesign;
         [SerializeField] private int sequenceOffset;
         [SerializeField] private int[] deeperDesigns;
+        [SerializeField] private int[] storyPrints;
         [SerializeField] private float maximumPaperSize;
         [SerializeField, Min(0)] private float paperAspectOverride;
         [SerializeField, Min(.1f)] private float firstLayerScale=1f;
@@ -74,6 +75,7 @@ namespace JustOneMorePeel
         public PeelStrip[] CurrentStrips => front;
         public bool NeedsAdvance => removedMask==15;
         internal int[] ShiftDesigns { get; set; }
+        internal int StoryPrintAt(int layer) => storyPrints!=null && layer<storyPrints.Length ? storyPrints[layer] : -1;
         internal void RestoreProgress(int cleared, float[] progress)
         {
             ClearedPosters=cleared;removedMask=0;ShowBuffers();

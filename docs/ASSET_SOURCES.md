@@ -2,6 +2,8 @@
 
 **HUB-101, приёмная.** Тележка Poly Haven (CC0) перенесена из витрины, шкаф Kenney Furniture Kit (CC0) использует существующий `bookcaseclosed.fbx` и матовый материал проекта. Корпуса автоматов и комната собраны как блокинг на имеющихся материалах. [Кадры и проверка](development/JOMP_NEXT_TASKS.md#hub-101)
 
+**NW-101–105, стекло подвала.** Для силуэта использован уже включённый `Armature.fbx` из Unity Starter Assets. Стекло использует существующий материал `PRISM 90 glass`. Пары NW-01/02/03/06 и оборот афиши подготовлены скриптом `SourceArt/StreetRevision/nw101_candidates.py` с имеющимся шрифтом Caveat. [Кадры](development/JOMP_NEXT_TASKS.md#nw-101105)
+
 **HUB-102E, шкаф-витрина.** Примерена [PRISM 90 от Innerscene](https://www.innerscene.com/tools/library/3d-parts/prism-90-glass-vitrine-ac887367), CC0. Скачан исходный GLB SHA-256 `028D6921997475668A411729CC147D146F1EEF748C466B13B2888C0F32316385`. Геометрия с напольным pivot конвертирована в OBJ без установки пакетов. Узлы сгруппированы в пять частей по материалу. В Unity использованы матовые материалы проекта для рамы, фурнитуры и полок и отдельное полупрозрачное стекло URP. Габариты коллизии 0,91 × 1,82 × 0,48 м. Модель tevy Tall Glass Display Case рассмотрена, но её GLB требует поддержки meshopt и BasisU. [Примерка](development/JOMP_NEXT_TASKS.md#hub-102e)
 
 **MAIN-010, витрина павильона.** Двор, контроллер и тележка Poly Haven (CC0) перенесены из `MainCourtyardBlockout`. Бумажный коллаж использует действующие материалы `Art/Integrated` и `Old paper.mat`. Роспись `Courtyard concert.png` — авторская проба проекта. [Исходник росписи](../SourceArt/StreetRevision/paint_pavilion_mural.py) · [Кадры и проверка](development/JOMP_NEXT_TASKS.md#main-010)

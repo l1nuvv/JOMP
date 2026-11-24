@@ -36,6 +36,7 @@ namespace JustOneMorePeel
         public string scene;
         public int money, toolLevel, activeTool;
         public bool steamUnlocked, steamExpanded, firstDoorOpen, lightOn;
+        public bool basementGlassSeen;
         public float elapsed;
         public bool hasLookPitch;
         public float lookPitch;

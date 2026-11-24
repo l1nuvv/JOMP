@@ -5,6 +5,7 @@ namespace JustOneMorePeel
     public sealed class PeelArchiveClue : MonoBehaviour
     {
         [SerializeField] PeelSettings placedNoteSettings;
+        [SerializeField] Texture2D russianPrint, englishPrint;
         PeelSettings settings;
         Material material;
         Texture2D russian, english;
@@ -26,8 +27,8 @@ namespace JustOneMorePeel
         {
             var placedPage=placedNoteSettings ? GetComponent<Renderer>() : null;
             settings=owner;
-            russian=Resources.Load<Texture2D>("ArchiveClue_ru");
-            english=Resources.Load<Texture2D>("ArchiveClue_en");
+            russian=russianPrint ? russianPrint : Resources.Load<Texture2D>("ArchiveClue_ru");
+            english=englishPrint ? englishPrint : Resources.Load<Texture2D>("ArchiveClue_en");
             var shader=Shader.Find("Universal Render Pipeline/Lit");
             if(!settings || !russian || !english || !shader)
             { Debug.LogError("Archive clue: missing settings, texture or shader",this);return; }
