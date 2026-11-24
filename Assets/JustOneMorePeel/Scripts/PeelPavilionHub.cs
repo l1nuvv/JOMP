@@ -11,11 +11,45 @@ namespace JustOneMorePeel
         [SerializeField] private TextMesh shopSign;
         [SerializeField] private TextMesh cabinetSign;
 
+        // Version 4 pairs each placed print with a lower sheet of the same format.
+        // Rows are bays 1–4 and entries are paper palette indices for print01 onward.
+        static readonly Dictionary<string, int> LowerPrints = BuildLowerPrints();
+
         internal PeelWorkbench LocalDropOff => localDropOff;
         internal PeelNoticeCollection Collection { get; private set; }
+        internal int NoticeLayoutVersion { get; private set; }
 
-        internal void InitializeCollection(PeelSettings settings, IReadOnlyList<PeelPosterStack> stacks) =>
+        static Dictionary<string, int> BuildLowerPrints()
+        {
+            int[][] byBay =
+            {
+                new[] { 22, 5, 24, 14, 26, 15, 9, 2, 24, 13, 6, 29, 5 },
+                new[] { 31, 13, 7, 29, 22, 26, 14, 24, 15, 31 },
+                new[] { 24, 31, 28, 13, 21, 9, 7, 15, 11, 16, 22, 14 },
+                new[] { 9, 22, 2, 19, 24, 15, 6, 16, 13, 16, 0, 7 }
+            };
+            var prints = new Dictionary<string, int>();
+            for (int bay = 0; bay < byBay.Length; bay++)
+                for (int print = 0; print < byBay[bay].Length; print++)
+                    prints.Add($"pavilion.bay{bay + 1}.print{print + 1:00}", byBay[bay][print]);
+            return prints;
+        }
+
+        internal void SetNoticeLayout(IReadOnlyList<PeelPosterStack> stacks, int version)
+        {
+            if (NoticeLayoutVersion == version) return;
+            NoticeLayoutVersion = version;
+            foreach (var stack in stacks)
+                stack.SecondDesignOverride = version == PeelWorldSave.PavilionHubLayoutVersion &&
+                    stack.PosterCount == 2 && !string.IsNullOrEmpty(stack.PersistentId) &&
+                    LowerPrints.TryGetValue(stack.PersistentId, out int design) ? design : null;
+        }
+
+        internal void InitializeCollection(PeelSettings settings, IReadOnlyList<PeelPosterStack> stacks)
+        {
             Collection = new PeelNoticeCollection(settings, stacks);
+            Collection.Restore(stacks);
+        }
 
         internal bool CanReadCabinet(Camera view) =>
             Physics.Raycast(view.transform.position, view.transform.forward, out var hit, 2.2f) &&

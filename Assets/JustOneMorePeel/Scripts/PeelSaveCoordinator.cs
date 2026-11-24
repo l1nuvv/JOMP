@@ -17,6 +17,7 @@ namespace JustOneMorePeel
         readonly PeelRoutePrototype routePrototype;
         readonly PeelBasementLight basementLight;
         readonly PeelPavilion pavilion;
+        readonly PeelPavilionHub hub;
         readonly int TotalPosters;
         string WorldSavePath => path();
         string inspectedSavePath;
@@ -31,10 +32,10 @@ namespace JustOneMorePeel
         internal bool InspectedShiftFinished { get; private set; }
 
         internal PeelSaveCoordinator(UnityEngine.Object context, Func<string> path, string sceneId, List<PeelPosterStack> stacks,
-            int totalPosters, PeelRoutePrototype route, PeelBasementLight light, PeelPavilion pavilion=null)
+            int totalPosters, PeelRoutePrototype route, PeelBasementLight light, PeelPavilion pavilion=null, PeelPavilionHub hub=null)
         {
             this.context=context;this.path=path;this.sceneId=sceneId;this.stacks=stacks;TotalPosters=totalPosters;
-            routePrototype=route;basementLight=light;this.pavilion=pavilion;
+            routePrototype=route;basementLight=light;this.pavilion=pavilion;this.hub=hub;
         }
 
         internal SaveEntry InspectIfPathChanged()
@@ -69,7 +70,7 @@ namespace JustOneMorePeel
         {
             if((routePrototype && routePrototype.ReviewMode) || !SaveIndex(out var index))return false;
             saveSucceeded=false;
-            var data=new PeelWorldSave {version=PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
+            var data=new PeelWorldSave {version=hub ? hub.NoticeLayoutVersion : PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
                 rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,
                 lightOn=pavilion ? pavilion.IsLit : basementLight && basementLight.SwitchIsOn,
@@ -167,6 +168,7 @@ namespace JustOneMorePeel
         {
             try
             {
+                if(hub)hub.SetNoticeLayout(stacks,data.version);
                 int savedRemoved=0,savedCleared=0;
                 foreach(var item in data.stacks)
                 {
@@ -199,7 +201,7 @@ namespace JustOneMorePeel
             }
             if(sceneId==PeelWorldSave.RouteScene && routePrototype && data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
                 routePrototype.MigrateInteriorSave(data);
-            if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=sceneId)))
+            if(data!=null && (data.version>PeelWorldSave.LatestVersionFor(sceneId) || (data.version>0 && data.scene!=sceneId)))
                 throw new System.NotSupportedException("Unsupported save version or route.");
             if(!PeelWorldSave.Validate(data,sceneId,index,out var error))
                 throw new System.IO.InvalidDataException(error);

@@ -149,8 +149,11 @@ namespace JustOneMorePeel
             Scraps=new GameObject("Bounded paper scrap pool").AddComponent<PeelScrapPool>();
             Scraps.Initialize(view,player);
             Outline=new GameObject("Target poster outline").AddComponent<PeelPosterOutline>();
-            foreach(var stack in FindObjectsByType<PeelPosterStack>())
-            {stacks.Add(stack);stack.Initialize(this);TotalPosters+=stack.PosterCount;}
+            hub=GetComponent<PeelPavilionHub>();
+            stacks.AddRange(FindObjectsByType<PeelPosterStack>());
+            if(hub)hub.SetNoticeLayout(stacks,PeelWorldSave.PavilionHubLayoutVersion);
+            foreach(var stack in stacks)
+            {stack.Initialize(this);TotalPosters+=stack.PosterCount;}
             var wallVisibility=gameObject.AddComponent<PeelWallVisibility>();wallVisibility.Initialize(view,stacks);
             var posterField=GetComponent<MillionPosterField>();
             if(posterField)
@@ -163,13 +166,12 @@ namespace JustOneMorePeel
             if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
             pavilion=GetComponent<PeelPavilion>();
-            hub=GetComponent<PeelPavilionHub>();
             if(hub)hub.InitializeCollection(Settings,stacks);
             total=TotalPosters*4;removed=0;ClearedPosters=0;
             string saveScene=hub ? PeelWorldSave.PavilionHubScene : pavilion ? PeelWorldSave.PavilionScene :
                 archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
                 routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
-            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight,pavilion);
+            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight,pavilion,hub);
             if(archiveIssueSlice && paperDropOff)
                 paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
@@ -451,7 +453,7 @@ namespace JustOneMorePeel
         {
             money=data.money;toolLevel=data.toolLevel;activeTool=data.activeTool;steamUnlocked=data.steamUnlocked;steamExpanded=data.steamExpanded;
             removed=savedRemoved;ClearedPosters=savedCleared;ElapsedPlayTime=data.elapsed;
-            if(hub)hub.Collection.Restore(stacks);
+            if(hub)hub.InitializeCollection(Settings,stacks);
             if(PaperCollectionActive)
             {
                 progression.RestorePaper(data.paper);

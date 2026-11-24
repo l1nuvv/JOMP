@@ -22,6 +22,7 @@ namespace JustOneMorePeel
     [Serializable] public sealed class PeelWorldSave
     {
         public const int CurrentVersion = 3;
+        internal const int PavilionHubLayoutVersion = 4;
         public const string RouteScene = "three-area";
         public const string ArchiveIssueScene = "main-archive-issue";
         public const string PaperCollectionScene = "main-archive-paper";
@@ -43,6 +44,8 @@ namespace JustOneMorePeel
 
         public static string DefaultPath => Path.Combine(Application.persistentDataPath,"three-area-save-v1.json");
 
+        internal static int LatestVersionFor(string scene) => scene == PavilionHubScene ? PavilionHubLayoutVersion : CurrentVersion;
+
         public static bool Validate(PeelWorldSave save, string scene,
             Dictionary<string,PeelPosterStack> index, out string error)
         {
@@ -51,7 +54,7 @@ namespace JustOneMorePeel
             bool archive=scene==ArchiveIssueScene || paperTrial;
             bool pavilion=scene==PavilionScene || scene==PavilionHubScene;
             bool carriesPaper=paperTrial || scene==PavilionHubScene;
-            if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
+            if(save==null || (save.version!=CurrentVersion && save.version!=LatestVersionFor(scene)) || save.scene!=scene || save.stacks==null ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>PeelGame.CardToolSlot ||
                 (save.activeTool==PeelGame.CardToolSlot && ((scene!=MainRouteScene && !pavilion) || save.toolLevel==0)) ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||

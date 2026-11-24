@@ -74,6 +74,7 @@ namespace JustOneMorePeel
         public int RemainingPosters => posterCount-ClearedPosters;
         public PeelStrip[] CurrentStrips => front;
         public bool NeedsAdvance => removedMask==15;
+        internal int? SecondDesignOverride { private get; set; }
         internal void RestoreProgress(int cleared, float[] progress)
         {
             ClearedPosters=cleared;removedMask=0;ShowBuffers();
@@ -104,7 +105,7 @@ namespace JustOneMorePeel
         {
             if(layer==0)return firstDesign;
             int count=game.Settings.PaperCount;
-            int second=secondDesign==firstDesign ? (secondDesign+1)%count : secondDesign;
+            int second=SecondDesignOverride ?? (secondDesign==firstDesign ? (secondDesign+1)%count : secondDesign);
             if(layer==1)return second;
             if(deeperDesigns!=null && deeperDesigns.Length>0)
                 return deeperDesigns[(layer-2)%deeperDesigns.Length];
