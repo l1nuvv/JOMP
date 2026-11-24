@@ -49,6 +49,11 @@ Do not widen testing after the relevant checks pass unless a new failure/change 
 
 ## Codex skills and models
 
+- **GPT-6.2 Sol, Medium** — по умолчанию для обычного плейтеста, локальной правки UI и примерки готового ассета. Используй известный сценарий, узкую проверку и Console.
+- **GPT-6.2 Sol, High** — для связанных правил, где нужны явные проверки совместимости, например распределения слоёв и восстановления коллекции из старых сохранений.
+- **GPT-6.2 Astra, High** — когда узкая попытка на Sol выявила конкретный нерешённый вопрос или цена ошибки высока и решение затрагивает несколько систем. Укажи вопрос, имеющиеся данные и какую часть задачи передаёшь Astra. Сложную постановку или интеграцию модели оценивай по тому же критерию.
+- Сначала сужай сценарий, контекст и объём вывода до нужных для решения. Исторические назначения в закрытых карточках сохраняются.
+
 - **Unity.** Start with the project skills in `.agents/skills` and use Unity MCP for Editor work. Read only the relevant references. Check `ProjectSettings/ProjectVersion.txt` and `Packages/packages-lock.json` when a recipe depends on a particular Editor or package version.
 - **Gameplay rules and design decisions.** Use [domain-modeling](../.agents/skills/domain-modeling/SKILL.md) when a rule spans peeling, progression, economy, collections or saves, as in MAIN-011 and HUB-102. Use [grill-with-docs](../.agents/skills/grill-with-docs/SKILL.md) to resolve a concrete trade-off against the plan and playtest evidence, such as where paper is handed in after MAIN-012.
 - **Store text.** Use [copywriting](../.agents/skills/copywriting/SKILL.md) when revising the RU/EN itch.io description or download instructions for the target release.
