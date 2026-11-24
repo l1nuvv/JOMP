@@ -57,7 +57,7 @@ namespace JustOneMorePeel
             entranceSign.text = ru ? "ПРИЁМНАЯ" : "RECEPTION";
             shopSign.text = ru ? "ИНСТРУМЕНТЫ" : "TOOLS";
             cabinetSign.text = ru ? "Объявления\nнашего двора" : "Our courtyard\nnotices";
-            localDropOff.RefreshPaperDropOffLabel(settings);
+            localDropOff.RefreshPaperDropOffLabel(settings, ru ? "СДАЧА" : "DROP-OFF");
         }
     }
 }

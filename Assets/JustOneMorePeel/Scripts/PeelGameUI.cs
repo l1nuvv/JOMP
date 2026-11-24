@@ -316,8 +316,8 @@ namespace JustOneMorePeel
             {
                 bool ru=Settings.Language==PeelLanguage.Russian;
                 string details=hub
-                    ? (ru ? "Очисти витрину. Отнеси бумагу в приёмную слева.\nE — сдать пачку, открыть магазин или шкаф.\nWASD — ходьба, ЛКМ — снять бумагу."
-                          : "Clear the display and take the paper to reception on the left.\nE — drop off paper, open the shop or inspect the cabinet.\nWASD to move, LMB to peel.")
+                    ? (ru ? "Очисти витрину. Сдай бумагу в приёмной слева или у помоста справа.\nE — сдать пачку, открыть магазин или шкаф.\nWASD — ходьба, ЛКМ — снять бумагу."
+                          : "Clear the display. Drop off paper at reception on the left or by the platform on the right.\nE — drop off paper, open the shop or inspect the cabinet.\nWASD to move, LMB to peel.")
                     : pavilion
                     ? (ru ? "Очисти витрину и включи подсветку росписи.\nWASD — ходьба, ЛКМ — снять бумагу.\nПодойди к тележке и нажми E для покупки."
                           : "Clear the display and turn on the mural lights.\nWASD to move, LMB to peel.\nLook at the cart up close and press E to shop.")

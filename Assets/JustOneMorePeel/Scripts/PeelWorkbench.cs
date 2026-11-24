@@ -32,9 +32,9 @@ namespace JustOneMorePeel
             steamer=FindTool("Steamer on tray");
         }
 
-        internal void RefreshPaperDropOffLabel(PeelSettings settings)
+        internal void RefreshPaperDropOffLabel(PeelSettings settings, string label=null)
         {
-            if(paperDropOffLabel)paperDropOffLabel.text=settings.Text(PeelText.PaperDropOffSign);
+            if(paperDropOffLabel)paperDropOffLabel.text=label ?? settings.Text(PeelText.PaperDropOffSign);
         }
 
         ToolHighlight FindTool(string childName)
