@@ -100,7 +100,7 @@ namespace JustOneMorePeel
             ClearedPosters=0;removedMask=0;
             ShowBuffers();
         }
-        int Design(int layer)
+        internal int DesignAt(int layer)
         {
             if(layer==0)return firstDesign;
             int count=game.Settings.PaperCount;
@@ -201,8 +201,9 @@ namespace JustOneMorePeel
         void Setup(PeelStrip[] buffer,int layer,float z,bool exposed)
         {
             bool visible=layer<posterCount;
-            Material material=visible ? game.Settings.Paper(Design(layer)) : null;
-            float aspect=visible ? PaperAspect(Design(layer)) : 1;
+            int design=visible ? DesignAt(layer) : 0;
+            Material material=visible ? game.Settings.Paper(design) : null;
+            float aspect=visible ? PaperAspect(design) : 1;
             float paperWidth=width/Mathf.Max(1,aspect),height=paperWidth*aspect;
             float layerScale=layer==0?firstLayerScale:deeperLayerScale;
             paperWidth*=layerScale*LayerSize(layer);height*=layerScale*LayerSize(layer);
@@ -258,7 +259,7 @@ namespace JustOneMorePeel
             for(int i=0;i<designCount;i++) { materialGroups[i]=-1;materials[i]=game.Settings.Paper(i); }
             for(int layer=ClearedPosters+2;layer<posterCount;layer++)
             {
-                int design=Design(layer);var material=materials[design];
+                int design=DesignAt(layer);var material=materials[design];
                 if(materialGroups[design]<0)
                 {materialGroups[design]=materialCount;materialOrder[materialCount++]=design;}
                 float aspect=PaperAspect(design),w=width/Mathf.Max(1,aspect),h=w*aspect;
@@ -434,7 +435,7 @@ namespace JustOneMorePeel
         void Refresh(PeelStrip[] buffer,int layer)
         {
             if(layer>=posterCount)return;
-            var material=game.Settings.Paper(Design(layer));
+            var material=game.Settings.Paper(DesignAt(layer));
             foreach(var strip in buffer)strip.GetComponent<Renderer>().sharedMaterial=material;
         }
     }

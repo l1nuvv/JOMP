@@ -132,6 +132,11 @@ namespace JustOneMorePeel
                 throw new InvalidOperationException("Missing localized paper material: "+Language+" / "+design);
             return materials[design];
         }
+        internal string PaperVariantId(int design)
+        {
+            var texture = russianPapers[design].mainTexture;
+            return texture ? texture.name : null;
+        }
         public void SetLanguage(PeelLanguage language)
         {
             if(language!=PeelLanguage.English && language!=PeelLanguage.Russian)return;

@@ -38,4 +38,6 @@ UI remains IMGUI prototype. `ThreeAreaPrototype` has a versioned world autosave 
 
 `PavilionHub` uses route key `pavilion-hub` and file `pavilion-hub-save-v1.json`. It reuses the pavilion stacks and switch. The existing `paper` payload holds bundle capacity, items and undelivered value, and a successful hand-in checkpoints bundle and balance together. The shop keeps the pavilion's paid tool progression. The archive paper trial uses its own slot and controls.
 
+The cabinet resolves a completed layer to the shared texture name of its RU/EN print pair. One card records all bays in which that variant was found. Continue reconstructs the cards from the persisted stack IDs and completed-layer counts, including HUB-101 saves. Partial strip progress and paper delivery remain independent. Reordering or replacing layers in an already saved stack requires preserving its completed variant history during migration.
+
 Load restores route geometry and lighting before checking the saved player capsule. Blocked or unsupported positions fall back to the scene spawn while keeping the loaded progress. Player build persistence, gamepad verification, human mouse feel, final pacing and artistic acceptance remain separate from method-level checks.

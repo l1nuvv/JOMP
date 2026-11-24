@@ -60,6 +60,7 @@ namespace JustOneMorePeel
         readonly Camera view;
         bool focusMenu=true;
         int menuSelection;
+        int cabinetSeries, cabinetCard;
         int payoutAmount, payoutFrame=-1;
         int paperReceiptItems;
         float payoutUntil;
@@ -68,6 +69,7 @@ namespace JustOneMorePeel
         bool capacityPurchased;
         bool purchaseSaveFailed;
         GUIStyle title, text, small, center, button, primaryButton, shopBalance, shopMutedBalance, hudLabel, hudPrimary, hudHint;
+        GUIStyle collectionTitle;
         static readonly Color Ink=new Color(.070f,.094f,.088f,.97f);
         static readonly Color Paper=new Color(.95f,.91f,.80f);
         static readonly Color Amber=new Color(.96f,.75f,.42f);
@@ -96,6 +98,8 @@ namespace JustOneMorePeel
         bool CanCopyArchive => paperSave!=null && paperSave.InspectIfPathChanged()==SaveEntry.New
             && shiftSave.InspectIfPathChanged() is SaveEntry.Continue or SaveEntry.Backup;
         int ShopOptionCount => paperTrial ? 3 : hub ? 5 : 4;
+        int CabinetFoundCount => hub.Collection.SeriesProgress(cabinetSeries).found;
+        int CabinetOptionCount => CabinetFoundCount>1 ? 5 : 3;
         bool hasSavedShift => archiveIssueSlice || routePrototype || pavilion;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
@@ -166,7 +170,13 @@ namespace JustOneMorePeel
             int count=CurrentScreen==PeelScreen.Intro?(CanCopyArchive?4:HasAlternateStart?3:2)
                 :CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings?4:3;
             if(CurrentScreen==PeelScreen.Shop)count=ShopOptionCount;
-            if(CurrentScreen is PeelScreen.ReadingArchiveNote or PeelScreen.ReadingHubCabinet)count=1;
+            if(CurrentScreen==PeelScreen.ReadingArchiveNote)count=1;
+            if(CurrentScreen==PeelScreen.ReadingHubCabinet)
+            {
+                count=CabinetOptionCount;
+                if(keyboard.leftArrowKey.wasPressedThisFrame)TurnCabinetPage(-1);
+                if(keyboard.rightArrowKey.wasPressedThisFrame)TurnCabinetPage(1);
+            }
             if (CurrentScreen == PeelScreen.Paused && hasSavedShift) count = 4;
             bool reverseTab=keyboard.tabKey.wasPressedThisFrame && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
             if((keyboard.tabKey.wasPressedThisFrame && !reverseTab) || keyboard.downArrowKey.wasPressedThisFrame)
@@ -192,7 +202,8 @@ namespace JustOneMorePeel
                 else if(menuSelection==3 && CanCopyArchive)session.CopyArchiveToPaperCollection();
             }
             else if(CurrentScreen==PeelScreen.Paused){if(menuSelection==0)session.Back();else if(menuSelection==1)session.OpenSettings();else if(menuSelection==2)session.RequestRestart();else session.ReturnToMainMenu();}
-            else if(CurrentScreen is PeelScreen.ReadingArchiveNote or PeelScreen.ReadingHubCabinet)session.Back();
+            else if(CurrentScreen==PeelScreen.ReadingArchiveNote)session.Back();
+            else if(CurrentScreen==PeelScreen.ReadingHubCabinet)ActivateCabinetOption(menuSelection);
             else if(CurrentScreen==PeelScreen.ConfirmRestart){if(menuSelection==0)session.Back();else session.RestartShift();}
             else if(CurrentScreen==PeelScreen.Settings)
             {if(menuSelection==0)ChangeLanguage(Settings.Language==PeelLanguage.English?PeelLanguage.Russian:PeelLanguage.English);else if(menuSelection==3)session.Back();}
@@ -211,6 +222,7 @@ namespace JustOneMorePeel
         {
             if(title!=null && title.fontSize==32 && text!=null && text.fontSize==19)return;
             title=new GUIStyle(GUI.skin.label){fontSize=32,fontStyle=FontStyle.Bold};title.normal.textColor=Paper;
+            collectionTitle=new GUIStyle(title){fontSize=27,wordWrap=true};
             text=new GUIStyle(GUI.skin.label){fontSize=19,wordWrap=true};text.normal.textColor=Paper;
             small=new GUIStyle(text){fontSize=15};small.normal.textColor=new Color(.78f,.85f,.83f);
             center=new GUIStyle(text){alignment=TextAnchor.MiddleCenter};
@@ -788,14 +800,81 @@ namespace JustOneMorePeel
             if(MenuButton(new Rect(width*.5f-90f,height-52f,180f,36f),T(PeelText.Back),0,primary:true))session.Back();
         }
 
+        void TurnCabinetPage(int direction)
+        {
+            int count=CabinetFoundCount;
+            if(count>1)cabinetCard=(cabinetCard+direction+count)%count;
+        }
+
+        void ActivateCabinetOption(int option)
+        {
+            if(option<PeelNoticeCollection.SeriesCount)
+            {
+                if(cabinetSeries!=option){cabinetSeries=option;cabinetCard=0;}
+            }
+            else if(option==CabinetOptionCount-1)session.Back();
+            else TurnCabinetPage(option==2 ? -1 : 1);
+        }
+
+        static string CabinetBayList(int mask)
+        {
+            string list="";
+            for(int i=0;i<4;i++)
+                if((mask&(1<<i))!=0)list+=(list.Length==0 ? "" : ", ")+(i+1);
+            return list;
+        }
+
         void DrawHubCabinet(float width,float height)
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
-            var panel=new Rect((width-460f)*.5f,(height-195f)*.5f,460f,195f);
+            var panel=new Rect((width-1140f)*.5f,(height-656f)*.5f,1140f,656f);
             Panel(panel);
-            GUI.Label(new Rect(panel.x+22f,panel.y+18f,416f,45f),PeelPavilionHub.CabinetTitle(ru),title);
-            GUI.Label(new Rect(panel.x+22f,panel.y+73f,416f,36f),ru ? "В шкафу пока пусто." : "The cabinet is empty.",text);
-            if(MenuButton(new Rect(panel.x+22f,panel.y+133f,416f,40f),T(PeelText.Back),0,primary:true))session.Back();
+            float x=panel.x+26, y=panel.y+21;
+            GUI.Label(new Rect(x,y,660,46),PeelPavilionHub.CabinetTitle(ru),title);
+            for(int series=0;series<PeelNoticeCollection.SeriesCount;series++)
+            {
+                var count=hub.Collection.SeriesProgress(series);
+                string name=series==0 ? (ru ? "Двор и соседи" : "Courtyard life") : (ru ? "Свободный вечер" : "Free evenings");
+                var tab=new Rect(x+183*series,y+66,177,52);
+                if(MenuButton(tab,$"{name}\n{count.found} / {count.total}",series))ActivateCabinetOption(series);
+                if(series==cabinetSeries)Fill(new Rect(tab.x+12,tab.yMax-4,tab.width-24,2),Amber,1);
+            }
+
+            var progress=hub.Collection.SeriesProgress(cabinetSeries);
+            if(progress.searchBays!=0)
+            {
+                string where=(ru ? "Где искать · пролёты " : "Where to look · bays ")+CabinetBayList(progress.searchBays);
+                GUI.Label(new Rect(x,y+135,360,27),where,small);
+            }
+
+            var printArea=new Rect(panel.x+430,y+55,684,548);
+            Fill(printArea,new Color(.16f,.20f,.18f),7f);
+            var card=hub.Collection.FoundCard(cabinetSeries,cabinetCard);
+            if(card==null)
+            {
+                GUI.Label(new Rect(x,y+196,360,94),ru ? "Здесь появятся объявления, снятые целиком." : "Fully removed notices will appear here.",text);
+            }
+            else
+            {
+                GUI.Label(new Rect(x,y+188,360,78),card.Title(ru),collectionTitle);
+                string location=(ru ? "Найдено · пролёты " : "Found in · bays ")+CabinetBayList(card.FoundBays);
+                GUI.Label(new Rect(x,y+273,360,29),location,small);
+                GUI.Label(new Rect(x,y+314,360,149),card.Note(ru),text);
+
+                float aspect=Settings.PaperAspect(card.Design);
+                float printWidth=Mathf.Min(printArea.width-36,(printArea.height-32)/aspect);
+                float printHeight=printWidth*aspect;
+                var printRect=new Rect(printArea.center.x-printWidth*.5f,printArea.center.y-printHeight*.5f,printWidth,printHeight);
+                GUI.DrawTexture(printRect,Settings.Paper(card.Design).mainTexture);
+            }
+
+            if(progress.found>1)
+            {
+                if(MenuButton(new Rect(x,y+492,138,39),ru ? "← Назад" : "← Previous",2))TurnCabinetPage(-1);
+                GUI.Label(new Rect(x+140,y+492,80,39),$"{cabinetCard+1} / {progress.found}",center);
+                if(MenuButton(new Rect(x+222,y+492,138,39),ru ? "Дальше →" : "Next →",3))TurnCabinetPage(1);
+            }
+            if(MenuButton(new Rect(x,y+565,178,38),T(PeelText.Back),CabinetOptionCount-1,primary:true))session.Back();
         }
 
         string ShiftSummaryDetails()

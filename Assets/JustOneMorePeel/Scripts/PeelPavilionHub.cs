@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace JustOneMorePeel
@@ -11,6 +12,10 @@ namespace JustOneMorePeel
         [SerializeField] private TextMesh cabinetSign;
 
         internal PeelWorkbench LocalDropOff => localDropOff;
+        internal PeelNoticeCollection Collection { get; private set; }
+
+        internal void InitializeCollection(PeelSettings settings, IReadOnlyList<PeelPosterStack> stacks) =>
+            Collection = new PeelNoticeCollection(settings, stacks);
 
         internal bool CanReadCabinet(Camera view) =>
             Physics.Raycast(view.transform.position, view.transform.forward, out var hit, 2.2f) &&

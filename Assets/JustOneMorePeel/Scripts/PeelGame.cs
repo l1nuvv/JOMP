@@ -164,6 +164,7 @@ namespace JustOneMorePeel
             basementLight=GetComponent<PeelBasementLight>();
             pavilion=GetComponent<PeelPavilion>();
             hub=GetComponent<PeelPavilionHub>();
+            if(hub)hub.InitializeCollection(Settings,stacks);
             total=TotalPosters*4;removed=0;ClearedPosters=0;
             string saveScene=hub ? PeelWorldSave.PavilionHubScene : pavilion ? PeelWorldSave.PavilionScene :
                 archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
@@ -450,6 +451,7 @@ namespace JustOneMorePeel
         {
             money=data.money;toolLevel=data.toolLevel;activeTool=data.activeTool;steamUnlocked=data.steamUnlocked;steamExpanded=data.steamExpanded;
             removed=savedRemoved;ClearedPosters=savedCleared;ElapsedPlayTime=data.elapsed;
+            if(hub)hub.Collection.Restore(stacks);
             if(PaperCollectionActive)
             {
                 progression.RestorePaper(data.paper);
@@ -555,7 +557,12 @@ namespace JustOneMorePeel
             Debug.Log($"[QA-08] {elapsed:c} · {milestone} · balance ${money}", this);
         }
 #endif
-        public void PosterCleared(PeelPosterStack stack) { ClearedPosters++;PosterWasCleared?.Invoke(stack); }
+        public void PosterCleared(PeelPosterStack stack)
+        {
+            ClearedPosters++;
+            if(hub)hub.Collection.RecordClearedSheet(stack,stack.ClearedPosters-1);
+            PosterWasCleared?.Invoke(stack);
+        }
         public void PosterMaterialsChanged(PeelPosterStack stack)
         { if(basementLight)basementLight.RefreshPosterMaterials(stack); }
 
