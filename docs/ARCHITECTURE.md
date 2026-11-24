@@ -36,4 +36,6 @@ UI remains IMGUI prototype. `ThreeAreaPrototype` has a versioned world autosave 
 
 `PavilionMural` uses route key `pavilion` and file `pavilion-save-v1.json`. Stable `pavilion.bay*` stack IDs restore completed sheets and the current strip progress. The HUD derives remaining sheets from restored stack counts. In this slot `lightOn` records the final switch. Save validation requires all sheets clear when the light is on. Activating the switch checkpoints both copies through the existing save coordinator.
 
+`PavilionHub` uses route key `pavilion-hub` and file `pavilion-hub-save-v1.json`. It reuses the pavilion stacks and switch. The existing `paper` payload holds bundle capacity, items and undelivered value, and a successful hand-in checkpoints bundle and balance together. The shop keeps the pavilion's paid tool progression. The archive paper trial uses its own slot and controls.
+
 Load restores route geometry and lighting before checking the saved player capsule. Blocked or unsupported positions fall back to the scene spawn while keeping the loaded progress. Player build persistence, gamepad verification, human mouse feel, final pacing and artistic acceptance remain separate from method-level checks.

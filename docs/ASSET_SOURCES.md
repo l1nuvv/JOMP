@@ -1,5 +1,7 @@
 # Asset sourcing and reuse
 
+**HUB-101, приёмная.** Тележка Poly Haven (CC0) перенесена из витрины, шкаф Kenney Furniture Kit (CC0) использует существующий `bookcaseclosed.fbx` и матовый материал проекта. Корпуса автоматов и комната собраны как блокинг на имеющихся материалах. [Кадры и проверка](development/JOMP_NEXT_TASKS.md#hub-101)
+
 **MAIN-010, витрина павильона.** Двор, контроллер и тележка Poly Haven (CC0) перенесены из `MainCourtyardBlockout`. Бумажный коллаж использует действующие материалы `Art/Integrated` и `Old paper.mat`. Роспись `Courtyard concert.png` — авторская проба проекта. [Исходник росписи](../SourceArt/StreetRevision/paint_pavilion_mural.py) · [Кадры и проверка](development/JOMP_NEXT_TASKS.md#main-010)
 
 **ECO-106, пачка в руках.** Для левой руки переиспользована зеркальная копия модели `FPS_Hand`. Для складок пачки использованы действующие материалы объявлений 29, 30, 31 и 32 в RU/EN. Геометрия пяти слоёв сделана для пробы. Хват за кромку и обзор с тремя инструментами проверены с игровой камеры. [Кадры](development/JOMP_NEXT_TASKS.md#eco-106)

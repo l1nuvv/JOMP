@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 namespace JustOneMorePeel
 {
-    public enum PeelScreen { Intro, Playing, Paused, Shop, Settings, ConfirmRestart, ReadingArchiveNote }
+    public enum PeelScreen { Intro, Playing, Paused, Shop, Settings, ConfirmRestart, ReadingArchiveNote, ReadingHubCabinet }
 
     [RequireComponent(typeof(PeelSettings))]
     public class PeelGame : MonoBehaviour, IPeelGameUIState
@@ -35,6 +35,7 @@ namespace JustOneMorePeel
         const string PaperCollectionSaveFile="main-archive-paper-v1.json";
         const string MainRouteSaveFile="main-route-save-v1.json";
         const string PavilionSaveFile="pavilion-save-v1.json";
+        const string PavilionHubSaveFile="pavilion-hub-save-v1.json";
         public PeelSettings Settings { get; private set; }
         public PeelScrapPool Scraps { get; private set; }
         public PeelPosterOutline Outline { get; private set; }
@@ -55,22 +56,22 @@ namespace JustOneMorePeel
         public int UpgradeCost => PeelProgressionController.UpgradeCost(toolLevel);
         public int activeTool;
         internal bool ArchiveIssueSlice => archiveIssueSlice;
-        internal bool SteamAvailable => PaperCollectionActive ? trialScraperOwned : archiveIssueSlice || steamUnlocked;
+        internal bool SteamAvailable => paperCollectionTrial ? trialScraperOwned : archiveIssueSlice || steamUnlocked;
         internal const int CardToolSlot=2;
         internal int EquippedToolLevel => activeTool==CardToolSlot ? 0 : toolLevel;
         internal bool CanOpenMainRouteDoor => routePrototype && routePrototype.IsMainRoute && routePrototype.CanOpenDoor();
         internal bool CanPeelPaper => !PaperCollectionActive || progression.FreePaperSlots>0;
-        internal bool PaperCollectionActive { get; private set; }
+        internal bool PaperCollectionActive => paperCollectionTrial || hub;
         internal int CollectedItems => progression.CollectedItems;
         internal int PaperCapacity => progression.PaperCapacity;
-        bool trialScraperOwned;
+        bool trialScraperOwned, paperCollectionTrial;
 
         readonly List<PeelPosterStack> stacks=new List<PeelPosterStack>(19);
         readonly PeelAudioController audio=new PeelAudioController();
         readonly PeelInteractionController interaction=new PeelInteractionController();
         readonly PeelScreenController screenController=new PeelScreenController();
         PeelSaveCoordinator save, paperSave;
-        PeelSaveCoordinator ActiveSave => PaperCollectionActive ? paperSave : save;
+        PeelSaveCoordinator ActiveSave => paperCollectionTrial ? paperSave : save;
         PeelProgressionController progression;
         PeelGameUI ui;
         FirstPersonController controller;
@@ -78,6 +79,7 @@ namespace JustOneMorePeel
         PeelRoutePrototype routePrototype;
         PeelBasementLight basementLight;
         PeelPavilion pavilion;
+        PeelPavilionHub hub;
         PeelWorkbench shopWorkbench;
         PeelScreen settingsReturn=PeelScreen.Intro, restartReturn;
         float originalRotationSpeed=1;
@@ -107,7 +109,7 @@ namespace JustOneMorePeel
                 return Path.Combine(Application.dataPath,"..","Library",paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
 #endif
             if(archiveIssueSlice)return Path.Combine(Application.persistentDataPath,paperCollection?PaperCollectionSaveFile:ArchiveIssueSaveFile);
-            if(pavilion)return Path.Combine(Application.persistentDataPath,PavilionSaveFile);
+            if(pavilion)return Path.Combine(Application.persistentDataPath,hub ? PavilionHubSaveFile : PavilionSaveFile);
             if(routePrototype && routePrototype.IsMainRoute)return Path.Combine(Application.persistentDataPath,MainRouteSaveFile);
             return PeelWorldSave.DefaultPath;
         }
@@ -161,15 +163,17 @@ namespace JustOneMorePeel
             if(routePrototype)gameObject.AddComponent<DoorPaperBatch>().Initialize(routePrototype.DoorPosters);
             basementLight=GetComponent<PeelBasementLight>();
             pavilion=GetComponent<PeelPavilion>();
+            hub=GetComponent<PeelPavilionHub>();
             total=TotalPosters*4;removed=0;ClearedPosters=0;
-            string saveScene=pavilion ? PeelWorldSave.PavilionScene : archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
+            string saveScene=hub ? PeelWorldSave.PavilionHubScene : pavilion ? PeelWorldSave.PavilionScene :
+                archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
                 routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
             save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight,pavilion);
             if(archiveIssueSlice && paperDropOff)
                 paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
-            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view,pavilion);
+            ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view,pavilion,hub);
             progression=new PeelProgressionController(SteamPrice,Release,SavePurchase,NotifyProgression,ui.ShowPayout
 #if UNITY_EDITOR
                 ,LogRoutePlaytest
@@ -191,6 +195,7 @@ namespace JustOneMorePeel
                     archiveIssueShelfLabel.text=Settings.Language==PeelLanguage.Russian ? "Полка Б" : "Shelf B";
                 if(paperDropOff)paperDropOff.RefreshPaperDropOffLabel(Settings);
                 if(pavilion)pavilion.ApplyLanguage(Settings.Language);
+                if(hub)hub.ApplyLanguage(Settings);
                 Settings.ApplyWorldText();appliedLanguage=Settings.Language;appliedSettings=true;
             }
         }
@@ -258,8 +263,9 @@ namespace JustOneMorePeel
                 }
                 if(CurrentScreen!=PeelScreen.Playing)
                 {
-                    if((CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingArchiveNote) && keyboard.eKey.wasPressedThisFrame){Back();return;}
-                    if(PaperCollectionActive && CurrentScreen==PeelScreen.Shop && keyboard.fKey.wasPressedThisFrame){Back();return;}
+                    if((CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingArchiveNote || CurrentScreen==PeelScreen.ReadingHubCabinet)
+                        && keyboard.eKey.wasPressedThisFrame){Back();return;}
+                    if(paperCollectionTrial && CurrentScreen==PeelScreen.Shop && keyboard.fKey.wasPressedThisFrame){Back();return;}
                     ui.NavigateMenu(keyboard);return;
                 }
                 if(keyboard.eKey.wasPressedThisFrame && routePrototype && routePrototype.CanReadArchiveNote())
@@ -267,13 +273,15 @@ namespace JustOneMorePeel
                 if(keyboard.eKey.wasPressedThisFrame && routePrototype && routePrototype.TryOpenDoor())return;
                 if(keyboard.eKey.wasPressedThisFrame && basementLight && basementLight.TryToggle())return;
                 if(keyboard.eKey.wasPressedThisFrame && TryLightPavilion())return;
-                bool openPaperShop=PaperCollectionActive && keyboard.fKey.wasPressedThisFrame;
+                if(keyboard.eKey.wasPressedThisFrame && CanReadHubCabinet())
+                {SetScreen(PeelScreen.ReadingHubCabinet);return;}
+                bool openPaperShop=paperCollectionTrial && keyboard.fKey.wasPressedThisFrame;
                 if(keyboard.eKey.wasPressedThisFrame || openPaperShop)
                 {
                     var workbench=WorkbenchInReach();
                     if(workbench)
                     {
-                        if(PaperCollectionActive && !openPaperShop)DeliverPaper();
+                        if(IsDropOff(workbench) && !openPaperShop)DeliverPaper();
                         else {shopWorkbench=workbench;SetScreen(PeelScreen.Shop);}
                         return;
                     }
@@ -329,13 +337,13 @@ namespace JustOneMorePeel
         void StartPaperCollection(bool copyArchive)
         {
             if(CurrentScreen!=PeelScreen.Intro || paperSave==null)return;
-            PaperCollectionActive=true;
+            paperCollectionTrial=true;
             paperDropOff.gameObject.SetActive(true);
             bool loaded=copyArchive ? paperSave.LoadArchiveCopy(save,ApplySavedProgress,RestorePlayer) : LoadWorld();
             if(!loaded)
             {
                 paperDropOff.gameObject.SetActive(false);
-                if(CurrentScreen==PeelScreen.Intro)PaperCollectionActive=false;
+                if(CurrentScreen==PeelScreen.Intro)paperCollectionTrial=false;
                 return;
             }
             worldSession=true;nextWorldSave=Time.unscaledTime+5f;
@@ -352,7 +360,7 @@ namespace JustOneMorePeel
             if(CurrentScreen==PeelScreen.Settings){Settings.Save();SetScreen(settingsReturn);}
             else if(CurrentScreen==PeelScreen.ConfirmRestart)
             {
-                if(restartReturn==PeelScreen.Intro)PaperCollectionActive=false;
+                if(restartReturn==PeelScreen.Intro)paperCollectionTrial=false;
                 SetScreen(restartReturn);
             }
             else if(CurrentScreen==PeelScreen.ReadingArchiveNote)
@@ -360,7 +368,8 @@ namespace JustOneMorePeel
                 SetScreen(PeelScreen.Playing);
                 completionSummaryUntil=Time.unscaledTime+6f;
             }
-            else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop)SetScreen(PeelScreen.Playing);
+            else if(CurrentScreen==PeelScreen.Paused || CurrentScreen==PeelScreen.Shop || CurrentScreen==PeelScreen.ReadingHubCabinet)
+                SetScreen(PeelScreen.Playing);
         }
         public void RequestRestart()
         {
@@ -428,7 +437,7 @@ namespace JustOneMorePeel
         }
         bool WriteWorld(bool checkpointBackup) =>
             ActiveSave.Write(money,toolLevel,activeTool,steamUnlocked,steamExpanded,ElapsedPlayTime,player,controller,checkpointBackup,
-                PaperCollectionActive ? progression.CapturePaper(trialScraperOwned) : default);
+                PaperCollectionActive ? CapturePaper() : default);
         bool TryLightPavilion()
         {
             if(!pavilion || !pavilion.CanTurnOn(view,TotalPosters-ClearedPosters))return false;
@@ -478,12 +487,17 @@ namespace JustOneMorePeel
         {
             if(!view || !player || !Physics.Raycast(view.transform.position,view.transform.forward,out var hit,2.5f))return null;
             var workbench=hit.collider.GetComponentInParent<PeelWorkbench>();
-            return workbench && (workbench==paperDropOff)==PaperCollectionActive ? workbench : null;
+            return workbench && (hub || (workbench==paperDropOff)==paperCollectionTrial) ? workbench : null;
         }
         public bool CanUseWorkbench() => WorkbenchInReach()!=null;
+        public bool CanDeliverPaper() => IsDropOff(WorkbenchInReach());
+        public bool CanReadHubCabinet() => hub && hub.CanReadCabinet(view);
+        bool IsDropOff(PeelWorkbench workbench) => workbench &&
+            (workbench==paperDropOff || (hub && workbench==hub.LocalDropOff));
+        PeelPaperSave CapturePaper() => progression.CapturePaper(paperCollectionTrial ? trialScraperOwned : toolLevel>0);
         void DeliverPaper()
         {
-            var paper=progression.CapturePaper(trialScraperOwned);
+            var paper=CapturePaper();
             if(paper.items==0)return;
             Release();
             var (items,payout)=progression.DeliverPaper(ref money);
@@ -509,7 +523,7 @@ namespace JustOneMorePeel
 
         public bool TryUpgrade()
         {
-            if(!PaperCollectionActive)return progression.TryUpgrade(ref money,ref toolLevel);
+            if(!paperCollectionTrial)return progression.TryUpgrade(ref money,ref toolLevel);
             if(CurrentScreen!=PeelScreen.Shop || trialScraperOwned)return false;
             trialScraperOwned=true;
             if(progression.TryUpgrade(ref money,ref toolLevel))return true;

@@ -27,6 +27,7 @@ namespace JustOneMorePeel
         public const string PaperCollectionScene = "main-archive-paper";
         public const string MainRouteScene = "main-route";
         public const string PavilionScene = "pavilion";
+        public const string PavilionHubScene = "pavilion-hub";
         public const string LegacyRouteScene = "Assets/JustOneMorePeel/Scenes/ThreeAreaPrototype.unity";
         public int version;
         public string scene;
@@ -48,13 +49,15 @@ namespace JustOneMorePeel
             error="Invalid or incompatible save";
             bool paperTrial=scene==PaperCollectionScene;
             bool archive=scene==ArchiveIssueScene || paperTrial;
+            bool pavilion=scene==PavilionScene || scene==PavilionHubScene;
+            bool carriesPaper=paperTrial || scene==PavilionHubScene;
             if(save==null || save.version!=CurrentVersion || save.scene!=scene || save.stacks==null ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>PeelGame.CardToolSlot ||
-                (save.activeTool==PeelGame.CardToolSlot && ((scene!=MainRouteScene && scene!=PavilionScene) || save.toolLevel==0)) ||
+                (save.activeTool==PeelGame.CardToolSlot && ((scene!=MainRouteScene && !pavilion) || save.toolLevel==0)) ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
                 (archive && (save.toolLevel>1 || save.steamUnlocked)) ||
                 (save.activeTool==1 && (archive ? save.toolLevel!=1 : !save.steamUnlocked)) ||
-                (paperTrial && (!ValidPaper(save.paper) || (save.toolLevel>0 && !save.paper.scraperOwned))) ||
+                (carriesPaper && (!ValidPaper(save.paper) || (save.toolLevel>0 && !save.paper.scraperOwned))) ||
                 !Finite(save.elapsed) || save.elapsed<0 ||
                 !Finite(save.position.x) || !Finite(save.position.y) || !Finite(save.position.z) ||
                 !Finite(save.rotation.x) || !Finite(save.rotation.y) || !Finite(save.rotation.z) || !Finite(save.rotation.w) ||
@@ -67,15 +70,15 @@ namespace JustOneMorePeel
             {
                 if(item==null || string.IsNullOrEmpty(item.id) || !seen.Add(item.id) || !index.TryGetValue(item.id,out var stack) ||
                     item.cleared<0 || item.cleared>stack.PosterCount || !ValidStrips(item.strips,item.cleared==stack.PosterCount))return false;
-                if(scene==PavilionScene && save.lightOn && item.cleared!=stack.PosterCount)
+                if(pavilion && save.lightOn && item.cleared!=stack.PosterCount)
                 {error="Pavilion light is on with paper still attached";return false;}
-                if(paperTrial)
+                if(carriesPaper)
                 {
                     removed+=item.cleared*4;
                     foreach(float p in item.strips)if(p==1f)removed++;
                 }
             }
-            if(paperTrial && (seen.Count!=index.Count || save.paper.value>removed*PeelProgressionController.StripValue))return false;
+            if(carriesPaper && (seen.Count!=index.Count || save.paper.value>removed*PeelProgressionController.StripValue))return false;
             if(seen.Count!=index.Count)
             {
                 // Older archive shifts ended at issue (2 stacks) or sorting (5 stacks).

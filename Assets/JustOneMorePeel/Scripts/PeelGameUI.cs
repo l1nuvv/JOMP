@@ -43,6 +43,8 @@ namespace JustOneMorePeel
         bool TryBuySteam();
         bool TryExpandSteam();
         bool CanUseWorkbench();
+        bool CanDeliverPaper();
+        bool CanReadHubCabinet();
     }
 
     internal sealed class PeelGameUI
@@ -54,6 +56,7 @@ namespace JustOneMorePeel
         readonly PeelAreaExperiment areaExperiment;
         readonly PeelBasementLight basementLight;
         readonly PeelPavilion pavilion;
+        readonly PeelPavilionHub hub;
         readonly Camera view;
         bool focusMenu=true;
         int menuSelection;
@@ -87,11 +90,12 @@ namespace JustOneMorePeel
         bool worldSession => session.WorldSession;
         bool archiveIssueSlice => session.ArchiveIssueSlice;
         bool paperCollection => session.PaperCollectionActive;
-        PeelSaveCoordinator save => paperCollection ? paperSave : shiftSave;
+        bool paperTrial => paperCollection && paperSave!=null;
+        PeelSaveCoordinator save => paperTrial ? paperSave : shiftSave;
         bool HasAlternateStart => routePrototype || paperSave!=null;
         bool CanCopyArchive => paperSave!=null && paperSave.InspectIfPathChanged()==SaveEntry.New
             && shiftSave.InspectIfPathChanged() is SaveEntry.Continue or SaveEntry.Backup;
-        int ShopOptionCount => paperCollection?3:4;
+        int ShopOptionCount => paperTrial ? 3 : hub ? 5 : 4;
         bool hasSavedShift => archiveIssueSlice || routePrototype || pavilion;
         PeelScreen restartReturn => session.RestartReturn;
         bool resetFailed => session.ResetFailed;
@@ -104,11 +108,11 @@ namespace JustOneMorePeel
 
         internal PeelGameUI(IPeelGameUIState session,PeelInteractionController interaction,PeelSaveCoordinator save,
             PeelSaveCoordinator paperSave,PeelRoutePrototype route,PeelAreaExperiment area,PeelBasementLight light,Camera view,
-            PeelPavilion pavilion)
+            PeelPavilion pavilion,PeelPavilionHub hub)
         {
             this.session=session;this.interaction=interaction;shiftSave=save;this.paperSave=paperSave;
             routePrototype=route;areaExperiment=area;basementLight=light;
-            this.view=view;this.pavilion=pavilion;
+            this.view=view;this.pavilion=pavilion;this.hub=hub;
         }
 
         internal void ResetMenu(int selection=0)
@@ -162,7 +166,7 @@ namespace JustOneMorePeel
             int count=CurrentScreen==PeelScreen.Intro?(CanCopyArchive?4:HasAlternateStart?3:2)
                 :CurrentScreen==PeelScreen.ConfirmRestart?2:CurrentScreen==PeelScreen.Settings?4:3;
             if(CurrentScreen==PeelScreen.Shop)count=ShopOptionCount;
-            if(CurrentScreen==PeelScreen.ReadingArchiveNote)count=1;
+            if(CurrentScreen is PeelScreen.ReadingArchiveNote or PeelScreen.ReadingHubCabinet)count=1;
             if (CurrentScreen == PeelScreen.Paused && hasSavedShift) count = 4;
             bool reverseTab=keyboard.tabKey.wasPressedThisFrame && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
             if((keyboard.tabKey.wasPressedThisFrame && !reverseTab) || keyboard.downArrowKey.wasPressedThisFrame)
@@ -188,7 +192,7 @@ namespace JustOneMorePeel
                 else if(menuSelection==3 && CanCopyArchive)session.CopyArchiveToPaperCollection();
             }
             else if(CurrentScreen==PeelScreen.Paused){if(menuSelection==0)session.Back();else if(menuSelection==1)session.OpenSettings();else if(menuSelection==2)session.RequestRestart();else session.ReturnToMainMenu();}
-            else if(CurrentScreen==PeelScreen.ReadingArchiveNote)session.Back();
+            else if(CurrentScreen is PeelScreen.ReadingArchiveNote or PeelScreen.ReadingHubCabinet)session.Back();
             else if(CurrentScreen==PeelScreen.ConfirmRestart){if(menuSelection==0)session.Back();else session.RestartShift();}
             else if(CurrentScreen==PeelScreen.Settings)
             {if(menuSelection==0)ChangeLanguage(Settings.Language==PeelLanguage.English?PeelLanguage.Russian:PeelLanguage.English);else if(menuSelection==3)session.Back();}
@@ -196,7 +200,7 @@ namespace JustOneMorePeel
             {
                 if(menuSelection==0)session.TryUpgrade();
                 else if(menuSelection==ShopOptionCount-1)session.Back();
-                else if(paperCollection)BuyPaperCapacity();
+                else if(paperTrial || (hub && menuSelection==3))BuyPaperCapacity();
                 else if(menuSelection==1)session.TryBuySteam();
                 else session.TryExpandSteam();
             }
@@ -295,10 +299,14 @@ namespace JustOneMorePeel
             GUI.matrix=Matrix4x4.Scale(Vector3.one*scale);float w=Screen.width/scale,h=Screen.height/scale;
             if(CurrentScreen==PeelScreen.Settings){DrawSettings(w,h);FocusMenu();return;}
             if(CurrentScreen==PeelScreen.ReadingArchiveNote){DrawArchiveNote(w,h);FocusMenu();return;}
+            if(CurrentScreen==PeelScreen.ReadingHubCabinet){DrawHubCabinet(w,h);FocusMenu();return;}
             if(CurrentScreen==PeelScreen.Intro)
             {
                 bool ru=Settings.Language==PeelLanguage.Russian;
-                string details=pavilion
+                string details=hub
+                    ? (ru ? "Очисти витрину. Отнеси бумагу в приёмную слева.\nE — сдать пачку, открыть магазин или шкаф.\nWASD — ходьба, ЛКМ — снять бумагу."
+                          : "Clear the display and take the paper to reception on the left.\nE — drop off paper, open the shop or inspect the cabinet.\nWASD to move, LMB to peel.")
+                    : pavilion
                     ? (ru ? "Очисти витрину и включи подсветку росписи.\nWASD — ходьба, ЛКМ — снять бумагу.\nПодойди к тележке и нажми E для покупки."
                           : "Clear the display and turn on the mural lights.\nWASD to move, LMB to peel.\nLook at the cart up close and press E to shop.")
                     : archiveIssueSlice
@@ -357,31 +365,25 @@ namespace JustOneMorePeel
             if(CurrentScreen==PeelScreen.Shop)
             {
                 bool ru=Settings.Language==PeelLanguage.Russian;
-                float resultY=paperCollection?332:427;
+                float resultY=paperTrial ? 332 : hub ? 522 : 427;
                 float closeY=resultY+72;
                 Panel(new Rect(38,61,514,closeY+58-61));
                 GUI.Label(new Rect(58,71,330,42),T(paperCollection?PeelText.PaperShop:PeelText.Tools),title);
                 GUI.Label(new Rect(365,77,157,32),"$"+money,shopBalance);
                 GUI.Label(new Rect(58,111,474,24),string.Format(T(PeelText.EquippedTool),EquippedTool()),hudPrimary);
-                bool scraperOwned=paperCollection ? session.TrialScraperOwned : toolLevel>=3;
-                string upgrade=scraperOwned ? T(paperCollection?PeelText.PaperShopScraperOwned:PeelText.MaxUpgrade)
+                bool scraperOwned=paperTrial ? session.TrialScraperOwned : toolLevel>=3;
+                string upgrade=scraperOwned ? T(paperTrial?PeelText.PaperShopScraperOwned:PeelText.MaxUpgrade)
                     : toolLevel==0 ? T(PeelText.Scraper) : (ru ? "Заточка шпателя" : "Sharpen scraper");
-                string scraperEffect=paperCollection ? T(PeelText.PaperShopScraperEffect)
+                string scraperEffect=paperTrial ? T(PeelText.PaperShopScraperEffect)
                     : toolLevel==0 ? T(PeelText.ShopScraperEffect) : SharpeningPreview();
                 if(ShopOffer(140,0,upgrade,scraperEffect,UpgradeCost,owned:scraperOwned))session.TryUpgrade();
-                if(paperCollection)
-                {
-                    bool max=session.PaperCapacityPrice==0;
-                    string label=max ? string.Format(T(PeelText.PaperCapacityMax),session.PaperCapacity)
-                        : (ru ? "Вместимость до " : "Capacity to ")+session.NextPaperCapacity;
-                    string bundle=string.Format(T(PeelText.PaperCollectionCount),session.CollectedItems,session.PaperCapacity);
-                    if(ShopOffer(235,1,label,bundle,session.PaperCapacityPrice,owned:max))BuyPaperCapacity();
-                }
+                if(paperTrial)DrawCapacityOffer(235,1,ru);
                 else
                 {
                     if(ShopOffer(235,1,T(PeelText.Steamer),T(PeelText.SteamDescription),session.SteamPrice,toolLevel==0?T(PeelText.SteamLocked):null,steamUnlocked))session.TryBuySteam();
                     string expansion=ru ? "Широкий пар" : "Wider steam";
                     if(ShopOffer(330,2,expansion,T(PeelText.ShopWiderSteamEffect),SteamExpansionCost,!steamUnlocked?T(PeelText.ShopRequiresSteam):null,steamExpanded))session.TryExpandSteam();
+                    if(hub)DrawCapacityOffer(425,3,ru);
                 }
                 string result=ShopPurchaseResult(ru);
                 if(result.Length>0)
@@ -496,6 +498,15 @@ namespace JustOneMorePeel
                 ru ? "Tab / ↑↓ — выбор · Enter — открыть" : "Tab / ↑↓ — select · Enter — open",hudLabel);
         }
 
+        void DrawCapacityOffer(float y,int index,bool ru)
+        {
+            bool max=session.PaperCapacityPrice==0;
+            string label=max ? string.Format(T(PeelText.PaperCapacityMax),session.PaperCapacity)
+                : (ru ? "Вместимость до " : "Capacity to ")+session.NextPaperCapacity;
+            string bundle=string.Format(T(PeelText.PaperCollectionCount),session.CollectedItems,session.PaperCapacity);
+            if(ShopOffer(y,index,label,bundle,session.PaperCapacityPrice,owned:max))BuyPaperCapacity();
+        }
+
         void DrawPlayingHud(float w,float h)
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
@@ -511,10 +522,12 @@ namespace JustOneMorePeel
                     ? (ru ? "Очисти витрину" : "Clear the display")
                     : (ru ? "Включи подсветку слева" : "Turn on the lights at the left end");
             bool bundleFull=paperCollection && session.CollectedItems>=session.PaperCapacity;
-            if(paperCollection)
+            if(paperTrial)
                 objective=bundleFull ? T(PeelText.PaperDropOffObjective)
                     : session.CollectedItems>0 ? T(PeelText.PaperDropOffOptional)
                     : (ru ? "Собери бумагу" : "Collect paper");
+            else if(hub && bundleFull && remaining>0)
+                objective=ru ? "Сдай полную пачку" : "Drop off the full bundle";
             else if(archiveIssueSlice)
             {
                 objective=session.ArchiveIssueAddressFound
@@ -530,7 +543,7 @@ namespace JustOneMorePeel
             if(objective.Length>0)
             {
                 string label=showSummary ? ShiftSummaryDetails()
-                    : paperCollection ? T(PeelText.PaperCollection)
+                    : paperTrial ? T(PeelText.PaperCollection)
                     : archiveIssueSlice ? (ru ? "Дело №17" : "File 17")
                     : complete && !pavilion ? T(PeelText.PlayTime)+" "+FormatPlayTime()
                     : review ? (ru ? "Осмотр маршрута" : "Route review")
@@ -551,7 +564,8 @@ namespace JustOneMorePeel
             }
 
             DrawSaveWarning(warningY,ru);
-            if(!pavilion || !complete)DrawToolStatus(w,ru,bundleFull);
+            if(!pavilion || !complete || (hub && (session.CollectedItems>0 || Time.unscaledTime<payoutUntil)))
+                DrawToolStatus(w,ru,bundleFull);
             DrawRouteGuidance(w,h,ru);
             if(!pavilion || !complete)DrawReticle(w,h);
             if(IsPeeling)return;
@@ -684,6 +698,8 @@ namespace JustOneMorePeel
                 detail=string.Format(T(bundleFull ? PeelText.PaperCollectionFull : PeelText.PaperCollectionCount),
                     session.CollectedItems,session.PaperCapacity);
                 if(payout)detail+="\n"+string.Format(T(PeelText.PaperDropOffReceipt),paperReceiptItems,payoutAmount);
+                else if(hub && toolLevel==0 && CanUpgrade(money,toolLevel))
+                    detail+="\n"+(ru ? "Шпатель в приёмной" : "Scraper at reception");
             }
             else if(ShowsFirstScraperOffer)
                 detail=CanUpgrade(money,toolLevel) ? (ru ? "Шпатель на тележке" : "Scraper at the cart")
@@ -718,9 +734,15 @@ namespace JustOneMorePeel
                     : (ru ? "E — Включить свет" : "E — Switch on light");
             if(pavilion && pavilion.CanTurnOn(view,TotalPosters-ClearedPosters))
                 return ru ? "E — Включить подсветку" : "E — Turn on the lights";
+            if(session.CanReadHubCabinet())return ru ? "E — Осмотреть шкаф" : "E — Inspect the cabinet";
+            if(session.CanDeliverPaper())
+            {
+                if(paperTrial)return T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty);
+                if(session.CollectedItems>0)return ru ? "E — Сдать бумагу" : "E — Drop off paper";
+                return ru ? "Пачка пуста" : "Bundle empty";
+            }
             if(session.CanUseWorkbench())
-                return paperCollection ? T(session.CollectedItems>0 ? PeelText.PaperDropOffInteract : PeelText.PaperDropOffEmpty)
-                    : T(PeelText.Workbench);
+                return T(PeelText.Workbench);
 
             if(AwaitingRelease && !bundleFull)return T(PeelText.ReleaseGrip);
             string hint=bundleFull ? "" : TargetHint();
@@ -766,6 +788,16 @@ namespace JustOneMorePeel
             if(MenuButton(new Rect(width*.5f-90f,height-52f,180f,36f),T(PeelText.Back),0,primary:true))session.Back();
         }
 
+        void DrawHubCabinet(float width,float height)
+        {
+            bool ru=Settings.Language==PeelLanguage.Russian;
+            var panel=new Rect((width-460f)*.5f,(height-195f)*.5f,460f,195f);
+            Panel(panel);
+            GUI.Label(new Rect(panel.x+22f,panel.y+18f,416f,45f),PeelPavilionHub.CabinetTitle(ru),title);
+            GUI.Label(new Rect(panel.x+22f,panel.y+73f,416f,36f),ru ? "В шкафу пока пусто." : "The cabinet is empty.",text);
+            if(MenuButton(new Rect(panel.x+22f,panel.y+133f,416f,40f),T(PeelText.Back),0,primary:true))session.Back();
+        }
+
         string ShiftSummaryDetails()
         {
             int total=routePrototype.RequiredNoticesTotal;
@@ -798,7 +830,11 @@ namespace JustOneMorePeel
         void DrawSettings(float w,float h)
         {
             string controls=T(PeelText.SettingsHelp);
-            if(paperCollection)controls=T(PeelText.PaperCollectionControls);
+            if(paperTrial)controls=T(PeelText.PaperCollectionControls);
+            else if(hub)
+                controls=Settings.Language==PeelLanguage.Russian
+                    ? "WASD — движение · Мышь — обзор · ЛКМ — снять бумагу\n1 — шпатель · 2 — пар · 3 — карта\nE — действие · Esc — пауза/назад"
+                    : "WASD — move · Mouse — look · LMB — peel\n1 — Scraper · 2 — Steam · 3 — Card\nE — interact · Esc — pause/back";
             else if(archiveIssueSlice)
                 controls=Settings.Language==PeelLanguage.Russian
                     ? "WASD — движение · Мышь — обзор · ЛКМ — снять лист\n1 — карта · 2 — шпатель · 3 — пар · Esc — пауза/назад\nМеню: Tab / ↑↓ — выбор · ←→ — изменить · Enter — подтвердить"
