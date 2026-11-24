@@ -67,6 +67,9 @@ namespace JustOneMorePeel
         readonly List<PeelNoticeCollection.Card> cabinetCards=new();
         int cabinetFoundCount, cabinetCard=-1;
         Vector2 cabinetScroll;
+        PeelNoticeCollection.Card cabinetDiscovery;
+        int discoveryFrame=-1, discoveriesInFrame;
+        float discoveryUntil;
         int payoutAmount, payoutFrame=-1;
         int paperReceiptItems;
         float payoutUntil;
@@ -130,6 +133,13 @@ namespace JustOneMorePeel
             shopPurchase=null;capacityPurchased=false;purchaseSaveFailed=false;
         }
         internal void ShowWelcome() { noticeUntil=Time.time+5; }
+        internal void ShowCabinetDiscovery(PeelNoticeCollection.Card card)
+        {
+            discoveriesInFrame=discoveryFrame==Time.frameCount ? discoveriesInFrame+1 : 1;
+            discoveryFrame=Time.frameCount;
+            cabinetDiscovery=card;
+            discoveryUntil=Time.unscaledTime+2.8f;
+        }
         internal void Notify(PeelText key)
         {
             if((pavilion || (routePrototype && routePrototype.IsMainRoute)) &&
@@ -580,6 +590,7 @@ namespace JustOneMorePeel
                 DrawToolStatus(w,ru,bundleFull);
             DrawRouteGuidance(w,h,ru);
             if(!pavilion || !complete)DrawReticle(w,h);
+            DrawCabinetDiscovery(w,h,ru);
             if(IsPeeling)return;
 
             string hint=PlayingHint(ru,complete,door,bundleFull);
@@ -634,15 +645,29 @@ namespace JustOneMorePeel
             Fill(new Rect(x-2f,y+3f,4f,9f),Amber,2f);
         }
 
-        void DrawGuidanceLabel(string label,float x,float y,float maxWidth)
+        void DrawGuidanceLabel(string label,float x,float y,float maxWidth,float opacity=1f)
         {
             var content=new GUIContent(label);
             float width=Mathf.Min(maxWidth,hudPrimary.CalcSize(content).x+2*HudPadding);
             float height=hudPrimary.CalcHeight(content,width-2*HudPadding);
             Rect box=new Rect(x-width*.5f,y-height*.5f-6f,width,height+12f);
-            Panel(box);
-            Fill(new Rect(box.x+4f,box.y+5f,3f,box.height-10f),Amber,1.5f);
+            Fill(box,new Color(Ink.r,Ink.g,Ink.b,Ink.a*opacity),9f);
+            Fill(new Rect(box.x+4f,box.y+5f,3f,box.height-10f),
+                new Color(Amber.r,Amber.g,Amber.b,Amber.a*opacity),1.5f);
+            var color=GUI.color;
+            GUI.color=new Color(color.r,color.g,color.b,color.a*opacity);
             GUI.Label(new Rect(box.x+HudPadding,box.y+6f,width-2*HudPadding,height),content,hudPrimary);
+            GUI.color=color;
+        }
+
+        void DrawCabinetDiscovery(float w,float h,bool ru)
+        {
+            float remaining=discoveryUntil-Time.unscaledTime;
+            if(cabinetDiscovery==null || remaining<=0)return;
+            string label=discoveriesInFrame==1
+                ? (ru ? "В шкафу · " : "Added to the cabinet · ")+cabinetDiscovery.Title(ru)
+                : (ru ? "Новых оттисков в шкафу · " : "New prints in the cabinet · ")+discoveriesInFrame;
+            DrawGuidanceLabel(label,w*.5f,h*.26f,w*.65f,Mathf.Clamp01(remaining/.35f));
         }
 
         void DrawSaveWarning(float y,bool ru)

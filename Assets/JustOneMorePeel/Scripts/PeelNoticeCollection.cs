@@ -86,10 +86,14 @@ namespace JustOneMorePeel
             }
         }
 
-        internal void RecordClearedSheet(PeelPosterStack stack, int layer)
+        internal Card RecordClearedSheet(PeelPosterStack stack, int layer)
         {
             var card = cardsByDesign[stack.DesignAt(layer)];
-            if (card != null) card.FoundBays |= BayMask(stack.PersistentId);
+            int bay = BayMask(stack.PersistentId);
+            if (card == null || bay == 0) return null;
+            bool first = card.FoundBays == 0;
+            card.FoundBays |= bay;
+            return first ? card : null;
         }
 
         internal void Restore(IReadOnlyList<PeelPosterStack> stacks)

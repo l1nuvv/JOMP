@@ -563,7 +563,8 @@ namespace JustOneMorePeel
         public void PosterCleared(PeelPosterStack stack)
         {
             ClearedPosters++;
-            if(hub)hub.Collection.RecordClearedSheet(stack,stack.ClearedPosters-1);
+            if(hub && hub.Collection.RecordClearedSheet(stack,stack.ClearedPosters-1) is { } discovery)
+                ui.ShowCabinetDiscovery(discovery);
             PosterWasCleared?.Invoke(stack);
         }
         public void PosterMaterialsChanged(PeelPosterStack stack)
