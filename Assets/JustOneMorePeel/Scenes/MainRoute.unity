@@ -9192,6 +9192,14 @@ MonoBehaviour:
   steamerViewPrefab: {fileID: 2197928959107620396, guid: 89bdc0d2d677eca4680bc2f6c965a42a, type: 3}
   archiveIssueSlice: 0
   archiveIssueAddress: {fileID: 77974533}
+  fixedNoticeStacks:
+  - {fileID: 2037293870}
+  - {fileID: 1659300182}
+  - {fileID: 1707906887}
+  - {fileID: 172274536}
+  - {fileID: 1537632974}
+  - {fileID: 1103256759}
+  - {fileID: 692950776}
   archiveIssueShelfLabel: {fileID: 87274382}
   money: 0
   removed: 0

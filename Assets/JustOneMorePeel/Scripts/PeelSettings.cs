@@ -137,6 +137,7 @@ namespace JustOneMorePeel
             var texture = russianPapers[design].mainTexture;
             return texture ? texture.name : null;
         }
+        internal string PaperSaveId(int design) => russianPapers[design].name;
         public void SetLanguage(PeelLanguage language)
         {
             if(language!=PeelLanguage.English && language!=PeelLanguage.Russian)return;

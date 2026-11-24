@@ -18,6 +18,8 @@ namespace JustOneMorePeel
         readonly PeelBasementLight basementLight;
         readonly PeelPavilion pavilion;
         readonly PeelPavilionHub hub;
+        readonly string[] localPalette;
+        int saveVersion=PeelWorldSave.CurrentVersion;
         readonly int TotalPosters;
         string WorldSavePath => path();
         string inspectedSavePath;
@@ -32,10 +34,12 @@ namespace JustOneMorePeel
         internal bool InspectedShiftFinished { get; private set; }
 
         internal PeelSaveCoordinator(UnityEngine.Object context, Func<string> path, string sceneId, List<PeelPosterStack> stacks,
-            int totalPosters, PeelRoutePrototype route, PeelBasementLight light, PeelPavilion pavilion=null, PeelPavilionHub hub=null)
+            int totalPosters, PeelSettings settings, PeelRoutePrototype route, PeelBasementLight light, PeelPavilion pavilion=null, PeelPavilionHub hub=null)
         {
             this.context=context;this.path=path;this.sceneId=sceneId;this.stacks=stacks;TotalPosters=totalPosters;
             routePrototype=route;basementLight=light;this.pavilion=pavilion;this.hub=hub;
+            localPalette=new string[settings.PaperCount];
+            for(int i=0;i<localPalette.Length;i++)localPalette[i]=settings.PaperSaveId(i);
         }
 
         internal SaveEntry InspectIfPathChanged()
@@ -70,11 +74,12 @@ namespace JustOneMorePeel
         {
             if((routePrototype && routePrototype.ReviewMode) || !SaveIndex(out var index))return false;
             saveSucceeded=false;
-            var data=new PeelWorldSave {version=hub ? hub.NoticeLayoutVersion : PeelWorldSave.CurrentVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
+            var data=new PeelWorldSave {version=saveVersion,scene=sceneId,money=money,toolLevel=toolLevel,activeTool=activeTool,
                 steamUnlocked=steamUnlocked,steamExpanded=steamExpanded,elapsed=elapsed,position=player.transform.position,
                 rotation=player.transform.rotation,firstDoorOpen=routePrototype && routePrototype.CourtyardDoorOpen,
                 lightOn=pavilion ? pavilion.IsLit : basementLight && basementLight.SwitchIsOn,
-                stacks=new PeelStackSave[index.Count],paper=paper};
+                stacks=new PeelStackSave[index.Count],paper=paper,
+                noticePalette=saveVersion==PeelWorldSave.CurrentVersion ? localPalette : null};
             if(controller && controller.CinemachineCameraTarget)
             {
                 data.hasLookPitch=true;
@@ -84,6 +89,7 @@ namespace JustOneMorePeel
             foreach(var pair in index)
             {
                 var stack=pair.Value;var item=new PeelStackSave {id=pair.Key,cleared=stack.ClearedPosters,strips=new float[4]};
+                if(data.noticePalette!=null)item.prints=stack.ShiftDesigns;
                 if(stack.RemainingPosters>0)
                 {
                     int done=0;
@@ -98,7 +104,7 @@ namespace JustOneMorePeel
                 }
                 data.stacks[n++]=item;
             }
-            if(!PeelWorldSave.Validate(data,sceneId,index,out var error))
+            if(!PeelWorldSave.Validate(data,sceneId,index,MapPalette(data.noticePalette),out var error))
             {Debug.LogError("World save rejected: "+error,context);saveBlocked=true;return false;}
             try
             {
@@ -168,14 +174,26 @@ namespace JustOneMorePeel
         {
             try
             {
-                if(hub)hub.SetNoticeLayout(stacks,data.version);
+                var printMap=MapPalette(data.noticePalette);
+                foreach(var stack in stacks)
+                    stack.ShiftDesigns=data.version==PeelWorldSave.PavilionHubLayoutVersion
+                        ? hub.LegacyPrints(stack,localPalette.Length) : null;
                 int savedRemoved=0,savedCleared=0;
                 foreach(var item in data.stacks)
                 {
-                    var stack=index[item.id];stack.RestoreProgress(item.cleared,item.strips);
+                    var stack=index[item.id];
+                    if(data.version==PeelWorldSave.CurrentVersion)
+                        stack.ShiftDesigns=Array.ConvertAll(item.prints,print => printMap[print]);
+                    stack.RestoreProgress(item.cleared,item.strips);
                     if(basementLight)basementLight.RefreshPosterMaterials(stack);
                     savedCleared+=item.cleared;savedRemoved+=item.cleared*4;
                     foreach(float p in item.strips)if(p>=1)savedRemoved++;
+                }
+                if(data.stacks.Length<index.Count)
+                {
+                    var restored=new HashSet<string>(Array.ConvertAll(data.stacks,item => item.id));
+                    foreach(var pair in index)
+                        if(!restored.Contains(pair.Key))pair.Value.RestoreProgress(0,new float[4]);
                 }
                 applyProgress(data,savedRemoved,savedCleared);
                 if(routePrototype)routePrototype.RestoreProgress(data.firstDoorOpen);
@@ -183,6 +201,7 @@ namespace JustOneMorePeel
                 if(pavilion)pavilion.SetLight(data.lightOn);
                 Physics.SyncTransforms();
                 restorePlayer(data);
+                saveVersion=data.version;
                 return true;
             }
             catch(System.Exception e)
@@ -201,12 +220,16 @@ namespace JustOneMorePeel
             }
             if(sceneId==PeelWorldSave.RouteScene && routePrototype && data!=null && data.version==2 && data.scene==PeelWorldSave.RouteScene)
                 routePrototype.MigrateInteriorSave(data);
-            if(data!=null && (data.version>PeelWorldSave.LatestVersionFor(sceneId) || (data.version>0 && data.scene!=sceneId)))
+            if(data!=null && (data.version>PeelWorldSave.CurrentVersion || (data.version>0 && data.scene!=sceneId) ||
+                (data.version==PeelWorldSave.PavilionHubLayoutVersion && sceneId!=PeelWorldSave.PavilionHubScene)))
                 throw new System.NotSupportedException("Unsupported save version or route.");
-            if(!PeelWorldSave.Validate(data,sceneId,index,out var error))
+            if(!PeelWorldSave.Validate(data,sceneId,index,MapPalette(data?.noticePalette),out var error))
                 throw new System.IO.InvalidDataException(error);
             if(routePrototype && !routePrototype.CanRestoreProgress(data))throw new System.IO.InvalidDataException("Open door with uncleared wall");
             return data;
         }
+
+        int[] MapPalette(string[] palette) => palette==null ? null :
+            Array.ConvertAll(palette,id => Array.IndexOf(localPalette,id));
     }
 }

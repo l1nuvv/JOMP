@@ -197,7 +197,7 @@ namespace JustOneMorePeel
                     throw new System.IO.InvalidDataException("Invalid legacy interior progress.");
                 if(entry.cleared==oldDepth)entry.cleared=stack.PosterCount;
             }
-            data.version=PeelWorldSave.CurrentVersion;
+            data.version=PeelWorldSave.AuthoredLayoutVersion;
         }
         internal void MigrateCourtyardSave(PeelWorldSave data)
         {

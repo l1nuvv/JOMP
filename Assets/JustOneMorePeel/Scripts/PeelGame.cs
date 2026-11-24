@@ -21,6 +21,7 @@ namespace JustOneMorePeel
         [SerializeField] private GameObject steamerViewPrefab;
         [SerializeField] private bool archiveIssueSlice;
         [SerializeField] private PeelPosterStack archiveIssueAddress;
+        [SerializeField] private PeelPosterStack[] fixedNoticeStacks;
         [SerializeField] private TextMesh archiveIssueShelfLabel;
         [SerializeField] private PeelWorkbench paperDropOff;
         public int money, removed, total, toolLevel;
@@ -151,7 +152,7 @@ namespace JustOneMorePeel
             Outline=new GameObject("Target poster outline").AddComponent<PeelPosterOutline>();
             hub=GetComponent<PeelPavilionHub>();
             stacks.AddRange(FindObjectsByType<PeelPosterStack>());
-            if(hub)hub.SetNoticeLayout(stacks,PeelWorldSave.PavilionHubLayoutVersion);
+            PeelNoticeLayout.Generate(Settings,stacks,archiveIssueAddress,fixedNoticeStacks);
             foreach(var stack in stacks)
             {stack.Initialize(this);TotalPosters+=stack.PosterCount;}
             var wallVisibility=gameObject.AddComponent<PeelWallVisibility>();wallVisibility.Initialize(view,stacks);
@@ -171,9 +172,9 @@ namespace JustOneMorePeel
             string saveScene=hub ? PeelWorldSave.PavilionHubScene : pavilion ? PeelWorldSave.PavilionScene :
                 archiveIssueSlice ? PeelWorldSave.ArchiveIssueScene :
                 routePrototype && routePrototype.IsMainRoute ? PeelWorldSave.MainRouteScene : PeelWorldSave.RouteScene;
-            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,routePrototype,basementLight,pavilion,hub);
+            save=new PeelSaveCoordinator(this,()=>WorldSavePath(),saveScene,stacks,TotalPosters,Settings,routePrototype,basementLight,pavilion,hub);
             if(archiveIssueSlice && paperDropOff)
-                paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,null,null);
+                paperSave=new PeelSaveCoordinator(this,()=>WorldSavePath(true),PeelWorldSave.PaperCollectionScene,stacks,TotalPosters,Settings,null,null);
             interaction.Initialize(audio,wallVisibility,posterField,Outline,Scraps,screenController.SetLookFrozen,
                 detached=>PaperDetached?.Invoke(detached));
             ui=new PeelGameUI(this,interaction,save,paperSave,routePrototype,areaExperiment,basementLight,view,pavilion,hub);

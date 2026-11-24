@@ -10,6 +10,7 @@ namespace JustOneMorePeel
         public string id;
         public int cleared;
         public float[] strips;
+        public int[] prints;
     }
 
     [Serializable] public struct PeelPaperSave
@@ -21,7 +22,8 @@ namespace JustOneMorePeel
 
     [Serializable] public sealed class PeelWorldSave
     {
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 5;
+        internal const int AuthoredLayoutVersion = 3;
         internal const int PavilionHubLayoutVersion = 4;
         public const string RouteScene = "three-area";
         public const string ArchiveIssueScene = "main-archive-issue";
@@ -40,21 +42,21 @@ namespace JustOneMorePeel
         public Vector3 position;
         public Quaternion rotation;
         public PeelStackSave[] stacks;
+        public string[] noticePalette;
         public PeelPaperSave paper;
 
         public static string DefaultPath => Path.Combine(Application.persistentDataPath,"three-area-save-v1.json");
 
-        internal static int LatestVersionFor(string scene) => scene == PavilionHubScene ? PavilionHubLayoutVersion : CurrentVersion;
-
-        public static bool Validate(PeelWorldSave save, string scene,
-            Dictionary<string,PeelPosterStack> index, out string error)
+        internal static bool Validate(PeelWorldSave save, string scene,
+            Dictionary<string,PeelPosterStack> index, int[] printMap, out string error)
         {
             error="Invalid or incompatible save";
             bool paperTrial=scene==PaperCollectionScene;
             bool archive=scene==ArchiveIssueScene || paperTrial;
             bool pavilion=scene==PavilionScene || scene==PavilionHubScene;
             bool carriesPaper=paperTrial || scene==PavilionHubScene;
-            if(save==null || (save.version!=CurrentVersion && save.version!=LatestVersionFor(scene)) || save.scene!=scene || save.stacks==null ||
+            if(save==null || (save.version!=CurrentVersion && save.version!=AuthoredLayoutVersion &&
+                !(scene==PavilionHubScene && save.version==PavilionHubLayoutVersion)) || save.scene!=scene || save.stacks==null ||
                 save.money<0 || save.toolLevel<0 || save.toolLevel>3 || save.activeTool<0 || save.activeTool>PeelGame.CardToolSlot ||
                 (save.activeTool==PeelGame.CardToolSlot && ((scene!=MainRouteScene && !pavilion) || save.toolLevel==0)) ||
                 (save.steamUnlocked && save.toolLevel==0) || (save.steamExpanded && !save.steamUnlocked) ||
@@ -73,6 +75,7 @@ namespace JustOneMorePeel
             {
                 if(item==null || string.IsNullOrEmpty(item.id) || !seen.Add(item.id) || !index.TryGetValue(item.id,out var stack) ||
                     item.cleared<0 || item.cleared>stack.PosterCount || !ValidStrips(item.strips,item.cleared==stack.PosterCount))return false;
+                if(save.version==CurrentVersion && !ValidPrints(item.prints,stack.PosterCount,printMap))return false;
                 if(pavilion && save.lightOn && item.cleared!=stack.PosterCount)
                 {error="Pavilion light is on with paper still attached";return false;}
                 if(carriesPaper)
@@ -85,11 +88,18 @@ namespace JustOneMorePeel
             if(seen.Count!=index.Count)
             {
                 // Older archive shifts ended at issue (2 stacks) or sorting (5 stacks).
-                if(!archive || !seen.Contains("archive.issue.precision") || !seen.Contains("archive.issue.wide"))return false;
+                if(save.version!=AuthoredLayoutVersion || !archive || !seen.Contains("archive.issue.precision") || !seen.Contains("archive.issue.wide"))return false;
                 if(seen.Count!=2 && !(seen.Count==5 && seen.Contains("archive.sorting.rounds") &&
                     seen.Contains("archive.sorting.parcels") && seen.Contains("archive.sorting.warning")))return false;
             }
             error=null;return true;
+        }
+        static bool ValidPrints(int[] prints,int posterCount,int[] printMap)
+        {
+            if(prints==null || prints.Length!=posterCount || printMap==null)return false;
+            foreach(int print in prints)
+                if(print<0 || print>=printMap.Length || printMap[print]<0)return false;
+            return true;
         }
         static bool ValidPaper(PeelPaperSave paper)
         {

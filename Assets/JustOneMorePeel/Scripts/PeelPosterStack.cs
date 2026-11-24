@@ -23,7 +23,6 @@ namespace JustOneMorePeel
         [SerializeField] private PeelStrip[] front;
         [SerializeField] private PeelStrip[] back;
         [SerializeField, HideInInspector] private string persistentId;
-        int sequenceStride;
         PeelGame game;
         float width;
         int removedMask;
@@ -74,7 +73,7 @@ namespace JustOneMorePeel
         public int RemainingPosters => posterCount-ClearedPosters;
         public PeelStrip[] CurrentStrips => front;
         public bool NeedsAdvance => removedMask==15;
-        internal int? SecondDesignOverride { private get; set; }
+        internal int[] ShiftDesigns { get; set; }
         internal void RestoreProgress(int cleared, float[] progress)
         {
             ClearedPosters=cleared;removedMask=0;ShowBuffers();
@@ -94,21 +93,20 @@ namespace JustOneMorePeel
             if(front==null || back==null || front.Length!=4 || back.Length!=4)
                 throw new InvalidOperationException("A poster stack needs two four-strip buffers: "+name);
             game=owner;width=maximumPaperSize>0?maximumPaperSize:front[0].width*4;
-            // Each patch has a local ten-design rotation drawn from the full
-            // catalogue. This bounds deep-mesh material groups as content grows.
-            sequenceStride=7;
-            while(Gcd(sequenceStride,game.Settings.PaperCount)!=1)sequenceStride++;
             ClearedPosters=0;removedMask=0;
             ShowBuffers();
         }
-        internal int DesignAt(int layer)
+        internal int DesignAt(int layer) => ShiftDesigns?[layer] ?? AuthoredDesignAt(layer,game.Settings.PaperCount);
+
+        internal int AuthoredDesignAt(int layer,int count)
         {
             if(layer==0)return firstDesign;
-            int count=game.Settings.PaperCount;
-            int second=SecondDesignOverride ?? (secondDesign==firstDesign ? (secondDesign+1)%count : secondDesign);
+            int second=secondDesign==firstDesign ? (secondDesign+1)%count : secondDesign;
             if(layer==1)return second;
             if(deeperDesigns!=null && deeperDesigns.Length>0)
                 return deeperDesigns[(layer-2)%deeperDesigns.Length];
+            int sequenceStride=7;
+            while(Gcd(sequenceStride,count)!=1)sequenceStride++;
             int start=sequenceOffset%count;
             if(start==second)start=(start+sequenceStride)%count;
             return (start+((layer-2)%Mathf.Min(10,count))*sequenceStride)%count;
@@ -126,7 +124,8 @@ namespace JustOneMorePeel
             if(!scatteredLayers || layer==0)return 1f;
             return .85f+((sequenceOffset*13+layer*23)%31)/100f;
         }
-        float PaperAspect(int design) => paperAspectOverride>0 ? paperAspectOverride : game.Settings.PaperAspect(design);
+        float PaperAspect(int layer) => paperAspectOverride>0 ? paperAspectOverride :
+            game.Settings.PaperAspect(AuthoredDesignAt(layer,game.Settings.PaperCount));
         void ShowBuffers()
         {
             Setup(front,ClearedPosters,LayerDepth(ClearedPosters),true);
@@ -204,7 +203,7 @@ namespace JustOneMorePeel
             bool visible=layer<posterCount;
             int design=visible ? DesignAt(layer) : 0;
             Material material=visible ? game.Settings.Paper(design) : null;
-            float aspect=visible ? PaperAspect(design) : 1;
+            float aspect=visible ? PaperAspect(layer) : 1;
             float paperWidth=width/Mathf.Max(1,aspect),height=paperWidth*aspect;
             float layerScale=layer==0?firstLayerScale:deeperLayerScale;
             paperWidth*=layerScale*LayerSize(layer);height*=layerScale*LayerSize(layer);
@@ -263,7 +262,7 @@ namespace JustOneMorePeel
                 int design=DesignAt(layer);var material=materials[design];
                 if(materialGroups[design]<0)
                 {materialGroups[design]=materialCount;materialOrder[materialCount++]=design;}
-                float aspect=PaperAspect(design),w=width/Mathf.Max(1,aspect),h=w*aspect;
+                float aspect=PaperAspect(layer),w=width/Mathf.Max(1,aspect),h=w*aspect;
                 w*=deeperLayerScale*LayerSize(layer);h*=deeperLayerScale*LayerSize(layer);
                 deepDesigns[layer-ClearedPosters-2]=design;deepHeights[layer-ClearedPosters-2]=h;deepWidths[layer-ClearedPosters-2]=w;
                 float z=LayerDepth(layer);int v=baseVertices.Count;

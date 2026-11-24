@@ -11,13 +11,12 @@ namespace JustOneMorePeel
         [SerializeField] private TextMesh shopSign;
         [SerializeField] private TextMesh cabinetSign;
 
-        // Version 4 pairs each placed print with a lower sheet of the same format.
+        // Frozen mapping for saves written by the original PavilionHub layout.
         // Rows are bays 1–4 and entries are paper palette indices for print01 onward.
         static readonly Dictionary<string, int> LowerPrints = BuildLowerPrints();
 
         internal PeelWorkbench LocalDropOff => localDropOff;
         internal PeelNoticeCollection Collection { get; private set; }
-        internal int NoticeLayoutVersion { get; private set; }
 
         static Dictionary<string, int> BuildLowerPrints()
         {
@@ -35,15 +34,10 @@ namespace JustOneMorePeel
             return prints;
         }
 
-        internal void SetNoticeLayout(IReadOnlyList<PeelPosterStack> stacks, int version)
-        {
-            if (NoticeLayoutVersion == version) return;
-            NoticeLayoutVersion = version;
-            foreach (var stack in stacks)
-                stack.SecondDesignOverride = version == PeelWorldSave.PavilionHubLayoutVersion &&
-                    stack.PosterCount == 2 && !string.IsNullOrEmpty(stack.PersistentId) &&
-                    LowerPrints.TryGetValue(stack.PersistentId, out int design) ? design : null;
-        }
+        internal int[] LegacyPrints(PeelPosterStack stack, int paperCount) =>
+            stack.PosterCount == 2 && LowerPrints.TryGetValue(stack.PersistentId, out int design)
+                ? new[] { stack.AuthoredDesignAt(0, paperCount), design }
+                : null;
 
         internal void InitializeCollection(PeelSettings settings, IReadOnlyList<PeelPosterStack> stacks)
         {
