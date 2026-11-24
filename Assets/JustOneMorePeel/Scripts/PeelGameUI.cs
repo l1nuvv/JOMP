@@ -63,8 +63,10 @@ namespace JustOneMorePeel
         bool focusMenu=true;
         int menuSelection;
         const int CabinetColumns=5;
+        const float CabinetRow=148, CabinetViewport=480, CabinetHeading=34;
         readonly List<PeelNoticeCollection.Card> cabinetCards=new();
         int cabinetFoundCount, cabinetCard=-1;
+        Vector2 cabinetScroll;
         int payoutAmount, payoutFrame=-1;
         int paperReceiptItems;
         float payoutUntil;
@@ -222,7 +224,7 @@ namespace JustOneMorePeel
             collectionTitle=new GUIStyle(title){fontSize=27,wordWrap=true};
             text=new GUIStyle(GUI.skin.label){fontSize=19,wordWrap=true};text.normal.textColor=Paper;
             small=new GUIStyle(text){fontSize=15};small.normal.textColor=new Color(.78f,.85f,.83f);
-            cabinetTileTitle=new GUIStyle(small){fontSize=13,alignment=TextAnchor.UpperCenter};
+            cabinetTileTitle=new GUIStyle(small){fontSize=16,alignment=TextAnchor.UpperCenter};
             center=new GUIStyle(text){alignment=TextAnchor.MiddleCenter};
             shopBalance=new GUIStyle(text){alignment=TextAnchor.MiddleRight,fontStyle=FontStyle.Bold};
             shopBalance.normal.textColor=new Color(.97f,.87f,.63f);
@@ -803,6 +805,7 @@ namespace JustOneMorePeel
             cabinetCards.Clear();
             cabinetFoundCount=0;
             cabinetCard=-1;
+            cabinetScroll=Vector2.zero;
             foreach(var card in hub.Collection.Cards)
             {
                 if(card.AvailableBays==0)continue;
@@ -833,25 +836,46 @@ namespace JustOneMorePeel
         void NavigateCabinetGrid(int tab,int vertical,int horizontal,bool confirm)
         {
             int next=menuSelection;
-            int back=cabinetFoundCount;
+            int back=cabinetCards.Count;
             if(tab!=0)
                 next=(next+back+1+tab)%(back+1);
             else if(vertical>0 && next<back)
-                next=next/CabinetColumns==(back-1)/CabinetColumns ? back : Mathf.Min(next+CabinetColumns,back-1);
+            {
+                int end=next<cabinetFoundCount ? cabinetFoundCount : back;
+                int start=next<cabinetFoundCount ? 0 : cabinetFoundCount;
+                int cell=next-start;
+                next=cell/CabinetColumns==(end-start-1)/CabinetColumns
+                    ? Mathf.Min(end+cell%CabinetColumns,end==back ? back : back-1)
+                    : Mathf.Min(next+CabinetColumns,end-1);
+            }
             else if(vertical<0 && back>0)
-                next=next==back ? back-1 : Mathf.Max(0,next-CabinetColumns);
-            else if(horizontal<0 && next<back && next%CabinetColumns!=0)
+            {
+                if(next==back)next=back-1;
+                else if(next>=cabinetFoundCount && next<cabinetFoundCount+CabinetColumns)
+                    next=cabinetFoundCount==0 ? next : Mathf.Min(cabinetFoundCount-1,
+                        (cabinetFoundCount-1)/CabinetColumns*CabinetColumns+next-cabinetFoundCount);
+                else if(next>=CabinetColumns)next-=CabinetColumns;
+            }
+            else if(horizontal<0 && next<back && CabinetColumn(next)!=0)
                 next--;
-            else if(horizontal>0 && next+1<back && next%CabinetColumns<CabinetColumns-1)
+            else if(horizontal>0 && next+1<back && next+1!=cabinetFoundCount && CabinetColumn(next)<CabinetColumns-1)
                 next++;
 
-            if(next!=menuSelection){menuSelection=next;focusMenu=true;}
+            if(next!=menuSelection)
+            {
+                menuSelection=next;focusMenu=true;
+                if(next<back)
+                {
+                    float y=CabinetTileY(next);
+                    cabinetScroll.y=Mathf.Clamp(cabinetScroll.y,Mathf.Max(0,y+CabinetRow-CabinetViewport),y);
+                }
+            }
             if(confirm)ActivateCabinetOption(menuSelection);
         }
 
         void ActivateCabinetOption(int option)
         {
-            if(option==cabinetFoundCount)session.Back();
+            if(option==cabinetCards.Count)session.Back();
             else
             {
                 menuSelection=cabinetCard=option;
@@ -871,35 +895,56 @@ namespace JustOneMorePeel
             ? (ru ? "Двор и соседи" : "Courtyard life")
             : (ru ? "Свободный вечер" : "Free evenings");
 
+        static float CabinetGridHeight(int count) => (count+CabinetColumns-1)/CabinetColumns*CabinetRow;
+        float CabinetFoundHeight => cabinetFoundCount==0 ? CabinetHeading : CabinetGridHeight(cabinetFoundCount);
+        int CabinetColumn(int index) => (index<cabinetFoundCount ? index : index-cabinetFoundCount)%CabinetColumns;
+        float CabinetTileY(int index) => index<cabinetFoundCount
+            ? CabinetHeading+index/CabinetColumns*CabinetRow
+            : CabinetHeading*2+CabinetFoundHeight+(index-cabinetFoundCount)/CabinetColumns*CabinetRow;
+
         void DrawHubCabinet(float width,float height)
         {
             bool ru=Settings.Language==PeelLanguage.Russian;
-            var panel=new Rect((width-1140f)*.5f,(height-656f)*.5f,1140f,656f);
+            var panel=new Rect((width-1216f)*.5f,(height-656f)*.5f,1216f,656f);
             Panel(panel);
             float x=panel.x+26, y=panel.y+19;
             GUI.Label(new Rect(x,y,680,46),PeelPavilionHub.CabinetTitle(ru),title);
-            y+=61;
+            float contentHeight=CabinetHeading+CabinetFoundHeight;
+            if(cabinetFoundCount<cabinetCards.Count)
+                contentHeight+=CabinetHeading+CabinetGridHeight(cabinetCards.Count-cabinetFoundCount);
+            cabinetScroll=GUI.BeginScrollView(new Rect(x,y+61,692,CabinetViewport),cabinetScroll,
+                new Rect(0,0,674,contentHeight));
+            x=1;y=0;
             GUI.Label(new Rect(x,y,610,28),$"{(ru ? "Найдено" : "Found")}  {cabinetFoundCount} / {cabinetCards.Count}",hudPrimary);
-            y+=31;
+            y+=CabinetHeading;
             if(cabinetFoundCount==0)
             {
                 GUI.Label(new Rect(x,y,610,30),ru ? "Здесь появятся объявления, снятые целиком." : "Fully removed notices will appear here.",small);
-                y+=34;
             }
             else y=DrawCabinetGrid(x,y,0,cabinetFoundCount,ru);
 
             if(cabinetFoundCount<cabinetCards.Count)
             {
-                GUI.Label(new Rect(x,y+5,610,27),ru ? "Не найдено" : "Undiscovered",hudPrimary);
-                DrawCabinetGrid(x,y+34,cabinetFoundCount,cabinetCards.Count,ru);
+                GUI.Label(new Rect(x,CabinetHeading+CabinetFoundHeight,610,27),ru ? "Не найдено" : "Undiscovered",hudPrimary);
+                DrawCabinetGrid(x,CabinetHeading*2+CabinetFoundHeight,cabinetFoundCount,cabinetCards.Count,ru);
             }
+            GUI.EndScrollView();
+            x=panel.x+26;
 
-            var detail=new Rect(panel.x+662,panel.y+80,452,516);
+            var detail=new Rect(panel.x+736,panel.y+80,454,516);
             Fill(detail,new Color(.12f,.17f,.15f),8f);
-            if(cabinetCard>=0)DrawCabinetCard(detail,cabinetCards[cabinetCard],ru);
-            else if(cabinetFoundCount>0)
+            if(cabinetCard>=cabinetFoundCount)
+            {
+                GUI.Label(new Rect(detail.x+18,detail.y+30,detail.width-36,60),
+                    ru ? "Объявление пока во дворе" : "Still out in the courtyard",collectionTitle);
+                GUI.Label(new Rect(detail.x+18,detail.y+104,detail.width-36,100),
+                    ru ? "Снимите этот лист целиком, чтобы добавить его оттиск в шкаф."
+                       : "Peel the whole notice to add its print to the cabinet.",text);
+            }
+            else if(cabinetCard>=0)DrawCabinetCard(detail,cabinetCards[cabinetCard],ru);
+            else if(cabinetCards.Count>0)
                 GUI.Label(new Rect(detail.x+18,detail.center.y-36,detail.width-36,72),
-                    ru ? "Выберите найденное объявление." : "Select a found notice.",center);
+                    ru ? "Выберите ячейку." : "Select a tile.",center);
 
             int searchBays=0;
             for(int series=0;series<PeelNoticeCollection.SeriesCount;series++)
@@ -907,30 +952,26 @@ namespace JustOneMorePeel
             if(searchBays!=0)
                 GUI.Label(new Rect(x+187,panel.yMax-50,440,32),
                     (ru ? "Где искать · пролёты " : "Where to look · bays ")+CabinetBayList(searchBays),small);
-            if(MenuButton(new Rect(x,panel.yMax-54,164,36),T(PeelText.Back),cabinetFoundCount,primary:true))
-                ActivateCabinetOption(cabinetFoundCount);
+            if(MenuButton(new Rect(x,panel.yMax-54,164,36),T(PeelText.Back),cabinetCards.Count,primary:true))
+                ActivateCabinetOption(cabinetCards.Count);
         }
 
         float DrawCabinetGrid(float x,float y,int start,int end,bool ru)
         {
-            const float cellWidth=118, stepX=124, stepY=86;
+            const float cellWidth=128, stepX=134;
             for(int index=start;index<end;index++)
             {
                 int cell=index-start;
-                var rect=new Rect(x+cell%CabinetColumns*stepX,y+cell/CabinetColumns*stepY,cellWidth,80);
-                if(index>=cabinetFoundCount)
-                {
-                    Fill(rect,new Color(.12f,.16f,.15f),6f);
-                    GUI.Label(rect,"?",center);
-                    continue;
-                }
-                var card=cabinetCards[index];
-                if(MenuButton(rect,"",index))ActivateCabinetOption(index);
+                var rect=new Rect(x+cell%CabinetColumns*stepX,y+cell/CabinetColumns*CabinetRow,cellWidth,CabinetRow-8);
+                if(MenuButton(rect,index>=cabinetFoundCount ? "?" : "",index))ActivateCabinetOption(index);
                 if(index==cabinetCard)Fill(new Rect(rect.x+1,rect.yMax-4,rect.width-2,3),Amber,1);
-                DrawCabinetPrint(new Rect(rect.x+6,rect.y+5,rect.width-12,42),card.Design);
-                GUI.Label(new Rect(rect.x+4,rect.y+46,rect.width-8,31),card.Title(ru),cabinetTileTitle);
+                if(index>=cabinetFoundCount)
+                    continue;
+                var card=cabinetCards[index];
+                DrawCabinetPrint(new Rect(rect.x+5,rect.y+6,rect.width-10,84),card.Design);
+                GUI.Label(new Rect(rect.x+4,rect.y+93,rect.width-8,42),card.Title(ru),cabinetTileTitle);
             }
-            return y+((end-start+CabinetColumns-1)/CabinetColumns)*stepY;
+            return y+CabinetGridHeight(end-start);
         }
 
         void DrawCabinetCard(Rect rect,PeelNoticeCollection.Card card,bool ru)
