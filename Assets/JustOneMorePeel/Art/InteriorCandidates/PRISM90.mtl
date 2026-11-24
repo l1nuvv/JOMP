@@ -1,0 +1,14 @@
+newmtl Glass
+Kd .72 .85 .82
+
+newmtl Hardware
+Kd .33 .23 .13
+
+newmtl Frame
+Kd .12 .17 .17
+
+newmtl Feet
+Kd .08 .08 .08
+
+newmtl Oak
+Kd .47 .35 .24
