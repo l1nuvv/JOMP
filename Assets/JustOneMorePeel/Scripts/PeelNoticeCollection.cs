@@ -113,12 +113,7 @@ namespace JustOneMorePeel
             return (found, total, searchBays);
         }
 
-        internal Card FoundCard(int series, int index)
-        {
-            foreach (var card in cards)
-                if (card.Series == series && card.FoundBays != 0 && index-- == 0) return card;
-            return null;
-        }
+        internal IReadOnlyList<Card> Cards => cards;
 
         static int BayMask(string id)
         {
